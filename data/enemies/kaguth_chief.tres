@@ -1,0 +1,24 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=7
+text="海岸洞窟围攻"
+hits=3
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="buff"
+text="首领嚎叫"
+strength=2
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="attack_block"
+value=12
+text="骨棒横扫"
+block=6
+
+[resource name="EnemyData"]
+name="亚人首领"
+max_hp=68
+stance=16
+souls=44
+is_elite=true
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]

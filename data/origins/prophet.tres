@@ -1,0 +1,10 @@
+[resource name="OriginData"]
+id="prophet"
+name="预言家"
+level=7
+max_hp=66
+flasks=2
+stats="集中 14 / 信仰 16 / 力量 11"
+equipment="恢复、火焰啊、短矛、指头圣印记"
+note="以祷告管理血线，火焰逼近，恢复拖长战斗。"
+deck=["catch_flame", "catch_flame", "heal", "heal", "heater_shield", "longsword", "rotten_breath", "crimson_flask"]

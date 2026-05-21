@@ -1,0 +1,22 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=9
+text="凯丹弯刀"
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="attack"
+value=6
+text="骑马斩击"
+hits=2
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="buff"
+text="佣兵怒吼"
+strength=2
+
+[resource name="EnemyData"]
+name="凯丹佣兵"
+max_hp=48
+stance=14
+souls=24
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]

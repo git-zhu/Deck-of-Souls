@@ -1,0 +1,29 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=13
+text="手杖连击"
+hits=2
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="attack_block"
+value=14
+text="黄金短剑"
+block=10
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="debuff"
+text="野心之火该灭"
+vulnerable=3
+
+[sub_resource type="MoveData" id="MoveData_4"]
+kind="attack"
+value=22
+text="黄金锤跃击"
+
+[resource name="EnemyData"]
+name="恶兆妖鬼玛尔基特"
+max_hp=110
+stance=24
+souls=120
+is_boss=true
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3, ^MoveData_4]

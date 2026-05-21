@@ -1,0 +1,23 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=15
+text="山妖踩踏"
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="attack_block"
+value=10
+text="岩肤硬直"
+block=10
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="debuff"
+text="矿道震落"
+vulnerable=2
+
+[resource name="EnemyData"]
+name="挖石山妖"
+max_hp=82
+stance=20
+souls=54
+is_elite=true
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]

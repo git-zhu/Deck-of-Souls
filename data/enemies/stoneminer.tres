@@ -1,0 +1,22 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack_block"
+value=6
+text="矿镐与石皮"
+block=7
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="attack"
+value=10
+text="结晶矿镐"
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="debuff"
+text="狭窄矿道"
+vulnerable=1
+
+[resource name="EnemyData"]
+name="挖石矿工"
+max_hp=40
+stance=16
+souls=18
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]

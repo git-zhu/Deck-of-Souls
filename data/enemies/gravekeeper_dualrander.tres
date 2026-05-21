@@ -1,0 +1,22 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=12
+text="连枷旋舞"
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="debuff"
+text="墓地压迫"
+vulnerable=2
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="attack"
+value=18
+text="链锤处刑"
+
+[resource name="EnemyData"]
+name="守墓斗士"
+max_hp=70
+stance=18
+souls=46
+is_elite=true
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]

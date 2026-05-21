@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="heal"
+name="恢复"
+cost=2
+type="祷告"
+rarity="starter"
+text="回复 8 生命，获得 3 护甲。双指信仰留下喘息。"
+tone=Color(0.851, 0.757, 0.427, 1)
+hook_id=""
+exhaust_after_play=false

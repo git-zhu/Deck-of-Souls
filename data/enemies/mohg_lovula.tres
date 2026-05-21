@@ -1,0 +1,29 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=12
+text="接肢剑舞"
+hits=2
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="debuff"
+text="王族凝视"
+vulnerable=3
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="attack_block"
+value=16
+text="兽纹黄金盾"
+block=10
+
+[sub_resource type="MoveData" id="MoveData_4"]
+kind="rot"
+value=6
+text="蜘蛛般的近身压迫"
+
+[resource name="EnemyData"]
+name="接肢贵族"
+max_hp=95
+stance=22
+souls=90
+is_boss=true
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3, ^MoveData_4]

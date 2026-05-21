@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="longsword"
+name="长剑"
+cost=1
+type="武器"
+rarity="starter"
+text="造成 7 点伤害，削减 3 姿态。流浪骑士的可靠起手。"
+tone=Color(0.725, 0.64, 0.482, 1)
+hook_id=""
+exhaust_after_play=false

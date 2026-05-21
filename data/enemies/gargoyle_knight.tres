@@ -1,0 +1,28 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=13
+text="熔炉百相之尾"
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="attack_block"
+value=8
+text="熔炉角盾"
+block=8
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="buff"
+text="古老黄金树之力"
+strength=3
+
+[sub_resource type="MoveData" id="MoveData_4"]
+kind="attack"
+value=18
+text="熔炉百相之翼"
+
+[resource name="EnemyData"]
+name="熔炉骑士"
+max_hp=72
+stance=18
+souls=48
+is_elite=true
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3, ^MoveData_4]

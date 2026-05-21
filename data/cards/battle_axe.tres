@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="battle_axe"
+name="战斧"
+cost=2
+type="武器"
+rarity="starter"
+text="造成 15 点伤害。若破姿态，获得 1 点集中。"
+tone=Color(0.788, 0.514, 0.294, 1)
+hook_id="battle_axe"
+exhaust_after_play=false

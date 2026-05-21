@@ -1,0 +1,22 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=10
+text="君主军大剑"
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="attack_block"
+value=7
+text="风暴面盾"
+block=8
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="buff"
+text="骑士战技"
+strength=2
+
+[resource name="EnemyData"]
+name="葛瑞克骑士"
+max_hp=54
+stance=15
+souls=28
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]

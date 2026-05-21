@@ -1,0 +1,22 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=5
+text="辉石魔砾连射"
+hits=2
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="buff"
+text="卢瑟特辉石杖"
+strength=2
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="attack"
+value=11
+text="卡利亚迅剑"
+
+[resource name="EnemyData"]
+name="学院辉石法师"
+max_hp=42
+stance=10
+souls=22
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]

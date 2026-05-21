@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="great_knife"
+name="伟大匕首"
+cost=0
+type="武器"
+rarity="common"
+text="造成 3 点伤害，积累 3 出血。匕首在阴影里更快。"
+tone=Color(0.647, 0.529, 0.529, 1)
+hook_id=""
+exhaust_after_play=false

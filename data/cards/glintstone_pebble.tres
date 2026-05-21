@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="glintstone_pebble"
+name="辉石魔砾"
+cost=1
+type="魔法"
+rarity="starter"
+text="造成 4 点伤害两次。观星者的第一颗辉石。"
+tone=Color(0.482, 0.627, 0.878, 1)
+hook_id=""
+exhaust_after_play=false

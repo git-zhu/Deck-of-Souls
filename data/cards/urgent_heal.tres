@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="urgent_heal"
+name="紧急恢复"
+cost=1
+type="祷告"
+rarity="starter"
+text="回复 5 生命。若生命低于一半，抽 1 张牌。"
+tone=Color(0.871, 0.812, 0.51, 1)
+hook_id="urgent_heal"
+exhaust_after_play=false

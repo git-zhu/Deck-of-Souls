@@ -1,0 +1,10 @@
+[resource name="OriginData"]
+id="warrior"
+name="战士"
+level=8
+max_hp=68
+flasks=2
+stats="集中 12 / 耐力 11 / 灵巧 16"
+equipment="双弯刀、铆钉木盾"
+note="双刀连击最容易触发低费循环，但防线薄。"
+deck=["scimitar", "scimitar", "scimitar", "scimitar", "buckler", "buckler", "bloodhounds_step", "crimson_flask"]

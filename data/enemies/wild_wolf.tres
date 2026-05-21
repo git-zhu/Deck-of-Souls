@@ -1,0 +1,22 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=5
+text="狼群撕咬"
+hits=2
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="attack"
+value=9
+text="扑击"
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="debuff"
+text="包围低吼"
+vulnerable=1
+
+[resource name="EnemyData"]
+name="野狼"
+max_hp=30
+stance=9
+souls=10
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]

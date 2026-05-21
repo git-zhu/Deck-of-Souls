@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="buckler"
+name="小圆盾"
+cost=1
+type="盾牌"
+rarity="starter"
+text="获得 5 护甲。若敌人意图攻击，削减 4 姿态。"
+tone=Color(0.529, 0.608, 0.604, 1)
+hook_id="buckler"
+exhaust_after_play=false

@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="longbow"
+name="长弓"
+cost=1
+type="武器"
+rarity="starter"
+text="造成 5 点伤害。若敌人没有护甲，抽 1 张牌。"
+tone=Color(0.612, 0.518, 0.345, 1)
+hook_id="longbow"
+exhaust_after_play=false

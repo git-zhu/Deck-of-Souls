@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="club"
+name="棍棒"
+cost=1
+type="武器"
+rarity="starter"
+text="造成 6 点伤害。若这是手牌最后一张，伤害 +5。"
+tone=Color(0.608, 0.478, 0.333, 1)
+hook_id="club"
+exhaust_after_play=false

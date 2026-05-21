@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="destined_death"
+name="命定之死"
+cost=3
+type="传说"
+rarity="rare"
+text="造成 25 点伤害。若击杀敌人，永久获得 +4 最大生命。"
+tone=Color(0.608, 0.482, 0.816, 1)
+hook_id="destined_death"
+exhaust_after_play=false

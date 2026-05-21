@@ -1,0 +1,22 @@
+[sub_resource type="MoveData" id="MoveData_1"]
+kind="attack"
+value=8
+text="虫丝刃"
+
+[sub_resource type="MoveData" id="MoveData_2"]
+kind="rot"
+value=4
+text="猩红腐败孢子"
+
+[sub_resource type="MoveData" id="MoveData_3"]
+kind="attack_rot"
+value=6
+text="艾奥尼亚病灶"
+rot=2
+
+[resource name="EnemyData"]
+name="腐败眷属"
+max_hp=46
+stance=14
+souls=24
+moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]

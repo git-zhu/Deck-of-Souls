@@ -1,0 +1,10 @@
+[resource name="CardData"]
+id="heater_shield"
+name="熨斗形盾"
+cost=1
+type="盾牌"
+rarity="starter"
+text="获得 8 护甲。若敌人意图攻击，返还 1 集中。"
+tone=Color(0.49, 0.612, 0.639, 1)
+hook_id="heater_shield"
+exhaust_after_play=false
