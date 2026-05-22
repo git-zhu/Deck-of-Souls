@@ -24,6 +24,7 @@ var player_rot: int = 0
 var player_bleed: int = 0
 var player_vulnerable: int = 0
 var player_strength: int = 0
+var relics: Array[String] = []
 
 
 func act_index() -> int:
@@ -51,6 +52,7 @@ func reset_for_origin(origin: OriginData, seed: int) -> void:
 	player_bleed = 0
 	player_vulnerable = 0
 	player_strength = 0
+	relics.clear()
 	deck.assign(origin.deck)
 	draw_pile.clear()
 	hand.clear()

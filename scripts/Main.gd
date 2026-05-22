@@ -816,6 +816,8 @@ func _build_header() -> void:
 	header.add_child(_small_stat("生命 %d/%d" % [run_state.hp, run_state.max_hp]))
 	header.add_child(_small_stat("圣杯瓶 %d/%d" % [run_state.flasks, run_state.max_flasks]))
 	header.add_child(_small_stat("卢恩 %d" % run_state.souls))
+	if run_state.relics.size() > 0:
+		header.add_child(_small_stat("护符 %d" % run_state.relics.size()))
 	header.add_child(_small_stat("牌组 %d" % run_state.deck.size()))
 	if screen == GameScreen.COMBAT:
 		header.add_child(_small_stat("抽牌 %d  弃牌 %d" % [run_state.draw_pile.size(), run_state.discard_pile.size()]))

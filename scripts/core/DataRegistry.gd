@@ -8,6 +8,7 @@ const MoveData = preload("res://data/MoveData.gd")
 const ActData = preload("res://data/ActData.gd")
 const GraceOptionData = preload("res://data/GraceOptionData.gd")
 const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
+const RelicData = preload("res://data/RelicData.gd")
 
 const ACT_ORDER: Array[String] = ["limgrave", "stormveil", "liurnia"]
 
@@ -17,6 +18,7 @@ var _enemy_templates: Array = []
 var acts: Array = []
 var grace_options: Dictionary = {}
 var merchant_offers: Dictionary = {}
+var relics: Dictionary = {}
 
 
 func load_all() -> void:
@@ -26,6 +28,7 @@ func load_all() -> void:
 	acts = _load_acts()
 	grace_options = _load_grace_options()
 	merchant_offers = _load_merchant_offers()
+	relics = _load_relics()
 
 
 func get_card(id: String) -> CardData:
@@ -89,6 +92,14 @@ func get_merchant_offer(id: String) -> MerchantOfferData:
 
 func all_merchant_offer_ids() -> Array:
 	return merchant_offers.keys()
+
+
+func get_relic(id: String) -> RelicData:
+	return relics.get(id) as RelicData
+
+
+func all_relic_ids() -> Array:
+	return relics.keys()
 
 
 func pick_named_enemy(rng: RandomNumberGenerator, enemy_name: String, elite: bool, boss: bool) -> Dictionary:
@@ -195,6 +206,24 @@ func _load_grace_options() -> Dictionary:
 			var opt := load("res://data/grace_options/%s" % file) as GraceOptionData
 			if opt != null and opt.id != "":
 				result[opt.id] = opt
+		file = dir.get_next()
+	dir.list_dir_end()
+	return result
+
+
+func _load_relics() -> Dictionary:
+	var result := {}
+	var dir := DirAccess.open("res://data/relics")
+	if dir == null:
+		push_error("Failed to open data/relics directory")
+		return result
+	dir.list_dir_begin()
+	var file := dir.get_next()
+	while file != "":
+		if file.ends_with(".tres") and not file.begins_with("."):
+			var relic := load("res://data/relics/%s" % file) as RelicData
+			if relic != null and relic.id != "":
+				result[relic.id] = relic
 		file = dir.get_next()
 	dir.list_dir_end()
 	return result

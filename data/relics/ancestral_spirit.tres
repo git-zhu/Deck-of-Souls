@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ancestral_spirit"
+name = "祖灵骨灰瓶"
+body = "每场战斗开始多抽 1 张牌。"
+hook = "combat_extra_draw"
+value = 1

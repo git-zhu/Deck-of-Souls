@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "serpentbone_talisman"
+name = "蛇骨护符"
+body = "每场战斗开始获得 1 点力量。"
+hook = "combat_strength"
+value = 1

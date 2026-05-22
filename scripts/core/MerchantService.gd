@@ -2,8 +2,10 @@ class_name MerchantService
 extends RefCounted
 
 const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
+const RelicData = preload("res://data/RelicData.gd")
 const RunState = preload("res://scripts/core/RunState.gd")
 const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
+const RelicService = preload("res://scripts/core/RelicService.gd")
 
 const MAX_FLASKS := 5
 
@@ -93,11 +95,15 @@ func purchase(
 				"message": "花费 %d 卢恩，圣杯瓶上限现为 %d。" % [offer.soul_cost, run.max_flasks],
 				"pick_card": false,
 			}
-		"gain_strength":
-			run.player_strength += offer.effect_value
+		"grant_relic":
+			var relic_service := RelicService.new()
+			var relic: RelicData = relic_service.grant_random_relic(run, registry, rng)
+			if relic == null:
+				run.souls += offer.soul_cost
+				return {"ok": false, "message": "咖列的护符已售罄。", "pick_card": false}
 			return {
 				"ok": true,
-				"message": "花费 %d 卢恩，本场力量 +%d。" % [offer.soul_cost, offer.effect_value],
+				"message": "花费 %d 卢恩，获得护符《%s》。" % [offer.soul_cost, relic.name],
 				"pick_card": false,
 			}
 		_:

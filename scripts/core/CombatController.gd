@@ -4,6 +4,7 @@ extends RefCounted
 const RunState = preload("res://scripts/core/RunState.gd")
 const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const CardEffectResolver = preload("res://scripts/core/CardEffectResolver.gd")
+const RelicService = preload("res://scripts/core/RelicService.gd")
 
 signal combat_changed
 signal combat_ended(kind: String)
@@ -19,6 +20,7 @@ var combat_over: bool = false
 var ember: int = 3
 var max_ember: int = 3
 var block: int = 0
+var relic_service := RelicService.new()
 
 
 func _init(p_run: RunState, p_registry: DataRegistry, p_rng: RandomNumberGenerator) -> void:
@@ -52,6 +54,7 @@ func start_combat(template: Dictionary) -> void:
 	run.hand.clear()
 	run.discard_pile.clear()
 	run.exhaust_pile.clear()
+	relic_service.apply_combat_start(run, registry, self)
 	combat_log("你踏入雾中。%s 举起武器。" % enemy.name)
 	choose_enemy_intent()
 	start_player_turn()
@@ -61,7 +64,8 @@ func start_player_turn() -> void:
 	ember = max_ember
 	block = 0
 	apply_player_start_status()
-	draw_cards(5)
+	var draw_count: int = 5 + relic_service.combat_extra_draw(run, registry)
+	draw_cards(draw_count)
 	combat_changed.emit()
 
 

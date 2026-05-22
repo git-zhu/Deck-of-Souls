@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "crimson_amulet"
+name = "深红护符"
+body = "获得时最大生命 +10。"
+hook = "on_acquire_max_hp"
+value = 10
