@@ -2,9 +2,12 @@ class_name RunRewardFlow
 extends RefCounted
 
 const CardData = preload("res://data/CardData.gd")
+const ActData = preload("res://data/ActData.gd")
 const GraceOptionData = preload("res://data/GraceOptionData.gd")
 const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
 const GraceService = preload("res://scripts/core/GraceService.gd")
+const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
+const RunState = preload("res://scripts/core/RunState.gd")
 const RewardLayerViews = preload("res://scripts/ui/RewardLayerViews.gd")
 const DeckUtils = preload("res://scripts/ui/DeckUtils.gd")
 
@@ -43,7 +46,7 @@ func test_merchant_buy(offer_id: String) -> void:
 	var run_state = host.get("run_state")
 	var rng = host.get("rng")
 	var merchant_service = host.get("merchant_service")
-	var offer := registry.get_merchant_offer(offer_id)
+	var offer: MerchantOfferData = registry.get_merchant_offer(offer_id) as MerchantOfferData
 	if offer == null:
 		push_error("Unknown merchant offer: %s" % offer_id)
 		return
@@ -119,11 +122,11 @@ func on_merchant_buy(offer: MerchantOfferData, slot_index: int) -> void:
 
 func leave_merchant() -> void:
 	host.get("run_state").advance_floor()
-	host.call("_show_map")
+	host.get("run_flow").show_map()
 
 
 func visit_grace() -> void:
-	var options := host.get("grace_service").roll_options(host.get("run_state"), host.get("rng"), 3)
+	var options: Array = host.get("grace_service").roll_options(host.get("run_state"), host.get("rng"), 3)
 	show_grace_rest(options)
 
 
@@ -131,11 +134,11 @@ func test_grace_pick(option_id: String) -> void:
 	var registry = host.get("registry")
 	var run_state = host.get("run_state")
 	var grace_service = host.get("grace_service")
-	var option := registry.get_grace_option(option_id)
+	var option: GraceOptionData = registry.get_grace_option(option_id) as GraceOptionData
 	if option == null:
 		push_error("Unknown grace option: %s" % option_id)
 		return
-	var summary := grace_service.apply(option, run_state)
+	var summary: String = grace_service.apply(option, run_state)
 	if summary == GraceService.PICK_CARD:
 		push_error("Grace pick %s requires card selection UI" % option_id)
 		return
@@ -153,7 +156,7 @@ func on_grace_option_picked(option: GraceOptionData) -> void:
 	var registry = host.get("registry")
 	var run_state = host.get("run_state")
 	var grace_service = host.get("grace_service")
-	var summary := grace_service.apply(option, run_state)
+	var summary: String = grace_service.apply(option, run_state)
 	if summary == GraceService.PICK_CARD:
 		show_remove_card_picker(
 			"遗忘仪式",
@@ -213,6 +216,7 @@ func show_ash_replace_picker(removed_id: String, card_ids: Array, on_done: Calla
 			"从下列战灰中选择一张，覆盖你选定的牌。",
 			card_ids,
 			host.get("registry"),
+			removed_id,
 			host.get("run_state"),
 			on_done
 		)
@@ -243,14 +247,13 @@ func show_message_end(title_text: String, body_text: String) -> void:
 	host.call(
 		"_present_reward_layer",
 		RewardLayerViews.build_centered_continue(
-			title_text, body_text, "继续", func(): host.call("_show_map")
+			title_text, body_text, "继续", func(): host.get("run_flow").show_map()
 		)
 	)
 
 
 func finish_combat_rewards() -> void:
-	host.get("run_state").advance_floor()
-	host.call("_show_map")
+	host.get("run_flow").advance_floor_and_show_map()
 
 
 func show_post_combat_relic_rewards() -> void:
@@ -267,9 +270,9 @@ func show_act_clear(on_done: Callable) -> void:
 	var run_state = host.get("run_state")
 	run_state.hp = run_state.max_hp
 	run_state.flasks = run_state.max_flasks
-	var act := host.get("registry").get_act(run_state.act_index())
+	var act: ActData = host.get("registry").get_act(run_state.act_index()) as ActData
 	host.set("rewards", host.get("combat").roll_rewards(act))
-	var act_title := act.title if act != null else "幕间休整"
+	var act_title: String = act.title if act != null else "幕间休整"
 	host.call(
 		"_present_reward_layer",
 		RewardLayerViews.build_card_rewards(
@@ -287,7 +290,7 @@ func show_act_clear(on_done: Callable) -> void:
 
 
 func show_card_rewards(on_done: Callable) -> void:
-	var act := host.get("registry").get_act(host.get("run_state").act_index())
+	var act: ActData = host.get("registry").get_act(host.get("run_state").act_index()) as ActData
 	host.set("rewards", host.get("combat").roll_rewards(act))
 	host.call(
 		"_present_reward_layer",

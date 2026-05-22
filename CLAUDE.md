@@ -16,12 +16,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-**UI shell + core modules.** Game logic is split; `Main.gd` (~400 lines) routes screens; shared UI in `scripts/ui/`。
+**UI shell + core modules.** Game logic is split; `Main.gd` (~320 lines) owns UI layers and combat HUD; `RunFlowController` / `RunRewardFlow` route run logic; shared UI in `scripts/ui/`。
 
 | Module | Path | Role |
 |---|---|---|
 | Main | `scripts/Main.gd` | Screen routing, combat/map/event flow |
 | RunRewardFlow | `scripts/core/RunRewardFlow.gd` | Merchant, grace, ash, post-combat reward UI flow |
+| RunFlowController | `scripts/core/RunFlowController.gd` | Map options, events, combat entry, combat_ended routing |
 | TitleScreenView / OriginScreenView / MapScreenView / DeckPopupView / EndScreenView | `scripts/ui/*ScreenView.gd` | Title, origin, map, deck popup, end screens |
 | DeckUtils | `scripts/ui/DeckUtils.gd` | Deck card counts helper |
 | GameTheme | `scripts/ui/GameTheme.gd` | Palette, map kind badges, intent colors |
@@ -70,7 +71,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. 阶段十七：`RunFlowController`、第四幕、默认音效包（见 `docs/superpowers/plans/`）。
+1. 阶段十七b：第四幕（16 层）、默认音效包（见 `docs/superpowers/plans/`）。
 3. 可选 Monte Carlo 平衡工具。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
@@ -99,6 +100,7 @@ godot4.6 --headless --path . --script tools/combat_hud_test.gd
 godot4.6 --headless --path . --script tools/flow_screen_test.gd
 godot4.6 --headless --path . --script tools/event_chain_test.gd
 godot4.6 --headless --path . --script tools/content_pack_test.gd
+godot4.6 --headless --path . --script tools/run_flow_test.gd
 ```
 
 Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_enemies.py`, `build_events.py`.

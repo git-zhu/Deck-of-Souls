@@ -28,7 +28,7 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 敌人 18 种（含大树守卫、狮子混种、坠星兽），由 `data/enemies/` 与 `tools/build_enemies.py` 维护。
 - 按幕商人货池与价格（幕 1 基础货 → 幕 3 含记忆石/护符，利耶尼亚价 ×0.95）。
 - 地图节点显示类型徽章（战斗/精英/事件等）；战斗意图着色、不可打出牌灰化。
-- UI：`GameTheme`、`UiBuilders`、`RewardLayerViews`、`CombatHudView`、`RunHeaderView`、`TitleScreenView`、`OriginScreenView`、`MapScreenView`、`DeckPopupView`、`EndScreenView`；`RunRewardFlow` 处理商人/赐福/战后奖励；可选音效 `GameAudio`（`audio/*.ogg`）；`Main.gd` 约 400 行。
+- UI：`GameTheme`、`UiBuilders`、`RewardLayerViews`、`CombatHudView`、`RunHeaderView`、流程屏 View 等；`RunFlowController`（地图/事件/战斗路由）+ `RunRewardFlow`（商人/赐福/战后奖励）；可选音效 `GameAudio`（`audio/*.ogg`）；`Main.gd` 约 320 行。
 - 核心逻辑在 `scripts/core/`（`DataRegistry`、`RunState`、`CombatController`、`MapGenerator` 等）。
 
 ## 当前素材方向
@@ -56,9 +56,10 @@ godot4.6 --headless --path . --script tools/combat_hud_test.gd
 godot4.6 --headless --path . --script tools/flow_screen_test.gd
 godot4.6 --headless --path . --script tools/event_chain_test.gd
 godot4.6 --headless --path . --script tools/content_pack_test.gd
+godot4.6 --headless --path . --script tools/run_flow_test.gd
 ```
 
 ## 推荐下一步
 
-- `RunFlowController`、第四幕、默认音效包 — 见 `docs/superpowers/plans/`。
+- 第四幕（16 层）、默认音效包 — 见 `docs/superpowers/plans/`。
 - 可选：在 `audio/` 放入 `ui_click.ogg` 等短音。

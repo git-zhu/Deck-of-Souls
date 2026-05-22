@@ -14,25 +14,23 @@ const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const RunState = preload("res://scripts/core/RunState.gd")
 const CombatController = preload("res://scripts/core/CombatController.gd")
 const MapGenerator = preload("res://scripts/core/MapGenerator.gd")
+const GraceService = preload("res://scripts/core/GraceService.gd")
 const MerchantService = preload("res://scripts/core/MerchantService.gd")
 const AshService = preload("res://scripts/core/AshService.gd")
 const CardData = preload("res://data/CardData.gd")
 const RelicData = preload("res://data/RelicData.gd")
 const RelicService = preload("res://scripts/core/RelicService.gd")
 const EventService = preload("res://scripts/core/EventService.gd")
-const MapEventData = preload("res://data/MapEventData.gd")
-const MapEventChoiceData = preload("res://data/MapEventChoiceData.gd")
 const GameTheme = preload("res://scripts/ui/GameTheme.gd")
-const RewardLayerViews = preload("res://scripts/ui/RewardLayerViews.gd")
 const CombatHudView = preload("res://scripts/ui/CombatHudView.gd")
 const RunHeaderView = preload("res://scripts/ui/RunHeaderView.gd")
 const GameAudio = preload("res://scripts/ui/GameAudio.gd")
 const TitleScreenView = preload("res://scripts/ui/TitleScreenView.gd")
 const OriginScreenView = preload("res://scripts/ui/OriginScreenView.gd")
-const MapScreenView = preload("res://scripts/ui/MapScreenView.gd")
 const DeckPopupView = preload("res://scripts/ui/DeckPopupView.gd")
 const EndScreenView = preload("res://scripts/ui/EndScreenView.gd")
 const RunRewardFlow = preload("res://scripts/core/RunRewardFlow.gd")
+const RunFlowController = preload("res://scripts/core/RunFlowController.gd")
 
 var rng := RandomNumberGenerator.new()
 var screen := GameScreen.TITLE
@@ -47,6 +45,7 @@ var relic_service := RelicService.new()
 var event_service := EventService.new()
 var rewards: Array[String] = []
 var reward_flow: RunRewardFlow
+var run_flow: RunFlowController
 
 var deck: Array[String]:
 	get:
@@ -89,6 +88,7 @@ func _ready() -> void:
 	combat.combat_changed.connect(_on_combat_changed)
 	combat.combat_ended.connect(_on_combat_ended)
 	reward_flow = RunRewardFlow.new(self)
+	run_flow = RunFlowController.new(self)
 	_build_ui()
 	_show_title()
 
@@ -99,17 +99,7 @@ func _on_combat_changed() -> void:
 
 
 func _on_combat_ended(kind: String) -> void:
-	match kind:
-		"reward":
-			reward_flow.show_card_rewards(reward_flow.finish_combat_rewards)
-		"elite_reward":
-			reward_flow.show_card_rewards(reward_flow.show_post_combat_relic_rewards)
-		"act_clear":
-			reward_flow.show_act_clear(reward_flow.show_post_combat_relic_rewards)
-		"run_victory":
-			_show_victory()
-		"defeat":
-			_show_game_over()
+	run_flow.on_combat_ended(kind)
 
 
 func _build_ui() -> void:
@@ -202,93 +192,28 @@ func _start_run(origin_id: String = "vagabond") -> void:
 	run_state.reset_for_origin(origin, seed)
 	log_lines.clear()
 	_log("出身：%s。装备：%s。" % [origin.name, origin.equipment])
-	_show_map()
+	run_flow.show_map()
 
 
 func _show_map() -> void:
+	run_flow.show_map()
+
+
+func _enter_map_layer(content: Control) -> void:
 	screen = GameScreen.MAP
 	_hide_layers()
 	map_layer.visible = true
 	_clear(map_layer)
 	_build_header()
-	var act := registry.get_act(run_state.act_index())
-	var options := map_gen.options_for_floor(run_state, registry, rng)
-	map_layer.add_child(MapScreenView.build(act, run_state, options, _choose_map_option))
+	map_layer.add_child(content)
 
 
 func _choose_map_option(option: Dictionary) -> void:
-	GameAudio.play(self, "ui_click")
-	match str(option.get("kind", "")):
-		"combat":
-			_begin_combat(registry.pick_named_enemy(rng, str(option.get("enemy", "")), false, false))
-		"elite":
-			_begin_combat(registry.pick_named_enemy(rng, str(option.get("enemy", "")), true, false))
-		"boss":
-			_begin_combat(registry.pick_named_enemy(rng, str(option.get("enemy", "")), false, true))
-		"grace":
-			_visit_grace()
-		"merchant":
-			_visit_merchant()
-		"event":
-			_visit_event(str(option.get("event_id", "")))
-
-
-func _visit_event(event_id: String) -> void:
-	var event := registry.get_event(event_id) as MapEventData
-	if event == null:
-		push_error("Unknown map event: %s" % event_id)
-		run_state.advance_floor()
-		_show_map()
-		return
-	_show_event(event)
-
-
-func _show_event(event: MapEventData) -> void:
-	_present_reward_layer(
-		RewardLayerViews.build_event_screen(
-			event,
-			func(ch): return event_service.is_choice_eligible(ch, run_state, registry),
-			func(ch): _on_event_choice(ch, event)
-		)
-	)
-
-
-func _on_event_choice(choice: MapEventChoiceData, event: MapEventData) -> void:
-	var summary := event_service.apply(choice, run_state, registry, rng)
-	if summary == EventService.PICK_CARD:
-		var min_size: int = choice.min_deck_size if choice.min_deck_size > 0 else 6
-		reward_flow.show_remove_card_picker(
-			event.title,
-			"选择要从牌组中移除的一张牌。（牌组需多于 %d 张）" % min_size,
-			func(card_id: String):
-				var c: CardData = registry.get_card(card_id)
-				var card_name := c.name if c != null else card_id
-				_show_event_result(event.title, "已从牌组移除《%s》。" % card_name)
-		)
-	else:
-		var follow_id := str(choice.follow_event_id).strip_edges()
-		if follow_id != "":
-			var next_event := registry.get_event(follow_id) as MapEventData
-			if next_event != null:
-				_show_event(next_event)
-				return
-		_show_event_result(event.title, summary)
-
-
-func _show_event_result(title_text: String, body_text: String) -> void:
-	_present_reward_layer(
-		RewardLayerViews.build_centered_continue(
-			title_text,
-			body_text,
-			"继续",
-			_advance_floor_and_show_map
-		)
-	)
+	run_flow.choose_map_option(option)
 
 
 func _advance_floor_and_show_map() -> void:
-	run_state.advance_floor()
-	_show_map()
+	run_flow.advance_floor_and_show_map()
 
 
 func _visit_merchant() -> void:
