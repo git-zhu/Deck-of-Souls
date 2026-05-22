@@ -5,6 +5,7 @@ const CardData = preload("res://data/CardData.gd")
 const ActData = preload("res://data/ActData.gd")
 const GraceOptionData = preload("res://data/GraceOptionData.gd")
 const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
+const MapEventData = preload("res://data/MapEventData.gd")
 const GraceService = preload("res://scripts/core/GraceService.gd")
 const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const RunState = preload("res://scripts/core/RunState.gd")
@@ -64,7 +65,7 @@ func restore_reward_state(data: Variant) -> void:
 			show_merchant()
 		"event":
 			var registry = host.get("registry")
-			var event := registry.get_event(str(d.get("event_id", "")))
+			var event: MapEventData = registry.get_event(str(d.get("event_id", ""))) as MapEventData
 			if event != null:
 				host.get("run_flow").show_event(event)
 			else:

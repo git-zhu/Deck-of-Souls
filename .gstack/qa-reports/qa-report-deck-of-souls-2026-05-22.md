@@ -6,17 +6,23 @@
 | 模式 | Godot 4.6 headless（无 Web URL） |
 | 分支 | main |
 | 引擎 | `E:\Godot\Godot_v4.6.2-stable_win64.exe` |
-| 冒烟 + 工具测试 | **18/18 通过** |
+| 冒烟 + 工具测试 | **22/22 通过**（含存档/标题菜单） |
 
 ## 执行摘要
 
 | 指标 | 值 |
 |------|-----|
-| 发现问题 | 8 |
-| 已修复 | 8 |
-| 健康分（估算） | **86 / 100** |
+| 发现问题 | 9 |
+| 已修复 | 9 |
+| 健康分（估算） | **88 / 100** |
 
-**PR 摘要：** QA 发现 8 项（含 1 项阻断编译），已修复 8 项；18 个 headless 脚本全绿，健康分约 78 → 86。
+**PR 摘要：** QA 发现 9 项（含 2 项阻断编译），已修复 9 项；22 个 headless 脚本全绿（含 `save_*`、`title_menu_test`），健康分约 78 → 88。
+
+### 第二轮（标题菜单 + 存档，`d70b4f5` 之后）
+
+- **ISSUE-009：** `RunSaveService.gd:61` — `var data := _read_json()` 从 Variant 推断类型，在「警告当错误」下编译失败，连带 `Main.gd` 无法加载。
+- **修复：** `data: Variant` + `d: Dictionary`；`MapGenerator` / `RunRewardFlow` 事件变量显式 `MapEventData`。
+- **验证：** `smoke_test`、`run_flow_test`、`save_load_test`、`save_roundtrip_test`、`title_menu_test` 及全套 22 项通过。
 
 ### Top 3 待手动确认
 
@@ -151,6 +157,9 @@ E:\Godot\Godot_v4.6.2-stable_win64.exe --headless --path . --script tools/smoke_
 | flow_screen_test | 通过 |
 | event_chain_test | 通过 |
 | content_pack_test | 通过 |
+| save_load_test | 通过 |
+| save_roundtrip_test | 通过 |
+| title_menu_test | 通过（退出时有 Font/ObjectDB 泄漏警告，非失败） |
 
 ## 健康分（估算）
 
@@ -161,15 +170,22 @@ E:\Godot\Godot_v4.6.2-stable_win64.exe --headless --path . --script tools/smoke_
 | Content | 88 | 15 事件 + 三幕奖励池与测试对齐 |
 | UX | 80 | 未做浏览器/UI 截图（Godot 桌面项目） |
 
-**加权合计 ≈ 86**
+**加权合计 ≈ 88**
+
+### ISSUE-009 — `RunSaveService` Variant 类型推断（Critical）
+
+**现象：** `smoke_test` / `run_flow_test` 报 `RunSaveService.gd:61` 解析错误，`Main` 依赖脚本编译失败。
+
+**修复：** `_read_json()` 结果用 `var data: Variant`，校验后赋给 `var d: Dictionary`；事件恢复路径补 `MapEventData` 注解。
+
+**文件：** `scripts/core/RunSaveService.gd`, `MapGenerator.gd`, `RunRewardFlow.gd`
+
+**状态：** verified
 
 ## 变更文件（本轮）
 
-- `scripts/core/RunFlowController.gd`
-- `scripts/core/CombatController.gd`
-- `data/acts/limgrave.tres`, `liurnia.tres`, `stormveil.tres`
-- `tools/relic_service_test.gd`, `grace_service_test.gd`, `merchant_service_test.gd`
-- `tools/act_economy_test.gd`, `balance_content_test.gd`, `combat_hud_test.gd`
+- `scripts/core/RunSaveService.gd`, `MapGenerator.gd`, `RunRewardFlow.gd`
+- （第一轮）`RunFlowController.gd`, `CombatController.gd`, `data/acts/*.tres`, 若干 `tools/*_test.gd`
 
 ## 备注
 

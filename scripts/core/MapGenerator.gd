@@ -6,6 +6,7 @@ const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const ActData = preload("res://data/ActData.gd")
 const MapNodeData = preload("res://data/MapNodeData.gd")
 const MapEncounterData = preload("res://data/MapEncounterData.gd")
+const MapEventData = preload("res://data/MapEventData.gd")
 
 
 func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberGenerator) -> Array:
@@ -42,7 +43,7 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 				"weight": ew,
 			})
 	for event_id in act.event_ids:
-		var event := registry.get_event(str(event_id))
+		var event: MapEventData = registry.get_event(str(event_id)) as MapEventData
 		var event_w: int = act.map_weight_event
 		if event != null and event_w > 0:
 			weighted.append({

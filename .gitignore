@@ -8,5 +8,6 @@ export_presets.cfg
 *.translation
 /nul
 .idea/
+.superpowers/
 .gstack/qa-*.log
 .gstack/qa-run-*.log

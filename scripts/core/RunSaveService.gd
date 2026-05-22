@@ -17,10 +17,11 @@ const SCREEN_REWARD := 4
 static func has_save() -> bool:
 	if not FileAccess.file_exists(SAVE_PATH):
 		return false
-	var data := _read_json()
+	var data: Variant = _read_json()
 	if typeof(data) != TYPE_DICTIONARY:
 		return false
-	return int(data.get("save_version", 0)) == SAVE_VERSION and _is_restorable_screen(int(data.get("screen", -1)))
+	var d: Dictionary = data
+	return int(d.get("save_version", 0)) == SAVE_VERSION and _is_restorable_screen(int(d.get("screen", -1)))
 
 
 static func delete_save() -> void:
@@ -58,23 +59,24 @@ static func save_snapshot(main: Node) -> bool:
 
 
 static func load_snapshot(main: Node) -> bool:
-	var data := _read_json()
+	var data: Variant = _read_json()
 	if typeof(data) != TYPE_DICTIONARY:
 		return false
-	if int(data.get("save_version", 0)) != SAVE_VERSION:
+	var d: Dictionary = data
+	if int(d.get("save_version", 0)) != SAVE_VERSION:
 		return false
-	var screen: int = int(data.get("screen", -1))
+	var screen: int = int(d.get("screen", -1))
 	if not _is_restorable_screen(screen):
 		delete_save()
 		return false
 	var run_state: RunState = main.get("run_state")
 	if run_state == null:
 		return false
-	run_from_dict(run_state, data.get("run", {}))
+	run_from_dict(run_state, d.get("run", {}))
 	var rng: RandomNumberGenerator = main.get("rng")
 	if rng != null:
 		rng.seed = run_state.run_seed
-	var log_src: Variant = data.get("log_lines", [])
+	var log_src: Variant = d.get("log_lines", [])
 	if log_src is Array:
 		main.set("log_lines", _string_array_from(log_src))
 	main.set("screen", screen)
@@ -84,12 +86,12 @@ static func load_snapshot(main: Node) -> bool:
 		SCREEN_COMBAT:
 			var combat: CombatController = main.get("combat")
 			if combat != null:
-				combat_from_dict(combat, data.get("combat", {}))
+				combat_from_dict(combat, d.get("combat", {}))
 			main.call("_render_combat")
 		SCREEN_REWARD:
 			var reward_flow: RunRewardFlow = main.get("reward_flow")
 			if reward_flow != null:
-				reward_flow.restore_reward_state(data.get("reward", {}))
+				reward_flow.restore_reward_state(d.get("reward", {}))
 		_:
 			return false
 	return true
