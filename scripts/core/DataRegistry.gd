@@ -10,6 +10,7 @@ const GraceOptionData = preload("res://data/GraceOptionData.gd")
 const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
 const RelicData = preload("res://data/RelicData.gd")
 const MapEventData = preload("res://data/MapEventData.gd")
+const DataRegistryPaths = preload("res://scripts/core/DataRegistryPaths.gd")
 
 const ACT_ORDER: Array[String] = ["limgrave", "stormveil", "liurnia"]
 
@@ -122,37 +123,19 @@ func pick_named_enemy(rng: RandomNumberGenerator, enemy_name: String, elite: boo
 
 func _load_cards() -> Dictionary:
 	var result := {}
-	var dir := DirAccess.open("res://data/cards")
-	if dir == null:
-		push_error("Failed to open data/cards directory")
-		return result
-	dir.list_dir_begin()
-	var file := dir.get_next()
-	while file != "":
-		if file.ends_with(".tres") and not file.begins_with("."):
-			var card := load("res://data/cards/%s" % file) as CardData
-			if card != null and card.id != "":
-				result[card.id] = card
-		file = dir.get_next()
-	dir.list_dir_end()
+	for card in DataRegistryPaths.CARD_RESOURCES:
+		var c := card as CardData
+		if c != null and c.id != "":
+			result[c.id] = c
 	return result
 
 
 func _load_origins() -> Dictionary:
 	var result := {}
-	var dir := DirAccess.open("res://data/origins")
-	if dir == null:
-		push_error("Failed to open data/origins directory")
-		return result
-	dir.list_dir_begin()
-	var file := dir.get_next()
-	while file != "":
-		if file.ends_with(".tres") and not file.begins_with("."):
-			var origin := load("res://data/origins/%s" % file) as OriginData
-			if origin != null and origin.id != "":
-				result[origin.id] = origin
-		file = dir.get_next()
-	dir.list_dir_end()
+	for origin in DataRegistryPaths.ORIGIN_RESOURCES:
+		var o := origin as OriginData
+		if o != null and o.id != "":
+			result[o.id] = o
 	return result
 
 
@@ -184,19 +167,10 @@ func _enemy_to_dict(template: EnemyData) -> Dictionary:
 
 func _load_acts() -> Array:
 	var by_id: Dictionary = {}
-	var dir := DirAccess.open("res://data/acts")
-	if dir == null:
-		push_error("Failed to open data/acts directory")
-		return []
-	dir.list_dir_begin()
-	var file := dir.get_next()
-	while file != "":
-		if file.ends_with(".tres") and not file.begins_with("."):
-			var act := load("res://data/acts/%s" % file) as ActData
-			if act != null and act.id != "":
-				by_id[act.id] = act
-		file = dir.get_next()
-	dir.list_dir_end()
+	for act_res in DataRegistryPaths.ACT_RESOURCES:
+		var act := act_res as ActData
+		if act != null and act.id != "":
+			by_id[act.id] = act
 	var ordered: Array = []
 	for act_id in ACT_ORDER:
 		if by_id.has(act_id):
@@ -206,89 +180,44 @@ func _load_acts() -> Array:
 
 func _load_grace_options() -> Dictionary:
 	var result := {}
-	var dir := DirAccess.open("res://data/grace_options")
-	if dir == null:
-		push_error("Failed to open data/grace_options directory")
-		return result
-	dir.list_dir_begin()
-	var file := dir.get_next()
-	while file != "":
-		if file.ends_with(".tres") and not file.begins_with("."):
-			var opt := load("res://data/grace_options/%s" % file) as GraceOptionData
-			if opt != null and opt.id != "":
-				result[opt.id] = opt
-		file = dir.get_next()
-	dir.list_dir_end()
+	for opt_res in DataRegistryPaths.GRACE_OPTION_RESOURCES:
+		var opt := opt_res as GraceOptionData
+		if opt != null and opt.id != "":
+			result[opt.id] = opt
 	return result
 
 
 func _load_relics() -> Dictionary:
 	var result := {}
-	var dir := DirAccess.open("res://data/relics")
-	if dir == null:
-		push_error("Failed to open data/relics directory")
-		return result
-	dir.list_dir_begin()
-	var file := dir.get_next()
-	while file != "":
-		if file.ends_with(".tres") and not file.begins_with("."):
-			var relic := load("res://data/relics/%s" % file) as RelicData
-			if relic != null and relic.id != "":
-				result[relic.id] = relic
-		file = dir.get_next()
-	dir.list_dir_end()
+	for relic_res in DataRegistryPaths.RELIC_RESOURCES:
+		var relic := relic_res as RelicData
+		if relic != null and relic.id != "":
+			result[relic.id] = relic
 	return result
 
 
 func _load_events() -> Dictionary:
 	var result := {}
-	var dir := DirAccess.open("res://data/events")
-	if dir == null:
-		push_error("Failed to open data/events directory")
-		return result
-	dir.list_dir_begin()
-	var file := dir.get_next()
-	while file != "":
-		if file.ends_with(".tres") and not file.begins_with("."):
-			var event := load("res://data/events/%s" % file) as MapEventData
-			if event != null and event.id != "":
-				result[event.id] = event
-		file = dir.get_next()
-	dir.list_dir_end()
+	for event_res in DataRegistryPaths.EVENT_RESOURCES:
+		var event := event_res as MapEventData
+		if event != null and event.id != "":
+			result[event.id] = event
 	return result
 
 
 func _load_merchant_offers() -> Dictionary:
 	var result := {}
-	var dir := DirAccess.open("res://data/merchant_offers")
-	if dir == null:
-		push_error("Failed to open data/merchant_offers directory")
-		return result
-	dir.list_dir_begin()
-	var file := dir.get_next()
-	while file != "":
-		if file.ends_with(".tres") and not file.begins_with("."):
-			var offer := load("res://data/merchant_offers/%s" % file) as MerchantOfferData
-			if offer != null and offer.id != "":
-				result[offer.id] = offer
-		file = dir.get_next()
-	dir.list_dir_end()
+	for offer_res in DataRegistryPaths.MERCHANT_OFFER_RESOURCES:
+		var offer := offer_res as MerchantOfferData
+		if offer != null and offer.id != "":
+			result[offer.id] = offer
 	return result
 
 
 func _load_enemies() -> Array:
 	var result: Array = []
-	var dir := DirAccess.open("res://data/enemies")
-	if dir == null:
-		push_error("Failed to open data/enemies directory")
-		return result
-	dir.list_dir_begin()
-	var file := dir.get_next()
-	while file != "":
-		if file.ends_with(".tres") and not file.begins_with("."):
-			var enemy_res := load("res://data/enemies/%s" % file) as EnemyData
-			if enemy_res != null:
-				result.append(_enemy_to_dict(enemy_res))
-		file = dir.get_next()
-	dir.list_dir_end()
+	for enemy_res in DataRegistryPaths.ENEMY_RESOURCES:
+		var enemy := enemy_res as EnemyData
+		if enemy != null:
+			result.append(_enemy_to_dict(enemy))
 	return result

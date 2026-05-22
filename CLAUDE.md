@@ -17,6 +17,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Title menu: `godot4.6 --headless --script tools/title_menu_test.gd`
 - Save load (Main): `godot4.6 --headless --script tools/save_load_test.gd`
 - Pause menu: `godot4.6 --headless --script tools/pause_menu_test.gd`
+- Export data manifest: `python tools/build_data_manifest.py` (after adding `data/**/*.tres`)
+- Export data load: `godot4.6 --headless --script tools/export_data_load_test.gd`
+- Origin screen UI: `godot4.6 --headless --script tools/origin_screen_test.gd`
 
 ## Architecture
 
