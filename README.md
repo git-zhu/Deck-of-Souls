@@ -56,5 +56,5 @@ godot4.6 --headless --path . --script tools/combat_hud_test.gd
 
 ## 推荐下一步
 
-- 地图/标题/出身屏迁出；更多敌人；事件链。
+- 流程屏 UI（`TitleScreenView` 等）、事件链、`+3` 敌人 — 见 `docs/superpowers/plans/2026-05-21-phase16-flow-screens-content.md`。
 - 可选：在 `audio/` 放入 `ui_click.ogg` 等短音。
