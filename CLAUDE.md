@@ -16,13 +16,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-**UI shell + core modules.** Game logic is split; `Main.gd` (~1400 lines) routes screens; shared UI in `scripts/ui/`。
+**UI shell + core modules.** Game logic is split; `Main.gd` (~880 lines) routes screens; shared UI in `scripts/ui/`。
 
 | Module | Path | Role |
 |---|---|---|
 | Main | `scripts/Main.gd` | Screen routing, combat/map/reward flow |
 | GameTheme | `scripts/ui/GameTheme.gd` | Palette, map kind badges, intent colors |
 | UiBuilders | `scripts/ui/UiBuilders.gd` | Panel, fighter, hand card, map option builders |
+| RewardLayerViews | `scripts/ui/RewardLayerViews.gd` | Merchant, grace, event, post-combat rewards, pickers |
 | DataRegistry | `scripts/core/DataRegistry.gd` | Load `data/**/*.tres` |
 | RunState | `scripts/core/RunState.gd` | Run HP, deck, piles, floor, statuses |
 | CombatController | `scripts/core/CombatController.gd` | Combat, damage, enemy turns |
@@ -63,8 +64,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. **阶段十四：** `RewardLayerViews.gd` 迁出商人/赐福/事件/战后奖励 UI；`Main.gd` ≤ 1050 行（见 `docs/superpowers/plans/2026-05-21-phase14-reward-ui-extraction.md`）。
-2. 阶段十五：`CombatHudView`、音效钩子、更多敌人/事件链。
+1. 阶段十五：`CombatHudView` 迁出战斗 HUD；音效钩子；更多敌人/事件链。
 3. 可选 Monte Carlo 平衡工具。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.

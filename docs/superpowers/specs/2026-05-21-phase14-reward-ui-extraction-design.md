@@ -1,7 +1,7 @@
 # 阶段十四：奖励层 UI 提取与 Main 瘦身 — 设计规格
 
 **日期：** 2026-05-21  
-**状态：** 待实现  
+**状态：** 已实现  
 **前置：** 阶段一至十三（含 `GameTheme` / `UiBuilders`）  
 **实现计划：** `docs/superpowers/plans/2026-05-21-phase14-reward-ui-extraction.md`
 

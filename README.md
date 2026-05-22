@@ -27,7 +27,7 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 地图事件节点：12 个非战斗抉择（卢恩/生命/得牌等），按幕加权更易出现，数据见 `data/events/`。
 - 按幕商人货池与价格（幕 1 基础货 → 幕 3 含记忆石/护符，利耶尼亚价 ×0.95）。
 - 地图节点显示类型徽章（战斗/精英/事件等）；战斗意图着色、不可打出牌灰化。
-- UI 主题与构建器：`scripts/ui/GameTheme.gd`、`scripts/ui/UiBuilders.gd`；`Main.gd` 负责路由。
+- UI 主题与构建器：`GameTheme`、`UiBuilders`、`RewardLayerViews`（商人/赐福/事件/战后奖励）；`Main.gd` 负责路由（约 880 行）。
 - 核心逻辑在 `scripts/core/`（`DataRegistry`、`RunState`、`CombatController`、`MapGenerator` 等）。
 
 ## 当前素材方向
@@ -50,8 +50,9 @@ godot4.6 --headless --path . --script tools/memory_stone_test.gd
 godot4.6 --headless --path . --script tools/balance_content_test.gd
 godot4.6 --headless --path . --script tools/act_economy_test.gd
 godot4.6 --headless --path . --script tools/ui_layout_test.gd
+godot4.6 --headless --path . --script tools/reward_ui_test.gd
 ```
 
 ## 推荐下一步
 
-- 奖励屏 UI 迁出；音效；更多敌人种类。
+- 战斗 HUD 迁出（`CombatHudView`）；音效；更多敌人种类。
