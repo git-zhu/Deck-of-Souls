@@ -29,6 +29,8 @@ func is_eligible(option: GraceOptionData, run: RunState) -> bool:
 			return run.souls >= option.soul_cost and not run.deck.has(option.card_id)
 		"max_flasks":
 			return run.max_flasks < MAX_FLASKS
+		"memory_stone":
+			return run.can_gain_memory_stone()
 		_:
 			return true
 
@@ -83,6 +85,12 @@ func apply(option: GraceOptionData, run: RunState) -> String:
 			run.souls -= option.soul_cost
 			run.deck.append(option.card_id)
 			return "消耗 %d 卢恩，《命定之死》已加入牌组。" % option.soul_cost
+		"memory_stone":
+			run.memory_stones += 1
+			return "记忆石嵌入意识，每回合可多抽 1 张牌。（%d/%d）" % [
+				run.memory_stones,
+				RunState.MAX_MEMORY_STONES,
+			]
 		_:
 			return "赐福回响，却无事发生。"
 

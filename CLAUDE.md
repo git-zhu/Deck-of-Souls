@@ -47,14 +47,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Combat Mechanics
 
 - **Energy (集中):** 3 per turn; card costs 0–3.
-- **Hand size:** 5 per turn; reshuffle when draw pile empty.
+- **Hand size:** Base 5 per turn + memory stones + relic draw bonuses; reshuffle when draw pile empty.
 - **Stance (姿态):** Enemy stance break with bonus damage window.
 - **Status:** 腐败 / 出血 / 易伤 / 力量.
 - **Run length:** **12 floors** (3 acts × 4); act bosses on floors 4/8/12 (indices 3, 7, 11); final boss triggers `run_victory`.
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. Memory stones, ash replacement, post-combat relic rewards.
+1. Ash replacement (swap card identity), post-combat relic rewards.
 2. Expand enemy/card pools per act.
 
 **Workflow:** After each implementation phase, create a focused `git commit` for that phase.
@@ -67,6 +67,7 @@ godot4.6 --headless --path . --script tools/map_generator_test.gd
 godot4.6 --headless --path . --script tools/grace_service_test.gd
 godot4.6 --headless --path . --script tools/merchant_service_test.gd
 godot4.6 --headless --path . --script tools/relic_service_test.gd
+godot4.6 --headless --path . --script tools/memory_stone_test.gd
 ```
 
 Core scripts use `preload()` for cross-module types; data `.tres` files use Godot 4 `gd_resource` format (see `tools/convert_tres.py` if you add legacy `[resource name=...]` assets).

@@ -64,7 +64,7 @@ func start_player_turn() -> void:
 	ember = max_ember
 	block = 0
 	apply_player_start_status()
-	var draw_count: int = 5 + relic_service.combat_extra_draw(run, registry)
+	var draw_count: int = run.player_hand_draw(relic_service.combat_extra_draw(run, registry))
 	draw_cards(draw_count)
 	combat_changed.emit()
 

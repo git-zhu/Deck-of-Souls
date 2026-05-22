@@ -68,6 +68,17 @@ OFFERS = [
         "min_deck_size": 0,
         "card_rarity_filter": "",
     },
+    {
+        "file": "memory_stone",
+        "id": "memory_stone",
+        "title": "记忆石",
+        "body": "蕾亚卢卡利亚风格的记忆石，能拓展战斗中的施法记忆槽位。",
+        "effect": "memory_stone",
+        "effect_value": 0,
+        "soul_cost": 65,
+        "min_deck_size": 0,
+        "card_rarity_filter": "",
+    },
 ]
 
 

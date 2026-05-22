@@ -818,6 +818,8 @@ func _build_header() -> void:
 	header.add_child(_small_stat("卢恩 %d" % run_state.souls))
 	if run_state.relics.size() > 0:
 		header.add_child(_small_stat("护符 %d" % run_state.relics.size()))
+	if run_state.memory_stones > 0:
+		header.add_child(_small_stat("记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES]))
 	header.add_child(_small_stat("牌组 %d" % run_state.deck.size()))
 	if screen == GameScreen.COMBAT:
 		header.add_child(_small_stat("抽牌 %d  弃牌 %d" % [run_state.draw_pile.size(), run_state.discard_pile.size()]))

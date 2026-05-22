@@ -26,6 +26,8 @@ func is_eligible(offer: MerchantOfferData, run: RunState) -> bool:
 			return run.deck.size() > 5
 		"max_flasks":
 			return run.max_flasks < MAX_FLASKS
+		"memory_stone":
+			return run.can_gain_memory_stone()
 		_:
 			return true
 
@@ -93,6 +95,17 @@ func purchase(
 			return {
 				"ok": true,
 				"message": "花费 %d 卢恩，圣杯瓶上限现为 %d。" % [offer.soul_cost, run.max_flasks],
+				"pick_card": false,
+			}
+		"memory_stone":
+			run.memory_stones += 1
+			return {
+				"ok": true,
+				"message": "花费 %d 卢恩，获得记忆石。（%d/%d）" % [
+					offer.soul_cost,
+					run.memory_stones,
+					RunState.MAX_MEMORY_STONES,
+				],
 				"pick_card": false,
 			}
 		"grant_relic":

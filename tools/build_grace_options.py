@@ -68,6 +68,17 @@ OPTIONS = [
         "card_id": "destined_death",
         "min_deck_size": 0,
     },
+    {
+        "file": "memory_stone",
+        "id": "memory_stone",
+        "title": "聚焦记忆",
+        "body": "在赐福金光中铭刻一颗记忆石，每场战斗每回合多抽 1 张牌（最多 3 颗）。",
+        "effect": "memory_stone",
+        "effect_value": 0,
+        "soul_cost": 0,
+        "card_id": "",
+        "min_deck_size": 0,
+    },
 ]
 
 
