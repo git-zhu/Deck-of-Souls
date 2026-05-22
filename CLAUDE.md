@@ -16,11 +16,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-**UI shell + core modules.** Game logic is split; `Main.gd` (~785 lines) builds UI and routes screens.
+**UI shell + core modules.** Game logic is split; `Main.gd` (~1400 lines) routes screens; shared UI in `scripts/ui/`。
 
 | Module | Path | Role |
 |---|---|---|
-| Main | `scripts/Main.gd` | Screens, theme, combat/map UI, logs |
+| Main | `scripts/Main.gd` | Screen routing, combat/map/reward flow |
+| GameTheme | `scripts/ui/GameTheme.gd` | Palette, map kind badges, intent colors |
+| UiBuilders | `scripts/ui/UiBuilders.gd` | Panel, fighter, hand card, map option builders |
 | DataRegistry | `scripts/core/DataRegistry.gd` | Load `data/**/*.tres` |
 | RunState | `scripts/core/RunState.gd` | Run HP, deck, piles, floor, statuses |
 | CombatController | `scripts/core/CombatController.gd` | Combat, damage, enemy turns |
@@ -61,8 +63,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. UI/音效抛光；`Main.gd` 场景拆分；可选 Monte Carlo 平衡工具。
-2. 更多敌人种类；事件链 / 按幕商人叙事。
+1. 将奖励/赐福/商人屏迁入 `scripts/ui/`；`Main.gd` 压至约 1000 行。
+2. 更多敌人种类；事件链；可选 Monte Carlo 平衡工具。
+3. 音效钩子（按钮、胜利）。
 
 **Workflow:** After each implementation phase, create a focused `git commit` for that phase.
 
@@ -81,6 +84,7 @@ godot4.6 --headless --path . --script tools/act_content_test.gd
 godot4.6 --headless --path . --script tools/event_service_test.gd
 godot4.6 --headless --path . --script tools/balance_content_test.gd
 godot4.6 --headless --path . --script tools/act_economy_test.gd
+godot4.6 --headless --path . --script tools/ui_layout_test.gd
 ```
 
 Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_enemies.py`, `build_events.py`.

@@ -26,6 +26,8 @@ const RelicService = preload("res://scripts/core/RelicService.gd")
 const EventService = preload("res://scripts/core/EventService.gd")
 const MapEventData = preload("res://data/MapEventData.gd")
 const MapEventChoiceData = preload("res://data/MapEventChoiceData.gd")
+const GameTheme = preload("res://scripts/ui/GameTheme.gd")
+const UiBuilders = preload("res://scripts/ui/UiBuilders.gd")
 
 var rng := RandomNumberGenerator.new()
 var screen := GameScreen.TITLE
@@ -112,7 +114,7 @@ func _on_combat_ended(kind: String) -> void:
 
 func _build_ui() -> void:
 	var bg := ColorRect.new()
-	bg.color = Color("#16130f")
+	bg.color = GameTheme.BG
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 
@@ -142,16 +144,7 @@ func _build_ui() -> void:
 
 
 func _setup_theme() -> void:
-	var theme := Theme.new()
-	var font_size := 18
-	theme.set_font_size("font_size", "Label", font_size)
-	theme.set_font_size("font_size", "Button", 17)
-	theme.set_font_size("font_size", "RichTextLabel", 16)
-	theme.set_color("font_color", "Label", Color("#e8ddc7"))
-	theme.set_color("font_color", "Button", Color("#f0e5cd"))
-	theme.set_color("font_hover_color", "Button", Color("#ffffff"))
-	theme.set_color("font_pressed_color", "Button", Color("#d8b15d"))
-	self.theme = theme
+	GameTheme.apply_theme(self)
 
 
 func _new_layer(parent: Control) -> Control:
@@ -246,7 +239,7 @@ func _show_origin() -> void:
 
 func _origin_card(origin_id: String) -> PanelContainer:
 	var origin: OriginData = registry.get_origin(origin_id)
-	var panel := _panel(Color("#242018"))
+	var panel := UiBuilders.panel(GameTheme.PANEL)
 	panel.custom_minimum_size = Vector2(0, 210)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := VBoxContainer.new()
@@ -331,36 +324,11 @@ func _show_map() -> void:
 
 	var options := map_gen.options_for_floor(run_state, registry, rng)
 	for option in options:
-		var card := _map_choice_card(option)
-		choices.add_child(card)
+		choices.add_child(_map_choice_card(option))
 
 
 func _map_choice_card(option: Dictionary) -> PanelContainer:
-	var panel := _panel(Color("#242018"))
-	panel.custom_minimum_size = Vector2(0, 330)
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 12)
-	panel.add_child(v)
-
-	var name := Label.new()
-	name.text = option.title
-	name.add_theme_font_size_override("font_size", 28)
-	name.add_theme_color_override("font_color", Color("#e0c06c"))
-	v.add_child(name)
-
-	var body := Label.new()
-	body.text = option.body
-	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(body)
-
-	var btn := Button.new()
-	btn.text = "介入" if str(option.get("kind", "")) == "event" else "踏入"
-	btn.custom_minimum_size = Vector2(0, 48)
-	btn.pressed.connect(func(): _choose_map_option(option))
-	v.add_child(btn)
-	return panel
+	return UiBuilders.map_choice_card(option, func(): _choose_map_option(option))
 
 
 func _choose_map_option(option: Dictionary) -> void:
@@ -559,7 +527,7 @@ func _show_merchant() -> void:
 
 
 func _merchant_offer_card(offer: MerchantOfferData, slot_index: int) -> PanelContainer:
-	var panel := _panel(Color("#242018"))
+	var panel := UiBuilders.panel(GameTheme.PANEL)
 	panel.custom_minimum_size = Vector2(0, 330)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := VBoxContainer.new()
@@ -687,7 +655,7 @@ func _show_grace_rest(options: Array) -> void:
 
 
 func _grace_choice_card(option: GraceOptionData) -> PanelContainer:
-	var panel := _panel(Color("#242018"))
+	var panel := UiBuilders.panel(GameTheme.PANEL)
 	panel.custom_minimum_size = Vector2(0, 330)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := VBoxContainer.new()
@@ -938,7 +906,7 @@ func _render_combat() -> void:
 	field.add_theme_constant_override("separation", 8)
 	main.add_child(field)
 
-	player_panel = _fighter_panel(
+	player_panel = UiBuilders.fighter_panel(
 		"褪色者",
 		run_state.hp,
 		run_state.max_hp,
@@ -959,7 +927,8 @@ func _render_combat() -> void:
 	intent.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	intent.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	intent.add_theme_font_size_override("font_size", 23)
-	intent.add_theme_color_override("font_color", Color("#e6c56d"))
+	var intent_kind := str(combat.enemy_intent.get("kind", ""))
+	intent.add_theme_color_override("font_color", GameTheme.intent_color(intent_kind))
 	center.add_child(intent)
 	log_box = RichTextLabel.new()
 	log_box.bbcode_enabled = true
@@ -970,7 +939,7 @@ func _render_combat() -> void:
 	log_box.text = _log_text()
 	center.add_child(log_box)
 
-	enemy_panel = _fighter_panel(
+	enemy_panel = UiBuilders.fighter_panel(
 		combat.enemy.name,
 		combat.enemy.hp,
 		combat.enemy.max_hp,
@@ -983,7 +952,9 @@ func _render_combat() -> void:
 			combat.enemy.vulnerable,
 			combat.enemy.strength,
 		],
-		Color("#2b1d1b")
+		Color("#2b1d1b"),
+		int(combat.enemy.stance_now),
+		int(combat.enemy.stance_max)
 	)
 	enemy_panel.custom_minimum_size = Vector2(280, 0)
 	field.add_child(enemy_panel)
@@ -991,13 +962,13 @@ func _render_combat() -> void:
 	var piles := HBoxContainer.new()
 	piles.add_theme_constant_override("separation", 18)
 	main.add_child(piles)
-	draw_label = _small_stat("抽牌 %d" % run_state.draw_pile.size())
-	discard_label = _small_stat("弃牌 %d" % run_state.discard_pile.size())
-	exhaust_label = _small_stat("消耗 %d" % run_state.exhaust_pile.size())
+	draw_label = UiBuilders.small_stat("抽牌 %d" % run_state.draw_pile.size())
+	discard_label = UiBuilders.small_stat("弃牌 %d" % run_state.discard_pile.size())
+	exhaust_label = UiBuilders.small_stat("消耗 %d" % run_state.exhaust_pile.size())
 	piles.add_child(draw_label)
 	piles.add_child(discard_label)
 	piles.add_child(exhaust_label)
-	piles.add_child(_small_stat("集中 %d/%d" % [combat.ember, combat.max_ember]))
+	piles.add_child(UiBuilders.small_stat("集中 %d/%d" % [combat.ember, combat.max_ember]))
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 10)
@@ -1024,25 +995,37 @@ func _render_combat() -> void:
 	hand_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	hand_scroll.add_child(hand_row)
 	for i in range(run_state.hand.size()):
-		hand_row.add_child(_card_button(run_state.hand[i], i))
+		var card_id: String = run_state.hand[i]
+		var card_data: CardData = registry.get_card(card_id)
+		if card_data != null:
+			hand_row.add_child(
+				UiBuilders.card_button(
+					card_data,
+					i,
+					combat,
+					CARD_W,
+					CARD_H,
+					func(): _play_card(i)
+				)
+			)
 
 
 func _build_header() -> void:
 	_clear(header)
-	header.add_child(_small_stat("生命 %d/%d" % [run_state.hp, run_state.max_hp]))
-	header.add_child(_small_stat("圣杯瓶 %d/%d" % [run_state.flasks, run_state.max_flasks]))
-	header.add_child(_small_stat("卢恩 %d" % run_state.souls))
+	header.add_child(UiBuilders.small_stat("生命 %d/%d" % [run_state.hp, run_state.max_hp]))
+	header.add_child(UiBuilders.small_stat("圣杯瓶 %d/%d" % [run_state.flasks, run_state.max_flasks]))
+	header.add_child(UiBuilders.small_stat("卢恩 %d" % run_state.souls))
 	if run_state.relics.size() > 0:
-		header.add_child(_small_stat("护符 %d" % run_state.relics.size()))
+		header.add_child(UiBuilders.small_stat("护符 %d" % run_state.relics.size()))
 	if run_state.memory_stones > 0:
-		header.add_child(_small_stat("记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES]))
-	header.add_child(_small_stat("牌组 %d" % run_state.deck.size()))
+		header.add_child(UiBuilders.small_stat("记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES]))
+	header.add_child(UiBuilders.small_stat("牌组 %d" % run_state.deck.size()))
 	if screen == GameScreen.COMBAT:
-		header.add_child(_small_stat("抽牌 %d  弃牌 %d" % [run_state.draw_pile.size(), run_state.discard_pile.size()]))
+		header.add_child(UiBuilders.small_stat("抽牌 %d  弃牌 %d" % [run_state.draw_pile.size(), run_state.discard_pile.size()]))
 	var act := registry.get_act(run_state.act_index())
 	var local_step: int = (run_state.floor_index % RunState.FLOORS_PER_ACT) + 1
 	if act != null:
-		header.add_child(_small_stat(
+		header.add_child(UiBuilders.small_stat(
 			"%s · %d/%d · 层 %d/%d" % [
 				act.title,
 				local_step,
@@ -1052,7 +1035,7 @@ func _build_header() -> void:
 			]
 		))
 	else:
-		header.add_child(_small_stat("层数 %d/%d" % [run_state.floor_index + 1, RunState.TOTAL_FLOORS]))
+		header.add_child(UiBuilders.small_stat("层数 %d/%d" % [run_state.floor_index + 1, RunState.TOTAL_FLOORS]))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
@@ -1061,14 +1044,6 @@ func _build_header() -> void:
 	deck_button.custom_minimum_size = Vector2(118, 34)
 	deck_button.pressed.connect(_show_deck_view)
 	header.add_child(deck_button)
-
-
-func _small_stat(text: String) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_color_override("font_color", Color("#d8ccb4"))
-	label.add_theme_font_size_override("font_size", 18)
-	return label
 
 
 func _show_deck_view() -> void:
@@ -1195,80 +1170,6 @@ func _card_counts(card_ids: Array[String]) -> Dictionary:
 	for id in card_ids:
 		counts[id] = int(counts.get(id, 0)) + 1
 	return counts
-
-
-func _panel(color: Color) -> PanelContainer:
-	var panel := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.border_color = Color("#4f4535")
-	style.set_border_width_all(1)
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	style.content_margin_left = 14
-	style.content_margin_right = 14
-	style.content_margin_top = 14
-	style.content_margin_bottom = 14
-	panel.add_theme_stylebox_override("panel", style)
-	return panel
-
-
-func _fighter_panel(n: String, cur_hp: int, full_hp: int, cur_block: int, status: String, color: Color) -> PanelContainer:
-	var panel := _panel(color)
-	panel.custom_minimum_size = Vector2(260, 0)
-	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 10)
-	panel.add_child(v)
-	var name := Label.new()
-	name.text = n
-	name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name.add_theme_font_size_override("font_size", 26)
-	name.add_theme_color_override("font_color", Color("#e4c06d"))
-	v.add_child(name)
-	var hp_label := Label.new()
-	hp_label.text = "生命 %d / %d" % [cur_hp, full_hp]
-	hp_label.add_theme_font_size_override("font_size", 22)
-	v.add_child(hp_label)
-	var bar := ProgressBar.new()
-	bar.max_value = full_hp
-	bar.value = cur_hp
-	bar.custom_minimum_size = Vector2(0, 22)
-	v.add_child(bar)
-	var block_label := Label.new()
-	block_label.text = "护甲 %d" % cur_block
-	v.add_child(block_label)
-	var status_label := Label.new()
-	status_label.text = status
-	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	status_label.add_theme_color_override("font_color", Color("#c8bca5"))
-	v.add_child(status_label)
-	return panel
-
-
-func _card_button(card_id: String, index: int) -> Button:
-	var c: CardData = registry.get_card(card_id)
-	var button := Button.new()
-	button.custom_minimum_size = Vector2(CARD_W, CARD_H)
-	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	button.text = "%s\n%s  集中:%d\n\n%s" % [c.name, c.type, c.cost, c.text]
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	button.tooltip_text = c.text
-	button.disabled = c.cost > combat.ember or combat.combat_over
-	button.add_theme_font_size_override("font_size", 14)
-	var style := StyleBoxFlat.new()
-	style.bg_color = c.tone.darkened(0.45)
-	style.border_color = c.tone.lightened(0.2)
-	style.set_border_width_all(2)
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	button.add_theme_stylebox_override("normal", style)
-	button.pressed.connect(func(): combat.play_card(index))
-	return button
 
 
 func _play_card(index: int) -> void:
@@ -1407,7 +1308,7 @@ func _show_relic_rewards(relic_ids: Array, on_done: Callable) -> void:
 
 
 func _relic_reward_panel(relic: RelicData, on_done: Callable) -> PanelContainer:
-	var panel := _panel(Color("#242018"))
+	var panel := UiBuilders.panel(GameTheme.PANEL)
 	panel.custom_minimum_size = Vector2(0, 300)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := VBoxContainer.new()
@@ -1516,7 +1417,7 @@ func _log_reset() -> void:
 
 func _log(text: String) -> void:
 	log_lines.append(text)
-	if log_lines.size() > 9:
+	if log_lines.size() > GameTheme.MAX_LOG_LINES:
 		log_lines.pop_front()
 
 
