@@ -23,8 +23,8 @@ func _initialize() -> void:
 	title.queue_free()
 
 	var game_over := EndScreenView.build_game_over(func(): pass)
-	if not _tree_has_button_text(game_over, "重新开始"):
-		_fail("game over screen missing retry button")
+	if not _tree_has_button_text(game_over, "选择出身"):
+		_fail("game over screen missing origin pick button")
 		return
 	game_over.queue_free()
 

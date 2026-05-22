@@ -5,14 +5,14 @@ const DEFEAT_RED := Color("#b94b50")
 const VICTORY_GOLD := Color("#e6c56d")
 
 
-static func build_game_over(on_retry: Callable) -> Control:
+static func build_game_over(on_pick_origin: Callable) -> Control:
 	return _centered_screen(
 		"你死了",
 		58,
 		DEFEAT_RED,
-		"卢恩散落在冷石上。下一次，也许能多走一步。",
-		"重新开始",
-		on_retry
+		"卢恩散落在冷石上。选择出身，再入雾中。",
+		"选择出身",
+		on_pick_origin
 	)
 
 

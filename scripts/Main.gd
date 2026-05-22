@@ -380,7 +380,7 @@ func _show_game_over() -> void:
 	_hide_layers()
 	end_layer.visible = true
 	_clear(end_layer)
-	end_layer.add_child(EndScreenView.build_game_over(_start_run))
+	end_layer.add_child(EndScreenView.build_game_over(_show_origin))
 
 
 func _show_victory() -> void:
