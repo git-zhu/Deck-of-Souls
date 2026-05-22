@@ -1,19 +1,55 @@
-[gd_resource type="Resource" script_class="ActData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ActData" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://data/ActData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MapNodeData.gd" id="2"]
+[ext_resource type="Script" path="res://data/MapEncounterData.gd" id="3"]
 
-[sub_resource type="Resource" id="Node_0"]
+[sub_resource type="Resource" id="Enc_0"]
+script = ExtResource("3")
+enemy_name = "葛瑞克骑士"
+title = "史东薇尔城墙"
+body = "葛瑞克骑士巡逻于城墙之上，铠甲上还带着宁姆格福的泥。"
+[sub_resource type="Resource" id="Enc_1"]
+script = ExtResource("3")
+enemy_name = "腐败眷属"
+title = "腐败湖畔"
+body = "腐败眷属在湖畔蠕动，金色的菌丝缠住脚踝。"
+[sub_resource type="Resource" id="Enc_2"]
+script = ExtResource("3")
+enemy_name = "挖石山妖"
+title = "坑道深处"
+body = "挖石山妖在矿道底层抬起巨臂，碎石从顶上落下。"
+[sub_resource type="Resource" id="Enc_3"]
+script = ExtResource("3")
+enemy_name = "凯丹佣兵"
+title = "亚基尔湖北岸"
+body = "凯丹佣兵沿湖道游荡，远处能听见飞龙亚基尔的风声。"
+[sub_resource type="Resource" id="Enc_4"]
+script = ExtResource("3")
+enemy_name = "熔炉骑士"
+title = "封牢深处"
+body = "熔炉骑士的古老武艺仍在回响。"
+[sub_resource type="Resource" id="Enc_5"]
+script = ExtResource("3")
+enemy_name = "守墓斗士"
+title = "英雄墓地"
+body = "守墓斗士守在墓碑之间，巨斧扬起时风声如哭。"
+[sub_resource type="Resource" id="Enc_6"]
+script = ExtResource("3")
+enemy_name = "挖石山妖"
+title = "挖石山妖"
+body = "精英敌人挡在路前。"
+[sub_resource type="Resource" id="Node_7"]
 script = ExtResource("2")
 kind = "grace"
 title = "城墙赐福"
 body = "在狭窄走廊里喘息，整理被撕破的战意。"
-[sub_resource type="Resource" id="Node_1"]
+[sub_resource type="Resource" id="Node_8"]
 script = ExtResource("2")
 kind = "grace"
 title = "格密尔英雄墓"
 body = "墓碑旁的金光让你想起尚未完成的誓言。"
-[sub_resource type="Resource" id="Node_2"]
+[sub_resource type="Resource" id="Node_9"]
 script = ExtResource("2")
 kind = "merchant"
 title = "城墙下的咖列"
@@ -25,9 +61,10 @@ id = "stormveil"
 title = "史东薇尔城塞"
 subtitle_template = "第 %d 段 / 4。%s"
 flavor = "城墙内回荡着接肢的金属声，黄金树的枝桠在雾上摇晃。"
-combat_enemies = Array[String](["葛瑞克骑士", "腐败眷属", "挖石山妖", "凯丹佣兵"])
-elite_enemies = Array[String](["熔炉骑士", "守墓斗士", "法姆亚兹拉的兽人"])
-fixed_nodes = Array[MapNodeData]([SubResource("Node_0"), SubResource("Node_1"), SubResource("Node_2")])
+combat_encounters = Array[MapEncounterData]([SubResource("Enc_0"), SubResource("Enc_1"), SubResource("Enc_2"), SubResource("Enc_3")])
+elite_encounters = Array[MapEncounterData]([SubResource("Enc_4"), SubResource("Enc_5"), SubResource("Enc_6")])
+reward_cards = Array[String](["lions_claw", "black_flame", "rotten_breath", "battle_axe", "longbow"])
+fixed_nodes = Array[MapNodeData]([SubResource("Node_7"), SubResource("Node_8"), SubResource("Node_9")])
 act_boss_name = "熔炉骑士"
 act_boss_title = "风暴山丘封牢"
 act_boss_body = "熔炉骑士的古老武艺仍在回响。击败他，城塞的大门才会松动。"

@@ -5,6 +5,8 @@ const RunState = preload("res://scripts/core/RunState.gd")
 const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const CardEffectResolver = preload("res://scripts/core/CardEffectResolver.gd")
 const RelicService = preload("res://scripts/core/RelicService.gd")
+const ActData = preload("res://data/ActData.gd")
+const CardData = preload("res://data/CardData.gd")
 
 signal combat_changed
 signal combat_ended(kind: String)
@@ -277,11 +279,23 @@ func check_combat_end() -> void:
 			combat_ended.emit("reward")
 
 
-func roll_rewards() -> Array[String]:
+func roll_rewards(act: ActData = null) -> Array[String]:
+	var pool: Array[String] = []
+	if act != null:
+		for card_id in act.reward_cards:
+			var card := registry.get_card(str(card_id)) as CardData
+			if card != null and card.rarity != "starter":
+				pool.append(str(card_id))
+	if pool.size() < 3:
+		pool = _global_non_starter_card_pool()
+	pool.shuffle()
+	return pool.slice(0, mini(3, pool.size())) as Array[String]
+
+
+func _global_non_starter_card_pool() -> Array[String]:
 	var pool: Array[String] = []
 	for id in registry.all_card_ids():
-		var card := registry.get_card(id)
+		var card := registry.get_card(id) as CardData
 		if card != null and card.rarity != "starter":
-			pool.append(id)
-	pool.shuffle()
-	return pool.slice(0, 3) as Array[String]
+			pool.append(str(id))
+	return pool

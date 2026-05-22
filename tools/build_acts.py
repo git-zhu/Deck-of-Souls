@@ -1,13 +1,74 @@
-"""Generate data/acts/*.tres with MapNodeData grace and merchant nodes."""
+"""Generate data/acts/*.tres with MapNodeData, MapEncounterData (UTF-8)."""
 from pathlib import Path
+
+# Shared encounter copy (migrated from MapGenerator COMBAT_NODES / ELITE_NODES)
+COMBAT_META = {
+    "葛瑞克士兵": ("关卡前废墟", "葛瑞克士兵巡逻。胜利后获得一张牌与少量卢恩。"),
+    "野狼": ("艾雷教堂北侧", "野狼在林间徘徊，商人咖列的篝火还在身后。"),
+    "凯丹佣兵": ("亚基尔湖北岸", "凯丹佣兵沿湖道游荡，远处能听见飞龙亚基尔的风声。"),
+    "挖石矿工": ("宁姆格福坑道", "挖石矿工守着锻造石，矿镐比看上去更硬。"),
+    "学院辉石法师": ("驿站街遗迹", "学院辉石法师藏在废墟地下，辉石光芒从石缝里透出。"),
+    "葛瑞克骑士": ("史东薇尔城墙", "葛瑞克骑士巡逻于城墙之上，铠甲上还带着宁姆格福的泥。"),
+    "腐败眷属": ("腐败湖畔", "腐败眷属在湖畔蠕动，金色的菌丝缠住脚踝。"),
+    "挖石山妖": ("坑道深处", "挖石山妖在矿道底层抬起巨臂，碎石从顶上落下。"),
+    "亚人": ("海岸洞窟入口", "亚人在洞口聚集，棍棒敲打石壁的声音令人不安。"),
+}
+
+ELITE_META = {
+    "法姆亚兹拉的兽人": ("近林洞窟", "法姆亚兹拉的兽人盘踞洞底，这是许多褪色者的第一个洞窟首领。"),
+    "亚人首领": ("海岸洞窟", "亚人首领在黑暗中聚众嚎叫，洞外通向龙飨教堂。"),
+    "熔炉骑士": ("封牢深处", "熔炉骑士的古老武艺仍在回响。"),
+    "守墓斗士": ("英雄墓地", "守墓斗士守在墓碑之间，巨斧扬起时风声如哭。"),
+}
+
+
+def _encounter_block(idx: int, enemy: str, title: str, body: str) -> tuple[str, str]:
+    block = f'''[sub_resource type="Resource" id="Enc_{idx}"]
+script = ExtResource("3")
+enemy_name = "{enemy}"
+title = "{title}"
+body = "{body}"
+'''
+    return block, f'SubResource("Enc_{idx}")'
+
+
+def _combat_list(names: list[str]) -> list[tuple[str, str, str]]:
+    out = []
+    for name in names:
+        title, body = COMBAT_META.get(name, (name, "一场遭遇战。"))
+        out.append((name, title, body))
+    return out
+
+
+def _elite_list(names: list[str]) -> list[tuple[str, str, str]]:
+    out = []
+    for name in names:
+        if name in ELITE_META:
+            title, body = ELITE_META[name]
+        elif name in COMBAT_META:
+            title, body = COMBAT_META[name]
+        else:
+            title, body = name, "精英敌人挡在路前。"
+        out.append((name, title, body))
+    return out
+
 
 ACTS = [
     {
         "id": "limgrave",
         "title": "宁姆格福路标",
         "flavor": "沿赐福指引穿过风暴山丘，接近候王礼拜堂的阴影。",
-        "combat": ["葛瑞克士兵", "野狼", "凯丹佣兵", "挖石矿工", "学院辉石法师"],
-        "elite": ["法姆亚兹拉的兽人", "亚人首领", "挖石山妖"],
+        "combat": _combat_list(
+            ["葛瑞克士兵", "野狼", "凯丹佣兵", "挖石矿工", "学院辉石法师", "亚人"]
+        ),
+        "elite": _elite_list(["法姆亚兹拉的兽人", "亚人首领", "挖石山妖"]),
+        "reward_cards": [
+            "great_knife",
+            "bloodhounds_step",
+            "assassins_approach",
+            "glintstone_pebble",
+            "heal",
+        ],
         "grace": [
             ("赐福点", "回复生命，补充圣杯瓶，或用卢恩触碰命定之死。"),
             ("艾雷教堂", "短暂停歇。锻造台旁的金光提醒你整理牌组。"),
@@ -24,8 +85,15 @@ ACTS = [
         "id": "stormveil",
         "title": "史东薇尔城塞",
         "flavor": "城墙内回荡着接肢的金属声，黄金树的枝桠在雾上摇晃。",
-        "combat": ["葛瑞克骑士", "腐败眷属", "挖石山妖", "凯丹佣兵"],
-        "elite": ["熔炉骑士", "守墓斗士", "法姆亚兹拉的兽人"],
+        "combat": _combat_list(["葛瑞克骑士", "腐败眷属", "挖石山妖", "凯丹佣兵"]),
+        "elite": _elite_list(["熔炉骑士", "守墓斗士", "挖石山妖"]),
+        "reward_cards": [
+            "lions_claw",
+            "black_flame",
+            "rotten_breath",
+            "battle_axe",
+            "longbow",
+        ],
         "grace": [
             ("城墙赐福", "在狭窄走廊里喘息，整理被撕破的战意。"),
             ("格密尔英雄墓", "墓碑旁的金光让你想起尚未完成的誓言。"),
@@ -42,13 +110,22 @@ ACTS = [
         "id": "liurnia",
         "title": "湖之利耶尼亚",
         "flavor": "金色倒影铺在湖面，学院与教堂的钟声在雾中重叠。",
-        "combat": ["学院辉石法师", "腐败眷属", "葛瑞克骑士", "凯丹佣兵"],
-        "elite": ["熔炉骑士", "守墓斗士", "挖石山妖"],
+        "combat": _combat_list(["学院辉石法师", "腐败眷属", "葛瑞克骑士", "凯丹佣兵"]),
+        "elite": _elite_list(["熔炉骑士", "守墓斗士", "挖石山妖"]),
+        "reward_cards": [
+            "glintstone_arc",
+            "volcano_pot",
+            "catch_flame",
+            "destined_death",
+            "magic_glintblade",
+        ],
         "grace": [
             ("学院门前赐福", "辉石光芒退入石缝，你得以审视自己的牌路。"),
             ("教堂侧廊", "溺水教堂的寒气被金光挡在门外。"),
         ],
-        "merchant": [],
+        "merchant": [
+            ("湖畔咖列", "咖列把船系在教堂遗迹旁，高价收购卢恩，低价卖出麻烦。"),
+        ],
         "boss_name": "接肢贵族",
         "boss_title": "贵族厅堂",
         "boss_body": "接肢贵族在湖底厅堂等待。胜利意味着这趟褪色旅程暂时落幕。",
@@ -58,12 +135,26 @@ ACTS = [
 
 
 def write_act(path: Path, act: dict) -> None:
-    node_blocks = []
-    node_refs = []
+    blocks: list[str] = []
+    refs: list[str] = []
     idx = 0
 
+    combat_refs: list[str] = []
+    for enemy, title, body in act["combat"]:
+        block, ref = _encounter_block(idx, enemy, title, body)
+        blocks.append(block)
+        combat_refs.append(ref)
+        idx += 1
+
+    elite_refs: list[str] = []
+    for enemy, title, body in act["elite"]:
+        block, ref = _encounter_block(idx, enemy, title, body)
+        blocks.append(block)
+        elite_refs.append(ref)
+        idx += 1
+
     for title, body in act.get("grace", []):
-        node_blocks.append(
+        blocks.append(
             f'''[sub_resource type="Resource" id="Node_{idx}"]
 script = ExtResource("2")
 kind = "grace"
@@ -71,11 +162,11 @@ title = "{title}"
 body = "{body}"
 '''
         )
-        node_refs.append(f'SubResource("Node_{idx}")')
+        refs.append(f'SubResource("Node_{idx}")')
         idx += 1
 
     for title, body in act.get("merchant", []):
-        node_blocks.append(
+        blocks.append(
             f'''[sub_resource type="Resource" id="Node_{idx}"]
 script = ExtResource("2")
 kind = "merchant"
@@ -83,28 +174,31 @@ title = "{title}"
 body = "{body}"
 '''
         )
-        node_refs.append(f'SubResource("Node_{idx}")')
+        refs.append(f'SubResource("Node_{idx}")')
         idx += 1
 
-    combat_str = ", ".join(f'"{n}"' for n in act["combat"])
-    elite_str = ", ".join(f'"{n}"' for n in act["elite"])
-    fixed_str = ", ".join(node_refs)
-    load_steps = idx + 3
+    reward_str = ", ".join(f'"{c}"' for c in act["reward_cards"])
+    fixed_str = ", ".join(refs)
+    combat_arr = ", ".join(combat_refs)
+    elite_arr = ", ".join(elite_refs)
+    load_steps = idx + 4
 
     content = f'''[gd_resource type="Resource" script_class="ActData" load_steps={load_steps} format=3]
 
 [ext_resource type="Script" path="res://data/ActData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MapNodeData.gd" id="2"]
+[ext_resource type="Script" path="res://data/MapEncounterData.gd" id="3"]
 
-{"".join(node_blocks)}
+{"".join(blocks)}
 [resource]
 script = ExtResource("1")
 id = "{act["id"]}"
 title = "{act["title"]}"
 subtitle_template = "第 %d 段 / 4。%s"
 flavor = "{act["flavor"]}"
-combat_enemies = Array[String]([{combat_str}])
-elite_enemies = Array[String]([{elite_str}])
+combat_encounters = Array[MapEncounterData]([{combat_arr}])
+elite_encounters = Array[MapEncounterData]([{elite_arr}])
+reward_cards = Array[String]([{reward_str}])
 fixed_nodes = Array[MapNodeData]([{fixed_str}])
 act_boss_name = "{act["boss_name"]}"
 act_boss_title = "{act["boss_title"]}"

@@ -918,7 +918,20 @@ func _build_header() -> void:
 	header.add_child(_small_stat("牌组 %d" % run_state.deck.size()))
 	if screen == GameScreen.COMBAT:
 		header.add_child(_small_stat("抽牌 %d  弃牌 %d" % [run_state.draw_pile.size(), run_state.discard_pile.size()]))
-	header.add_child(_small_stat("层数 %d/%d" % [run_state.floor_index + 1, RunState.TOTAL_FLOORS]))
+	var act := registry.get_act(run_state.act_index())
+	var local_step: int = (run_state.floor_index % RunState.FLOORS_PER_ACT) + 1
+	if act != null:
+		header.add_child(_small_stat(
+			"%s · %d/%d · 层 %d/%d" % [
+				act.title,
+				local_step,
+				RunState.FLOORS_PER_ACT,
+				run_state.floor_index + 1,
+				RunState.TOTAL_FLOORS,
+			]
+		))
+	else:
+		header.add_child(_small_stat("层数 %d/%d" % [run_state.floor_index + 1, RunState.TOTAL_FLOORS]))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
@@ -1162,9 +1175,8 @@ func _show_act_clear(on_done: Callable) -> void:
 	reward_layer.visible = true
 	_clear(reward_layer)
 	_build_header()
-	rewards = combat.roll_rewards()
-
 	var act := registry.get_act(run_state.act_index())
+	rewards = combat.roll_rewards(act)
 	var act_title := act.title if act != null else "幕间休整"
 
 	var box := VBoxContainer.new()
@@ -1201,7 +1213,8 @@ func _show_card_rewards(on_done: Callable) -> void:
 	reward_layer.visible = true
 	_clear(reward_layer)
 	_build_header()
-	rewards = combat.roll_rewards()
+	var act := registry.get_act(run_state.act_index())
+	rewards = combat.roll_rewards(act)
 
 	var box := VBoxContainer.new()
 	box.set_anchors_preset(Control.PRESET_FULL_RECT)

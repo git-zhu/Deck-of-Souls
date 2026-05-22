@@ -1,19 +1,65 @@
-[gd_resource type="Resource" script_class="ActData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ActData" load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://data/ActData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MapNodeData.gd" id="2"]
+[ext_resource type="Script" path="res://data/MapEncounterData.gd" id="3"]
 
-[sub_resource type="Resource" id="Node_0"]
+[sub_resource type="Resource" id="Enc_0"]
+script = ExtResource("3")
+enemy_name = "葛瑞克士兵"
+title = "关卡前废墟"
+body = "葛瑞克士兵巡逻。胜利后获得一张牌与少量卢恩。"
+[sub_resource type="Resource" id="Enc_1"]
+script = ExtResource("3")
+enemy_name = "野狼"
+title = "艾雷教堂北侧"
+body = "野狼在林间徘徊，商人咖列的篝火还在身后。"
+[sub_resource type="Resource" id="Enc_2"]
+script = ExtResource("3")
+enemy_name = "凯丹佣兵"
+title = "亚基尔湖北岸"
+body = "凯丹佣兵沿湖道游荡，远处能听见飞龙亚基尔的风声。"
+[sub_resource type="Resource" id="Enc_3"]
+script = ExtResource("3")
+enemy_name = "挖石矿工"
+title = "宁姆格福坑道"
+body = "挖石矿工守着锻造石，矿镐比看上去更硬。"
+[sub_resource type="Resource" id="Enc_4"]
+script = ExtResource("3")
+enemy_name = "学院辉石法师"
+title = "驿站街遗迹"
+body = "学院辉石法师藏在废墟地下，辉石光芒从石缝里透出。"
+[sub_resource type="Resource" id="Enc_5"]
+script = ExtResource("3")
+enemy_name = "亚人"
+title = "海岸洞窟入口"
+body = "亚人在洞口聚集，棍棒敲打石壁的声音令人不安。"
+[sub_resource type="Resource" id="Enc_6"]
+script = ExtResource("3")
+enemy_name = "法姆亚兹拉的兽人"
+title = "近林洞窟"
+body = "法姆亚兹拉的兽人盘踞洞底，这是许多褪色者的第一个洞窟首领。"
+[sub_resource type="Resource" id="Enc_7"]
+script = ExtResource("3")
+enemy_name = "亚人首领"
+title = "海岸洞窟"
+body = "亚人首领在黑暗中聚众嚎叫，洞外通向龙飨教堂。"
+[sub_resource type="Resource" id="Enc_8"]
+script = ExtResource("3")
+enemy_name = "挖石山妖"
+title = "挖石山妖"
+body = "精英敌人挡在路前。"
+[sub_resource type="Resource" id="Node_9"]
 script = ExtResource("2")
 kind = "grace"
 title = "赐福点"
 body = "回复生命，补充圣杯瓶，或用卢恩触碰命定之死。"
-[sub_resource type="Resource" id="Node_1"]
+[sub_resource type="Resource" id="Node_10"]
 script = ExtResource("2")
 kind = "grace"
 title = "艾雷教堂"
 body = "短暂停歇。锻造台旁的金光提醒你整理牌组。"
-[sub_resource type="Resource" id="Node_2"]
+[sub_resource type="Resource" id="Node_11"]
 script = ExtResource("2")
 kind = "merchant"
 title = "商人咖列"
@@ -25,9 +71,10 @@ id = "limgrave"
 title = "宁姆格福路标"
 subtitle_template = "第 %d 段 / 4。%s"
 flavor = "沿赐福指引穿过风暴山丘，接近候王礼拜堂的阴影。"
-combat_enemies = Array[String](["葛瑞克士兵", "野狼", "凯丹佣兵", "挖石矿工", "学院辉石法师"])
-elite_enemies = Array[String](["法姆亚兹拉的兽人", "亚人首领", "挖石山妖"])
-fixed_nodes = Array[MapNodeData]([SubResource("Node_0"), SubResource("Node_1"), SubResource("Node_2")])
+combat_encounters = Array[MapEncounterData]([SubResource("Enc_0"), SubResource("Enc_1"), SubResource("Enc_2"), SubResource("Enc_3"), SubResource("Enc_4"), SubResource("Enc_5")])
+elite_encounters = Array[MapEncounterData]([SubResource("Enc_6"), SubResource("Enc_7"), SubResource("Enc_8")])
+reward_cards = Array[String](["great_knife", "bloodhounds_step", "assassins_approach", "glintstone_pebble", "heal"])
+fixed_nodes = Array[MapNodeData]([SubResource("Node_9"), SubResource("Node_10"), SubResource("Node_11")])
 act_boss_name = "恶兆妖鬼玛尔基特"
 act_boss_title = "通城隧道"
 act_boss_body = "恶兆妖鬼玛尔基特守在史东薇尔城前。穿过这道雾门，宁姆格福的开局才算结束。"

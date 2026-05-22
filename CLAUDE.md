@@ -25,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | RunState | `scripts/core/RunState.gd` | Run HP, deck, piles, floor, statuses |
 | CombatController | `scripts/core/CombatController.gd` | Combat, damage, enemy turns |
 | CardEffectResolver | `scripts/core/CardEffectResolver.gd` | `CardEffectStep` chain + hooks |
-| MapGenerator | `scripts/core/MapGenerator.gd` | 12-floor map options from `ActData` |
+| MapGenerator | `scripts/core/MapGenerator.gd` | 12-floor map options from `ActData` + `MapEncounterData` |
 | GraceService | `scripts/core/GraceService.gd` | Grace campfire roll/apply |
 | MerchantService | `scripts/core/MerchantService.gd` | Colleen shop roll/purchase |
 | RelicService | `scripts/core/RelicService.gd` | Run relics, combat-start hooks |
@@ -36,7 +36,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `data/cards/*.tres` — `CardData` + optional `hook_id` / `effects`
 - `data/enemies/*.tres` — `EnemyData` + `MoveData`
 - `data/origins/*.tres` — `OriginData` starting decks
-- `data/acts/*.tres` — `ActData` per act (pools, grace nodes, boss copy)
+- `data/acts/*.tres` — `ActData` per act (encounters, reward_cards, grace/merchant, boss)
+- `data/MapEncounterData.gd` — map combat/elite encounter copy
 - `data/grace_options/*.tres` — `GraceOptionData` campfire upgrades
 - `data/merchant_offers/*.tres` — `MerchantOfferData` shop stock
 - `data/relics/*.tres` — `RelicData` talismans
@@ -55,8 +56,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. Expand enemy/card pools per act.
-2. Content polish (header act names, etc.).
+1. Balance pass, more relics/cards, or map event nodes.
+2. Optional: replace `heal` / starter ids in act `reward_cards` with non-starter picks only.
 
 **Workflow:** After each implementation phase, create a focused `git commit` for that phase.
 
@@ -71,6 +72,7 @@ godot4.6 --headless --path . --script tools/relic_service_test.gd
 godot4.6 --headless --path . --script tools/memory_stone_test.gd
 godot4.6 --headless --path . --script tools/ash_service_test.gd
 godot4.6 --headless --path . --script tools/relic_reward_test.gd
+godot4.6 --headless --path . --script tools/act_content_test.gd
 ```
 
 Core scripts use `preload()` for cross-module types; data `.tres` files use Godot 4 `gd_resource` format (see `tools/convert_tres.py` if you add legacy `[resource name=...]` assets).
