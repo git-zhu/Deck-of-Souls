@@ -27,7 +27,7 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 地图事件节点：12 个非战斗抉择（卢恩/生命/得牌等），按幕加权更易出现，数据见 `data/events/`。
 - 按幕商人货池与价格（幕 1 基础货 → 幕 3 含记忆石/护符，利耶尼亚价 ×0.95）。
 - 地图节点显示类型徽章（战斗/精英/事件等）；战斗意图着色、不可打出牌灰化。
-- UI 主题与构建器：`GameTheme`、`UiBuilders`、`RewardLayerViews`（商人/赐福/事件/战后奖励）；`Main.gd` 负责路由（约 880 行）。
+- UI：`GameTheme`、`UiBuilders`、`RewardLayerViews`、`CombatHudView`、`RunHeaderView`；可选音效 `GameAudio`（`audio/*.ogg`）；`Main.gd` 约 720 行。
 - 核心逻辑在 `scripts/core/`（`DataRegistry`、`RunState`、`CombatController`、`MapGenerator` 等）。
 
 ## 当前素材方向
@@ -51,9 +51,10 @@ godot4.6 --headless --path . --script tools/balance_content_test.gd
 godot4.6 --headless --path . --script tools/act_economy_test.gd
 godot4.6 --headless --path . --script tools/ui_layout_test.gd
 godot4.6 --headless --path . --script tools/reward_ui_test.gd
+godot4.6 --headless --path . --script tools/combat_hud_test.gd
 ```
 
 ## 推荐下一步
 
-- 战斗 HUD（`CombatHudView`）、顶栏（`RunHeaderView`）、音效钩子（`GameAudio`）——见 `docs/superpowers/plans/2026-05-21-phase15-combat-hud-audio.md`。
-- 之后：地图/出身屏迁出；更多敌人；事件链。
+- 地图/标题/出身屏迁出；更多敌人；事件链。
+- 可选：在 `audio/` 放入 `ui_click.ogg` 等短音。

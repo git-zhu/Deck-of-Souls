@@ -29,6 +29,9 @@ const MapEventChoiceData = preload("res://data/MapEventChoiceData.gd")
 const GameTheme = preload("res://scripts/ui/GameTheme.gd")
 const UiBuilders = preload("res://scripts/ui/UiBuilders.gd")
 const RewardLayerViews = preload("res://scripts/ui/RewardLayerViews.gd")
+const CombatHudView = preload("res://scripts/ui/CombatHudView.gd")
+const RunHeaderView = preload("res://scripts/ui/RunHeaderView.gd")
+const GameAudio = preload("res://scripts/ui/GameAudio.gd")
 
 var rng := RandomNumberGenerator.new()
 var screen := GameScreen.TITLE
@@ -72,9 +75,6 @@ var log_box: RichTextLabel
 var hand_row: HBoxContainer
 var enemy_panel: PanelContainer
 var player_panel: PanelContainer
-var draw_label: Label
-var discard_label: Label
-var exhaust_label: Label
 var end_turn_button: Button
 var flask_button: Button
 var deck_button: Button
@@ -343,6 +343,7 @@ func _map_choice_card(option: Dictionary) -> PanelContainer:
 
 
 func _choose_map_option(option: Dictionary) -> void:
+	GameAudio.play(self, "ui_click")
 	match str(option.get("kind", "")):
 		"combat":
 			_begin_combat(registry.pick_named_enemy(rng, str(option.get("enemy", "")), false, false))
@@ -388,8 +389,7 @@ func _on_event_choice(choice: MapEventChoiceData, event: MapEventData) -> void:
 			func(card_id: String):
 				var c: CardData = registry.get_card(card_id)
 				var card_name := c.name if c != null else card_id
-				_show_event_result(event.title, "已从牌组移除《%s》。" % card_name),
-			true
+				_show_event_result(event.title, "已从牌组移除《%s》。" % card_name)
 		)
 	else:
 		_show_event_result(event.title, summary)
@@ -401,11 +401,14 @@ func _show_event_result(title_text: String, body_text: String) -> void:
 			title_text,
 			body_text,
 			"继续",
-			func():
-				run_state.advance_floor()
-				_show_map()
+			_advance_floor_and_show_map
 		)
 	)
+
+
+func _advance_floor_and_show_map() -> void:
+	run_state.advance_floor()
+	_show_map()
 
 
 func _visit_merchant() -> void:
@@ -553,9 +556,7 @@ func _show_grace_result(title_text: String, body_text: String) -> void:
 			title_text,
 			body_text,
 			"继续",
-			func():
-				run_state.advance_floor()
-				_show_map()
+			_advance_floor_and_show_map
 		)
 	)
 
@@ -564,11 +565,14 @@ func _start_ash_replace_flow(on_done: Callable) -> void:
 	_show_remove_card_picker(
 		"战灰替换",
 		"选择要被战灰覆盖的牌。",
-		func(removed_id: String):
-			var options: Array = ash_service.roll_ash_cards(registry, rng, 3)
-			_show_ash_replace_picker(removed_id, options, on_done),
+		_on_ash_card_picked_for_replace.bind(on_done),
 		false
 	)
+
+
+func _on_ash_card_picked_for_replace(removed_id: String, on_done: Callable) -> void:
+	var options: Array = ash_service.roll_ash_cards(registry, rng, 3)
+	_show_ash_replace_picker(removed_id, options, on_done)
 
 
 func _show_ash_replace_picker(removed_id: String, card_ids: Array, on_done: Callable) -> void:
@@ -622,155 +626,34 @@ func _render_combat() -> void:
 	combat_layer.visible = true
 	_clear(combat_layer)
 	_build_header()
-
-	var main := VBoxContainer.new()
-	main.set_anchors_preset(Control.PRESET_FULL_RECT)
-	main.add_theme_constant_override("separation", 8)
-	combat_layer.add_child(main)
-
-	var field := HBoxContainer.new()
-	field.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	field.add_theme_constant_override("separation", 8)
-	main.add_child(field)
-
-	player_panel = UiBuilders.fighter_panel(
-		"褪色者",
-		run_state.hp,
-		run_state.max_hp,
-		combat.block,
-		"腐败 %d  出血 %d  易伤 %d" % [run_state.player_rot, run_state.player_bleed, run_state.player_vulnerable],
-		Color("#2a241b")
+	var refs := CombatHudView.build(
+		run_state,
+		combat,
+		registry,
+		_log_text(),
+		CARD_W,
+		CARD_H,
+		_play_card,
+		combat.use_flask,
+		combat.end_player_turn
 	)
-	player_panel.custom_minimum_size = Vector2(250, 0)
-	field.add_child(player_panel)
-
-	var center := VBoxContainer.new()
-	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	center.custom_minimum_size = Vector2(270, 0)
-	center.add_theme_constant_override("separation", 8)
-	field.add_child(center)
-	var intent := Label.new()
-	intent.text = "敌方意图：%s" % combat.intent_text()
-	intent.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	intent.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	intent.add_theme_font_size_override("font_size", 23)
-	var intent_kind := str(combat.enemy_intent.get("kind", ""))
-	intent.add_theme_color_override("font_color", GameTheme.intent_color(intent_kind))
-	center.add_child(intent)
-	log_box = RichTextLabel.new()
-	log_box.bbcode_enabled = true
-	log_box.fit_content = false
-	log_box.scroll_following = true
-	log_box.custom_minimum_size = Vector2(270, 170)
-	log_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	log_box.text = _log_text()
-	center.add_child(log_box)
-
-	enemy_panel = UiBuilders.fighter_panel(
-		combat.enemy.name,
-		combat.enemy.hp,
-		combat.enemy.max_hp,
-		int(combat.enemy.block),
-		"姿态 %d/%d  腐败 %d  出血 %d  易伤 %d  力量 %d" % [
-			combat.enemy.stance_now,
-			combat.enemy.stance_max,
-			combat.enemy.rot,
-			combat.enemy.bleed,
-			combat.enemy.vulnerable,
-			combat.enemy.strength,
-		],
-		Color("#2b1d1b"),
-		int(combat.enemy.stance_now),
-		int(combat.enemy.stance_max)
-	)
-	enemy_panel.custom_minimum_size = Vector2(280, 0)
-	field.add_child(enemy_panel)
-
-	var piles := HBoxContainer.new()
-	piles.add_theme_constant_override("separation", 18)
-	main.add_child(piles)
-	draw_label = UiBuilders.small_stat("抽牌 %d" % run_state.draw_pile.size())
-	discard_label = UiBuilders.small_stat("弃牌 %d" % run_state.discard_pile.size())
-	exhaust_label = UiBuilders.small_stat("消耗 %d" % run_state.exhaust_pile.size())
-	piles.add_child(draw_label)
-	piles.add_child(discard_label)
-	piles.add_child(exhaust_label)
-	piles.add_child(UiBuilders.small_stat("集中 %d/%d" % [combat.ember, combat.max_ember]))
-
-	var actions := HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 10)
-	main.add_child(actions)
-	flask_button = Button.new()
-	flask_button.text = "圣杯瓶 (%d)" % run_state.flasks
-	flask_button.disabled = run_state.flasks <= 0 or run_state.hp >= run_state.max_hp
-	flask_button.pressed.connect(func(): combat.use_flask())
-	actions.add_child(flask_button)
-	end_turn_button = Button.new()
-	end_turn_button.text = "结束回合"
-	end_turn_button.pressed.connect(func(): combat.end_player_turn())
-	actions.add_child(end_turn_button)
-
-	var hand_scroll := ScrollContainer.new()
-	hand_scroll.custom_minimum_size = Vector2(0, CARD_H + 18)
-	hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hand_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	main.add_child(hand_scroll)
-
-	hand_row = HBoxContainer.new()
-	hand_row.add_theme_constant_override("separation", 10)
-	hand_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	hand_scroll.add_child(hand_row)
-	for i in range(run_state.hand.size()):
-		var card_id: String = run_state.hand[i]
-		var card_data: CardData = registry.get_card(card_id)
-		if card_data != null:
-			hand_row.add_child(
-				UiBuilders.card_button(
-					card_data,
-					i,
-					combat,
-					CARD_W,
-					CARD_H,
-					func(): _play_card(i)
-				)
-			)
+	combat_layer.add_child(refs.root)
+	player_panel = refs.player_panel
+	enemy_panel = refs.enemy_panel
+	log_box = refs.log_box
+	hand_row = refs.hand_row
+	flask_button = refs.flask_button
+	end_turn_button = refs.end_turn_button
 
 
 func _build_header() -> void:
-	_clear(header)
-	header.add_child(UiBuilders.small_stat("生命 %d/%d" % [run_state.hp, run_state.max_hp]))
-	header.add_child(UiBuilders.small_stat("圣杯瓶 %d/%d" % [run_state.flasks, run_state.max_flasks]))
-	header.add_child(UiBuilders.small_stat("卢恩 %d" % run_state.souls))
-	if run_state.relics.size() > 0:
-		header.add_child(UiBuilders.small_stat("护符 %d" % run_state.relics.size()))
-	if run_state.memory_stones > 0:
-		header.add_child(UiBuilders.small_stat("记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES]))
-	header.add_child(UiBuilders.small_stat("牌组 %d" % run_state.deck.size()))
-	if screen == GameScreen.COMBAT:
-		header.add_child(UiBuilders.small_stat("抽牌 %d  弃牌 %d" % [run_state.draw_pile.size(), run_state.discard_pile.size()]))
-	var act := registry.get_act(run_state.act_index())
-	var local_step: int = (run_state.floor_index % RunState.FLOORS_PER_ACT) + 1
-	if act != null:
-		header.add_child(UiBuilders.small_stat(
-			"%s · %d/%d · 层 %d/%d" % [
-				act.title,
-				local_step,
-				RunState.FLOORS_PER_ACT,
-				run_state.floor_index + 1,
-				RunState.TOTAL_FLOORS,
-			]
-		))
-	else:
-		header.add_child(UiBuilders.small_stat("层数 %d/%d" % [run_state.floor_index + 1, RunState.TOTAL_FLOORS]))
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(spacer)
-	deck_button = Button.new()
-	deck_button.text = "查看牌组"
-	deck_button.custom_minimum_size = Vector2(118, 34)
-	deck_button.pressed.connect(_show_deck_view)
-	header.add_child(deck_button)
+	deck_button = RunHeaderView.build(
+		header,
+		run_state,
+		registry,
+		screen == GameScreen.COMBAT,
+		_show_deck_view
+	)
 
 
 func _show_deck_view() -> void:
@@ -830,66 +713,11 @@ func _show_deck_view() -> void:
 			var card: CardData = registry.get_card(str(id))
 			if card == null:
 				continue
-			list.add_child(_deck_card_row(card, int(counts[id])))
+			list.add_child(UiBuilders.deck_summary_row(card, int(counts[id])))
 
 	popup.popup_centered()
-	popup.close_requested.connect(func(): popup.queue_free())
-
-
-func _deck_card_row(card: CardData, count: int) -> PanelContainer:
-	const ROW_TEXT_WIDTH := 520.0
-	var row := PanelContainer.new()
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("#242018")
-	style.border_color = card.tone.darkened(0.1)
-	style.set_border_width_all(1)
-	style.corner_radius_top_left = 6
-	style.corner_radius_top_right = 6
-	style.corner_radius_bottom_left = 6
-	style.corner_radius_bottom_right = 6
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
-	row.add_theme_stylebox_override("panel", style)
-
-	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 12)
-	h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(h)
-
-	var badge := Label.new()
-	badge.text = "×%d" % count
-	badge.custom_minimum_size = Vector2(40, 0)
-	badge.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	badge.add_theme_font_size_override("font_size", 20)
-	badge.add_theme_color_override("font_color", Color("#e0c06c"))
-	h.add_child(badge)
-
-	var info := VBoxContainer.new()
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.add_theme_constant_override("separation", 4)
-	h.add_child(info)
-
-	var title := Label.new()
-	title.text = "%s  ·  %s  ·  集中 %d" % [card.name, card.type, card.cost]
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	title.add_theme_font_size_override("font_size", 18)
-	title.add_theme_color_override("font_color", card.tone.lightened(0.25))
-	info.add_child(title)
-
-	var desc := Label.new()
-	desc.text = card.text
-	desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	desc.custom_minimum_size.x = ROW_TEXT_WIDTH
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#c8bca5"))
-	info.add_child(desc)
-
-	return row
+	popup.confirmed.connect(popup.queue_free)
+	popup.close_requested.connect(popup.queue_free)
 
 
 func _card_counts(card_ids: Array[String]) -> Dictionary:
@@ -900,6 +728,7 @@ func _card_counts(card_ids: Array[String]) -> Dictionary:
 
 
 func _play_card(index: int) -> void:
+	GameAudio.play(self, "ui_click")
 	combat.play_card(index)
 
 
@@ -963,6 +792,7 @@ func _show_relic_rewards(relic_ids: Array, on_done: Callable) -> void:
 
 
 func _show_game_over() -> void:
+	GameAudio.play(self, "defeat")
 	screen = GameScreen.GAME_OVER
 	_hide_layers()
 	end_layer.visible = true
@@ -989,6 +819,7 @@ func _show_game_over() -> void:
 
 
 func _show_victory() -> void:
+	GameAudio.play(self, "victory")
 	screen = GameScreen.VICTORY
 	_hide_layers()
 	end_layer.visible = true

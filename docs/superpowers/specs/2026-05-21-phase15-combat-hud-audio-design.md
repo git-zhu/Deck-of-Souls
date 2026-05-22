@@ -1,7 +1,7 @@
 # 阶段十五：战斗 HUD 提取与音效钩子 — 设计规格
 
 **日期：** 2026-05-21  
-**状态：** 待实现  
+**状态：** 已实现  
 **前置：** 阶段一至十四（`RewardLayerViews`、`Main` ~880 行）  
 **实现计划：** `docs/superpowers/plans/2026-05-21-phase15-combat-hud-audio.md`
 

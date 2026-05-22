@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-**UI shell + core modules.** Game logic is split; `Main.gd` (~880 lines) routes screens; shared UI in `scripts/ui/`。
+**UI shell + core modules.** Game logic is split; `Main.gd` (~720 lines) routes screens; shared UI in `scripts/ui/`。
 
 | Module | Path | Role |
 |---|---|---|
@@ -24,6 +24,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | GameTheme | `scripts/ui/GameTheme.gd` | Palette, map kind badges, intent colors |
 | UiBuilders | `scripts/ui/UiBuilders.gd` | Panel, fighter, hand card, map option builders |
 | RewardLayerViews | `scripts/ui/RewardLayerViews.gd` | Merchant, grace, event, post-combat rewards, pickers |
+| CombatHudView | `scripts/ui/CombatHudView.gd` | Combat field, hand, log, action buttons |
+| RunHeaderView | `scripts/ui/RunHeaderView.gd` | Run stats header + deck button |
+| GameAudio | `scripts/ui/GameAudio.gd` | Optional `res://audio/*.ogg` hooks |
 | DataRegistry | `scripts/core/DataRegistry.gd` | Load `data/**/*.tres` |
 | RunState | `scripts/core/RunState.gd` | Run HP, deck, piles, floor, statuses |
 | CombatController | `scripts/core/CombatController.gd` | Combat, damage, enemy turns |
@@ -64,8 +67,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. **阶段十五：** `CombatHudView` + `RunHeaderView` + `GameAudio`（见 `docs/superpowers/plans/2026-05-21-phase15-combat-hud-audio.md`）。
-2. 阶段十六：地图/标题/出身屏迁出；+3 敌人；事件链。
+1. 阶段十六：地图/标题/出身屏迁出；+3 敌人；事件链。
 3. 可选 Monte Carlo 平衡工具。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
