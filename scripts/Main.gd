@@ -21,6 +21,8 @@ const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
 const AshService = preload("res://scripts/core/AshService.gd")
 const OriginData = preload("res://data/OriginData.gd")
 const CardData = preload("res://data/CardData.gd")
+const RelicData = preload("res://data/RelicData.gd")
+const RelicService = preload("res://scripts/core/RelicService.gd")
 
 var rng := RandomNumberGenerator.new()
 var screen := GameScreen.TITLE
@@ -31,6 +33,7 @@ var map_gen := MapGenerator.new()
 var grace_service := GraceService.new()
 var merchant_service := MerchantService.new()
 var ash_service := AshService.new()
+var relic_service := RelicService.new()
 var rewards: Array[String] = []
 var _merchant_stock: Array = []
 var _merchant_sold: Array[bool] = []
@@ -91,9 +94,11 @@ func _on_combat_changed() -> void:
 func _on_combat_ended(kind: String) -> void:
 	match kind:
 		"reward":
-			_show_rewards()
+			_show_card_rewards(_finish_combat_rewards)
+		"elite_reward":
+			_show_card_rewards(_show_post_combat_relic_rewards)
 		"act_clear":
-			_show_act_clear()
+			_show_act_clear(_show_post_combat_relic_rewards)
 		"run_victory":
 			_show_victory()
 		"defeat":
@@ -1136,7 +1141,20 @@ func _play_card(index: int) -> void:
 	combat.play_card(index)
 
 
-func _show_act_clear() -> void:
+func _finish_combat_rewards() -> void:
+	run_state.advance_floor()
+	_show_map()
+
+
+func _show_post_combat_relic_rewards() -> void:
+	var offers: Array = relic_service.roll_relic_offers(run_state, registry, rng, 3)
+	if offers.is_empty():
+		_finish_combat_rewards()
+	else:
+		_show_relic_rewards(offers, _finish_combat_rewards)
+
+
+func _show_act_clear(on_done: Callable) -> void:
 	run_state.hp = run_state.max_hp
 	run_state.flasks = run_state.max_flasks
 	screen = GameScreen.REWARD
@@ -1159,7 +1177,8 @@ func _show_act_clear() -> void:
 	title.add_theme_color_override("font_color", Color("#e0c06c"))
 	box.add_child(title)
 	var desc := Label.new()
-	desc.text = "雾门后的金光回满生命与圣杯瓶。选一张牌带走，或直接踏上下一幕。"
+	desc.text = "雾门后的金光回满生命与圣杯瓶。选一张牌带走，然后挑选护符。"
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(desc)
 
 	var row := HBoxContainer.new()
@@ -1167,19 +1186,16 @@ func _show_act_clear() -> void:
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(row)
 	for id in rewards:
-		row.add_child(_reward_card(id))
+		row.add_child(_reward_card(id, on_done))
 
 	var skip := Button.new()
-	skip.text = "不取牌，继续前进"
+	skip.text = "不取牌，继续"
 	skip.custom_minimum_size = Vector2(240, 48)
-	skip.pressed.connect(func():
-		run_state.advance_floor()
-		_show_map()
-	)
+	skip.pressed.connect(on_done)
 	box.add_child(skip)
 
 
-func _show_rewards() -> void:
+func _show_card_rewards(on_done: Callable) -> void:
 	screen = GameScreen.REWARD
 	_hide_layers()
 	reward_layer.visible = true
@@ -1197,7 +1213,8 @@ func _show_rewards() -> void:
 	title.add_theme_color_override("font_color", Color("#e0c06c"))
 	box.add_child(title)
 	var desc := Label.new()
-	desc.text = "选择一张牌加入牌组，或放弃奖励。"
+	desc.text = "选择一张牌加入牌组，或放弃卡牌奖励。"
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(desc)
 
 	var row := HBoxContainer.new()
@@ -1205,19 +1222,93 @@ func _show_rewards() -> void:
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(row)
 	for id in rewards:
-		row.add_child(_reward_card(id))
+		row.add_child(_reward_card(id, on_done))
 
 	var skip := Button.new()
-	skip.text = "放弃，继续前进"
+	skip.text = "放弃卡牌奖励"
 	skip.custom_minimum_size = Vector2(240, 48)
-	skip.pressed.connect(func():
-		run_state.advance_floor()
-		_show_map()
-	)
+	skip.pressed.connect(on_done)
 	box.add_child(skip)
 
 
-func _reward_card(card_id: String) -> Button:
+func _show_relic_rewards(relic_ids: Array, on_done: Callable) -> void:
+	screen = GameScreen.REWARD
+	_hide_layers()
+	reward_layer.visible = true
+	_clear(reward_layer)
+	_build_header()
+
+	var wrap := VBoxContainer.new()
+	wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrap.add_theme_constant_override("separation", 14)
+	reward_layer.add_child(wrap)
+
+	var title := Label.new()
+	title.text = "护符"
+	title.add_theme_font_size_override("font_size", 34)
+	title.add_theme_color_override("font_color", Color("#e0c06c"))
+	wrap.add_child(title)
+
+	var hint := Label.new()
+	hint.text = "强敌留下的未绑定护符，选一件带走。"
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_color_override("font_color", Color("#c8bca5"))
+	wrap.add_child(hint)
+
+	var row := HBoxContainer.new()
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 12)
+	wrap.add_child(row)
+
+	for relic_id in relic_ids:
+		var relic := registry.get_relic(str(relic_id)) as RelicData
+		if relic != null:
+			row.add_child(_relic_reward_panel(relic, on_done))
+
+	var skip := Button.new()
+	skip.text = "放弃护符"
+	skip.custom_minimum_size = Vector2(220, 48)
+	skip.pressed.connect(on_done)
+	wrap.add_child(skip)
+
+
+func _relic_reward_panel(relic: RelicData, on_done: Callable) -> PanelContainer:
+	var panel := _panel(Color("#242018"))
+	panel.custom_minimum_size = Vector2(0, 300)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	panel.add_child(v)
+
+	var name := Label.new()
+	name.text = relic.name
+	name.add_theme_font_size_override("font_size", 26)
+	name.add_theme_color_override("font_color", Color("#e0c06c"))
+	v.add_child(name)
+
+	var body := Label.new()
+	body.text = relic.body
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(body)
+
+	var hook := Label.new()
+	hook.text = relic_service.hook_summary(relic)
+	hook.add_theme_color_override("font_color", Color("#9ec9e8"))
+	v.add_child(hook)
+
+	var btn := Button.new()
+	btn.text = "带走"
+	btn.custom_minimum_size = Vector2(0, 44)
+	btn.pressed.connect(func():
+		relic_service.add_relic(run_state, registry, relic.id)
+		on_done.call()
+	)
+	v.add_child(btn)
+	return panel
+
+
+func _reward_card(card_id: String, on_done: Callable) -> Button:
 	var c: CardData = registry.get_card(card_id)
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(250, 320)
@@ -1225,8 +1316,7 @@ func _reward_card(card_id: String) -> Button:
 	button.text = "%s\n%s  集中:%d\n稀有度:%s\n\n%s" % [c.name, c.type, c.cost, c.rarity, c.text]
 	button.pressed.connect(func():
 		run_state.deck.append(card_id)
-		run_state.advance_floor()
-		_show_map()
+		on_done.call()
 	)
 	return button
 

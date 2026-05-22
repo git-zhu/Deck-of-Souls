@@ -55,8 +55,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. Post-combat relic rewards (elite / act clear).
-2. Expand enemy/card pools per act.
+1. Expand enemy/card pools per act.
+2. Content polish (header act names, etc.).
 
 **Workflow:** After each implementation phase, create a focused `git commit` for that phase.
 
@@ -70,6 +70,7 @@ godot4.6 --headless --path . --script tools/merchant_service_test.gd
 godot4.6 --headless --path . --script tools/relic_service_test.gd
 godot4.6 --headless --path . --script tools/memory_stone_test.gd
 godot4.6 --headless --path . --script tools/ash_service_test.gd
+godot4.6 --headless --path . --script tools/relic_reward_test.gd
 ```
 
 Core scripts use `preload()` for cross-module types; data `.tres` files use Godot 4 `gd_resource` format (see `tools/convert_tres.py` if you add legacy `[resource name=...]` assets).

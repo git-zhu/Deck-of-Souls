@@ -271,6 +271,8 @@ func check_combat_end() -> void:
 			combat_ended.emit("run_victory")
 		elif bool(enemy.get("is_act_boss", false)):
 			combat_ended.emit("act_clear")
+		elif bool(enemy.get("elite", false)):
+			combat_ended.emit("elite_reward")
 		else:
 			combat_ended.emit("reward")
 

@@ -22,18 +22,54 @@ func add_relic(run: RunState, registry: DataRegistry, relic_id: String) -> bool:
 	return true
 
 
+func roll_relic_offers(
+	run: RunState,
+	registry: DataRegistry,
+	rng: RandomNumberGenerator,
+	count: int = 3
+) -> Array:
+	var pool := _unowned_relic_pool(run, registry)
+	pool.shuffle()
+	var offers: Array = []
+	for i in mini(count, pool.size()):
+		offers.append((pool[i] as RelicData).id)
+	return offers
+
+
 func grant_random_relic(run: RunState, registry: DataRegistry, rng: RandomNumberGenerator) -> RelicData:
+	var offers := roll_relic_offers(run, registry, rng, 1)
+	if offers.is_empty():
+		return null
+	var relic_id: String = str(offers[0])
+	add_relic(run, registry, relic_id)
+	return registry.get_relic(relic_id) as RelicData
+
+
+func hook_summary(relic: RelicData) -> String:
+	match relic.hook:
+		"combat_strength":
+			return "战斗开始：力量 +%d" % relic.value
+		"on_acquire_max_hp":
+			return "获得时：最大生命 +%d" % relic.value
+		"combat_extra_ember":
+			return "战斗开始：集中 +%d" % relic.value
+		"combat_extra_draw":
+			return "每回合多抽 %d 张" % relic.value
+		"combat_start_block":
+			return "战斗开始：护甲 +%d" % relic.value
+		_:
+			return relic.hook
+
+
+func _unowned_relic_pool(run: RunState, registry: DataRegistry) -> Array:
 	var pool: Array = []
 	for rid in registry.all_relic_ids():
-		if not has_relic(run, str(rid)):
-			var relic := registry.get_relic(str(rid))
-			if relic != null:
-				pool.append(relic)
-	if pool.is_empty():
-		return null
-	var picked: RelicData = pool[rng.randi_range(0, pool.size() - 1)] as RelicData
-	add_relic(run, registry, picked.id)
-	return picked
+		if has_relic(run, str(rid)):
+			continue
+		var relic := registry.get_relic(str(rid)) as RelicData
+		if relic != null:
+			pool.append(relic)
+	return pool
 
 
 func apply_combat_start(run: RunState, registry: DataRegistry, combat: CombatController) -> void:
