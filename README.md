@@ -24,17 +24,18 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 战后奖励池仅非 starter 卡；新增 4 张通用卡（岩石球、火焰赐予力量、辉石流星、冰雾踏地）。
 - 记忆石（最多 3 颗）：每场战斗每回合多抽 1 张牌。
 - 三幕 12 层跑团（宁姆格福 → 史东薇尔 → 利耶尼亚），地图与敌池由 `data/acts/*.tres` 驱动。
-- 地图事件节点：12 个非战斗抉择（卢恩/生命/得牌等），按幕加权更易出现，数据见 `data/events/`。
+- 地图事件节点：15 个非战斗抉择（含 3 条多步事件链），按幕加权更易出现，数据见 `data/events/`。
+- 敌人 18 种（含大树守卫、狮子混种、坠星兽），由 `data/enemies/` 与 `tools/build_enemies.py` 维护。
 - 按幕商人货池与价格（幕 1 基础货 → 幕 3 含记忆石/护符，利耶尼亚价 ×0.95）。
 - 地图节点显示类型徽章（战斗/精英/事件等）；战斗意图着色、不可打出牌灰化。
-- UI：`GameTheme`、`UiBuilders`、`RewardLayerViews`、`CombatHudView`、`RunHeaderView`；可选音效 `GameAudio`（`audio/*.ogg`）；`Main.gd` 约 720 行。
+- UI：`GameTheme`、`UiBuilders`、`RewardLayerViews`、`CombatHudView`、`RunHeaderView`、`TitleScreenView`、`OriginScreenView`、`MapScreenView`、`DeckPopupView`、`EndScreenView`；`RunRewardFlow` 处理商人/赐福/战后奖励；可选音效 `GameAudio`（`audio/*.ogg`）；`Main.gd` 约 400 行。
 - 核心逻辑在 `scripts/core/`（`DataRegistry`、`RunState`、`CombatController`、`MapGenerator` 等）。
 
 ## 当前素材方向
 
 - 出身参考本体初始职业与装备。
 - 卡牌使用长剑、熨斗形盾、戟、打刀、长弓、辉石魔砾、辉石弯弧、魔法辉剑、火焰啊、恢复、紧急恢复、刺客步法、狮子斩、猎犬步法、腐败吐息、黑焰、红露滴圣杯瓶、命定之死等真实存在内容。
-- 敌人使用葛瑞克士兵、野狼、亚人、葛瑞克骑士、凯丹佣兵、挖石矿工、学院辉石法师、腐败眷属、法姆亚兹拉的兽人、亚人首领、守墓斗士、挖石山妖、熔炉骑士、接肢贵族、恶兆妖鬼玛尔基特等真实存在内容。
+- 敌人使用葛瑞克士兵、野狼、亚人、葛瑞克骑士、凯丹佣兵、挖石矿工、学院辉石法师、腐败眷属、大树守卫、狮子混种、坠星兽、法姆亚兹拉的兽人、亚人首领、守墓斗士、挖石山妖、熔炉骑士、接肢贵族、恶兆妖鬼玛尔基特等真实存在内容。
 - 地图事件按前期进度扩展到艾雷教堂、关卡前废墟、亚基尔湖北岸、宁姆格福坑道、驿站街遗迹、近林洞窟、海岸洞窟、风暴山丘封牢、通城隧道等节点。
 - 战斗 UI 将手牌放入横向滚动区域，并收紧双方状态面板，避免 1280x720 下右侧敌人与底部卡牌被裁切。
 
@@ -52,9 +53,12 @@ godot4.6 --headless --path . --script tools/act_economy_test.gd
 godot4.6 --headless --path . --script tools/ui_layout_test.gd
 godot4.6 --headless --path . --script tools/reward_ui_test.gd
 godot4.6 --headless --path . --script tools/combat_hud_test.gd
+godot4.6 --headless --path . --script tools/flow_screen_test.gd
+godot4.6 --headless --path . --script tools/event_chain_test.gd
+godot4.6 --headless --path . --script tools/content_pack_test.gd
 ```
 
 ## 推荐下一步
 
-- 流程屏 UI（`TitleScreenView` 等）、事件链、`+3` 敌人 — 见 `docs/superpowers/plans/2026-05-21-phase16-flow-screens-content.md`。
+- `RunFlowController`、第四幕、默认音效包 — 见 `docs/superpowers/plans/`。
 - 可选：在 `audio/` 放入 `ui_click.ogg` 等短音。

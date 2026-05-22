@@ -12,6 +12,7 @@ effect_value = 20
 soul_cost = 0
 card_id = ""
 min_deck_size = 0
+follow_event_id = ""
 [sub_resource type="Resource" id="Choice_1"]
 script = ExtResource("2")
 id = "rest"
@@ -21,6 +22,7 @@ effect_value = 25
 soul_cost = 0
 card_id = ""
 min_deck_size = 0
+follow_event_id = ""
 
 [resource]
 script = ExtResource("1")

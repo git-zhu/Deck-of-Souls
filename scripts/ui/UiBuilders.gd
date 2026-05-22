@@ -157,3 +157,58 @@ static func card_button(
 	button.add_theme_stylebox_override("normal", style)
 	button.pressed.connect(on_play)
 	return button
+
+
+static func deck_summary_row(card: CardData, count: int, text_width: float = 520.0) -> PanelContainer:
+	var row := PanelContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#242018")
+	style.border_color = card.tone.darkened(0.1)
+	style.set_border_width_all(1)
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
+	row.add_theme_stylebox_override("panel", style)
+
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 12)
+	h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(h)
+
+	var badge := Label.new()
+	badge.text = "×%d" % count
+	badge.custom_minimum_size = Vector2(40, 0)
+	badge.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	badge.add_theme_font_size_override("font_size", 20)
+	badge.add_theme_color_override("font_color", GameTheme.GOLD)
+	h.add_child(badge)
+
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 4)
+	h.add_child(info)
+
+	var title := Label.new()
+	title.text = "%s  ·  %s  ·  集中 %d" % [card.name, card.type, card.cost]
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_color", card.tone.lightened(0.25))
+	info.add_child(title)
+
+	var desc := Label.new()
+	desc.text = card.text
+	desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc.custom_minimum_size.x = text_width
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.add_theme_font_size_override("font_size", 15)
+	desc.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+	info.add_child(desc)
+
+	return row

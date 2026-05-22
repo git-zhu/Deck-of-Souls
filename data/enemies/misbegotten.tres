@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
+
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack"
+value = 9
+text = "狮爪撕裂"
+hits = 2
+
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "attack_block"
+value = 7
+text = "弯刀格挡"
+block = 6
+
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "attack"
+value = 12
+text = "混种咆哮斩"
+
+[resource]
+script = ExtResource("1")
+name = "狮子混种"
+max_hp = 50
+stance = 12
+souls = 24
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

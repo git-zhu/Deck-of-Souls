@@ -8,3 +8,4 @@ extends Resource
 @export var soul_cost: int = 0
 @export var card_id: String = ""
 @export var min_deck_size: int = 0
+@export var follow_event_id: String = ""

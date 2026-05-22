@@ -5,28 +5,28 @@
 
 [sub_resource type="Resource" id="Choice_0"]
 script = ExtResource("2")
-id = "club"
-label = "取走铁棒"
-effect = "add_card"
-effect_value = 0
+id = "souls"
+label = "撬开铁柜"
+effect = "gain_souls"
+effect_value = 20
 soul_cost = 0
-card_id = "club"
+card_id = ""
 min_deck_size = 0
 follow_event_id = ""
 [sub_resource type="Resource" id="Choice_1"]
 script = ExtResource("2")
-id = "buy_rock"
-label = "花 15 卢恩买辉石屑"
-effect = "add_card"
-effect_value = 0
-soul_cost = 15
-card_id = "rock_sling"
+id = "rest"
+label = "靠墙喘息"
+effect = "heal_percent"
+effect_value = 10
+soul_cost = 0
+card_id = ""
 min_deck_size = 0
 follow_event_id = ""
 [sub_resource type="Resource" id="Choice_2"]
 script = ExtResource("2")
 id = "leave"
-label = "离开"
+label = "原路返回"
 effect = "nothing"
 effect_value = 0
 soul_cost = 0
@@ -36,7 +36,7 @@ follow_event_id = ""
 
 [resource]
 script = ExtResource("1")
-id = "limgrave_smithing_table"
-title = "锻造台余温"
-body = "艾雷教堂旁的锻造台仍有余温，锤痕里嵌着未取走的铁屑。"
+id = "stormveil_armory_inner"
+title = "废弃军械库 · 机关室"
+body = "机关门滑开，窄室里堆着更多锈蚀兵器，墙缝还渗着城塞的冷风。"
 choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1"), SubResource("Choice_2")])

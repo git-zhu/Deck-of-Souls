@@ -16,11 +16,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-**UI shell + core modules.** Game logic is split; `Main.gd` (~720 lines) routes screens; shared UI in `scripts/ui/`。
+**UI shell + core modules.** Game logic is split; `Main.gd` (~400 lines) routes screens; shared UI in `scripts/ui/`。
 
 | Module | Path | Role |
 |---|---|---|
-| Main | `scripts/Main.gd` | Screen routing, combat/map/reward flow |
+| Main | `scripts/Main.gd` | Screen routing, combat/map/event flow |
+| RunRewardFlow | `scripts/core/RunRewardFlow.gd` | Merchant, grace, ash, post-combat reward UI flow |
+| TitleScreenView / OriginScreenView / MapScreenView / DeckPopupView / EndScreenView | `scripts/ui/*ScreenView.gd` | Title, origin, map, deck popup, end screens |
+| DeckUtils | `scripts/ui/DeckUtils.gd` | Deck card counts helper |
 | GameTheme | `scripts/ui/GameTheme.gd` | Palette, map kind badges, intent colors |
 | UiBuilders | `scripts/ui/UiBuilders.gd` | Panel, fighter, hand card, map option builders |
 | RewardLayerViews | `scripts/ui/RewardLayerViews.gd` | Merchant, grace, event, post-combat rewards, pickers |
@@ -50,8 +53,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `data/relics/*.tres` — `RelicData` talismans (8；含 `combat_souls_bonus`)
 - `ActData.enemy_hp_percent` — per-act enemy HP scaling (100 / 110 / 125)
 - `ActData` merchant pools / `merchant_cost_percent` / `map_weight_*` — per-act shop and map sampling
-- `data/events/*.tres` — 12 map events (`EventService`)
-- `data/events/*.tres` — `MapEventData` narrative choices
+- `data/events/*.tres` — 15 map events (`MapEventData`); `MapEventChoiceData.follow_event_id` for multi-step chains
+- `data/enemies/*.tres` — 18 enemies (incl. 大树守卫, 狮子混种, 坠星兽)
 
 ### Game State Machine
 
@@ -67,8 +70,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. **阶段十六：** 流程屏 UI + 事件链 + 3 敌人（见 `docs/superpowers/plans/2026-05-21-phase16-flow-screens-content.md`）。
-2. 阶段十七：`RunFlowController`、第四幕、默认音效包。
+1. 阶段十七：`RunFlowController`、第四幕、默认音效包（见 `docs/superpowers/plans/`）。
 3. 可选 Monte Carlo 平衡工具。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.

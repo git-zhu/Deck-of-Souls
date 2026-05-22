@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
+
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack_block"
+value = 10
+text = "黄金戟横扫"
+block = 8
+
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "buff"
+text = "黄金树庇佑"
+strength = 2
+
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "attack"
+value = 14
+text = "盾击猛推"
+
+[resource]
+script = ExtResource("1")
+name = "大树守卫"
+max_hp = 58
+stance = 14
+souls = 28
+is_elite = true
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

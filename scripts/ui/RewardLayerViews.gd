@@ -375,10 +375,13 @@ static func build_deck_picker(
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.custom_minimum_size = Vector2(0, 400)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	wrap.add_child(scroll)
 
 	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_theme_constant_override("separation", 8)
 	scroll.add_child(list)
 
@@ -387,8 +390,12 @@ static func build_deck_picker(
 		var label := c.name if c != null else str(card_id)
 		var count: int = int(counts[card_id])
 		var btn := Button.new()
-		btn.text = "%s ×%d" % [label, count]
-		btn.custom_minimum_size = Vector2(0, 44)
+		if c != null:
+			btn.text = "%s ×%d\n%s  集中:%d\n%s" % [c.name, count, c.type, c.cost, c.text]
+		else:
+			btn.text = "%s ×%d" % [label, count]
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		btn.custom_minimum_size = Vector2(0, 96)
 		btn.pressed.connect(func():
 			var cid := str(card_id)
 			if remove_immediately:

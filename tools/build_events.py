@@ -16,6 +16,7 @@ EVENTS = [
                 "soul_cost": 0,
                 "card_id": "",
                 "min_deck_size": 0,
+                "follow_event_id": "limgrave_corpse_cache",
             },
             {
                 "id": "pray",
@@ -29,6 +30,41 @@ EVENTS = [
             {
                 "id": "leave",
                 "label": "悄然离开",
+                "effect": "nothing",
+                "effect_value": 0,
+                "soul_cost": 0,
+                "card_id": "",
+                "min_deck_size": 0,
+            },
+        ],
+    },
+    {
+        "file": "limgrave_corpse_cache",
+        "id": "limgrave_corpse_cache",
+        "title": "褪色者遗骸 · 补给暗格",
+        "body": "遗骸背后藏着锈蚀的小箱，内里竟有未上缴的卢恩与半瓶圣杯露。",
+        "choices": [
+            {
+                "id": "flask",
+                "label": "饮尽残露",
+                "effect": "refill_flasks",
+                "effect_value": 0,
+                "soul_cost": 0,
+                "card_id": "",
+                "min_deck_size": 0,
+            },
+            {
+                "id": "coins",
+                "label": "取走箱中卢恩",
+                "effect": "gain_souls",
+                "effect_value": 15,
+                "soul_cost": 0,
+                "card_id": "",
+                "min_deck_size": 0,
+            },
+            {
+                "id": "leave",
+                "label": "合上箱盖",
                 "effect": "nothing",
                 "effect_value": 0,
                 "soul_cost": 0,
@@ -77,12 +113,48 @@ EVENTS = [
                 "soul_cost": 0,
                 "card_id": "battle_axe",
                 "min_deck_size": 0,
+                "follow_event_id": "stormveil_armory_inner",
             },
             {
                 "id": "trap",
                 "label": "翻找货架",
                 "effect": "damage_percent",
                 "effect_value": 15,
+                "soul_cost": 0,
+                "card_id": "",
+                "min_deck_size": 0,
+            },
+        ],
+    },
+    {
+        "file": "stormveil_armory_inner",
+        "id": "stormveil_armory_inner",
+        "title": "废弃军械库 · 机关室",
+        "body": "机关门滑开，窄室里堆着更多锈蚀兵器，墙缝还渗着城塞的冷风。",
+        "choices": [
+            {
+                "id": "souls",
+                "label": "撬开铁柜",
+                "effect": "gain_souls",
+                "effect_value": 20,
+                "soul_cost": 0,
+                "card_id": "",
+                "min_deck_size": 0,
+            },
+            {
+                "id": "rest",
+                "label": "靠墙喘息",
+                "effect": "heal_percent",
+                "effect_value": 10,
+                "soul_cost": 0,
+                "card_id": "",
+                "min_deck_size": 0,
+            },
+            {
+                "id": "leave",
+                "label": "原路返回",
+                "effect": "nothing",
+                "effect_value": 0,
                 "soul_cost": 0,
                 "card_id": "",
                 "min_deck_size": 0,
@@ -129,12 +201,48 @@ EVENTS = [
                 "soul_cost": 0,
                 "card_id": "glintstone_arc",
                 "min_deck_size": 0,
+                "follow_event_id": "liurnia_scholar_reward",
             },
             {
                 "id": "disturb",
                 "label": "打断他的工作",
                 "effect": "damage_percent",
                 "effect_value": 10,
+                "soul_cost": 0,
+                "card_id": "",
+                "min_deck_size": 0,
+            },
+        ],
+    },
+    {
+        "file": "liurnia_scholar_reward",
+        "id": "liurnia_scholar_reward",
+        "title": "落灰学者 · 谢礼",
+        "body": "学者将抄好的辉石页折好递给你，又低声提醒别在学院门前炫耀。",
+        "choices": [
+            {
+                "id": "souls",
+                "label": "收下卢恩谢礼",
+                "effect": "gain_souls",
+                "effect_value": 30,
+                "soul_cost": 0,
+                "card_id": "",
+                "min_deck_size": 0,
+            },
+            {
+                "id": "hp",
+                "label": "饮下温热的药草茶",
+                "effect": "max_hp",
+                "effect_value": 5,
+                "soul_cost": 0,
+                "card_id": "",
+                "min_deck_size": 0,
+            },
+            {
+                "id": "leave",
+                "label": "点头告别",
+                "effect": "nothing",
+                "effect_value": 0,
                 "soul_cost": 0,
                 "card_id": "",
                 "min_deck_size": 0,
@@ -412,6 +520,7 @@ effect_value = {ch["effect_value"]}
 soul_cost = {ch["soul_cost"]}
 card_id = "{ch["card_id"]}"
 min_deck_size = {ch["min_deck_size"]}
+follow_event_id = "{ch.get("follow_event_id", "")}"
 '''
         )
         choice_refs.append(f'SubResource("Choice_{i}")')

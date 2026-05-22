@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
+
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack"
+value = 11
+text = "结晶尾锤"
+
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "buff"
+text = "星尘护壳"
+strength = 2
+
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "attack"
+value = 16
+text = "坠星重压"
+
+[resource]
+script = ExtResource("1")
+name = "坠星兽"
+max_hp = 78
+stance = 16
+souls = 50
+is_elite = true
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

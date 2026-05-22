@@ -1,7 +1,7 @@
 # 阶段十六：流程屏 UI 提取与内容扩展 — Implementation Plan
 
 **Spec:** `docs/superpowers/specs/2026-05-21-phase16-flow-screens-content-design.md`  
-**状态：** 待实现
+**状态：** 已实现
 
 ---
 
