@@ -18,3 +18,14 @@ const MapEncounterData = preload("res://data/MapEncounterData.gd")
 @export var act_boss_body: String = ""
 @export var is_final_act: bool = false
 @export var enemy_hp_percent: int = 100
+
+@export_group("Merchant")
+@export var merchant_offer_ids: Array[String] = []
+@export var merchant_cost_percent: int = 100
+
+@export_group("Map Weights")
+@export var map_weight_combat: int = 4
+@export var map_weight_elite: int = 2
+@export var map_weight_event: int = 2
+@export var map_weight_grace: int = 1
+@export var map_weight_merchant: int = 1

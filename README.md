@@ -24,7 +24,8 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 战后奖励池仅非 starter 卡；新增 4 张通用卡（岩石球、火焰赐予力量、辉石流星、冰雾踏地）。
 - 记忆石（最多 3 颗）：每场战斗每回合多抽 1 张牌。
 - 三幕 12 层跑团（宁姆格福 → 史东薇尔 → 利耶尼亚），地图与敌池由 `data/acts/*.tres` 驱动。
-- 地图事件节点：非战斗抉择（卢恩/生命/得牌等），数据见 `data/events/`。
+- 地图事件节点：12 个非战斗抉择（卢恩/生命/得牌等），按幕加权更易出现，数据见 `data/events/`。
+- 按幕商人货池与价格（幕 1 基础货 → 幕 3 含记忆石/护符，利耶尼亚价 ×0.95）。
 - 核心逻辑在 `scripts/core/`（`DataRegistry`、`RunState`、`CombatController`、`MapGenerator` 等）；`Main.gd` 负责 UI。
 
 ## 当前素材方向
@@ -45,8 +46,9 @@ godot4.6 --headless --path . --script tools/merchant_service_test.gd
 godot4.6 --headless --path . --script tools/relic_service_test.gd
 godot4.6 --headless --path . --script tools/memory_stone_test.gd
 godot4.6 --headless --path . --script tools/balance_content_test.gd
+godot4.6 --headless --path . --script tools/act_economy_test.gd
 ```
 
 ## 推荐下一步
 
-- UI/音效抛光；更多事件与敌人种类；按幕商人差异化。
+- UI/音效抛光；`Main.gd` 场景拆分；更多敌人种类。

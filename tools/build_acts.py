@@ -78,7 +78,24 @@ ACTS = [
         "merchant": [
             ("商人咖列", "流浪商人坐在熄灭篝火旁，货箱上贴着褪色者也能看懂的价签。"),
         ],
-        "event_ids": ["limgrave_corpse", "limgrave_beggar"],
+        "event_ids": [
+            "limgrave_corpse",
+            "limgrave_beggar",
+            "limgrave_smithing_table",
+            "limgrave_misguided_sheep",
+        ],
+        "merchant_offer_ids": [
+            "curio_card",
+            "blood_vial",
+            "refill_flasks",
+            "remove_card",
+        ],
+        "merchant_cost_percent": 100,
+        "map_weight_combat": 4,
+        "map_weight_elite": 2,
+        "map_weight_event": 2,
+        "map_weight_grace": 1,
+        "map_weight_merchant": 1,
         "boss_name": "恶兆妖鬼玛尔基特",
         "boss_title": "通城隧道",
         "boss_body": "恶兆妖鬼玛尔基特守在史东薇尔城前。穿过这道雾门，宁姆格福的开局才算结束。",
@@ -106,7 +123,26 @@ ACTS = [
         "merchant": [
             ("城墙下的咖列", "咖列把货箱藏在垛口后，只卖给还能喘气的褪色者。"),
         ],
-        "event_ids": ["stormveil_armory", "stormveil_shrine"],
+        "event_ids": [
+            "stormveil_armory",
+            "stormveil_shrine",
+            "stormveil_rusty_lever",
+            "stormveil_deserter",
+        ],
+        "merchant_offer_ids": [
+            "curio_card",
+            "blood_vial",
+            "refill_flasks",
+            "remove_card",
+            "kindling_sale",
+            "ash_replace",
+        ],
+        "merchant_cost_percent": 105,
+        "map_weight_combat": 3,
+        "map_weight_elite": 2,
+        "map_weight_event": 3,
+        "map_weight_grace": 1,
+        "map_weight_merchant": 1,
         "boss_name": "熔炉骑士",
         "boss_title": "风暴山丘封牢",
         "boss_body": "熔炉骑士的古老武艺仍在回响。击败他，城塞的大门才会松动。",
@@ -136,7 +172,28 @@ ACTS = [
         "merchant": [
             ("湖畔咖列", "咖列把船系在教堂遗迹旁，高价收购卢恩，低价卖出麻烦。"),
         ],
-        "event_ids": ["liurnia_scholar", "liurnia_drowned"],
+        "event_ids": [
+            "liurnia_scholar",
+            "liurnia_drowned",
+            "liurnia_crystal_crab",
+            "liurnia_shabriri_grape",
+        ],
+        "merchant_offer_ids": [
+            "curio_card",
+            "blood_vial",
+            "refill_flasks",
+            "remove_card",
+            "kindling_sale",
+            "ash_replace",
+            "memory_stone",
+            "scrap_paper",
+        ],
+        "merchant_cost_percent": 95,
+        "map_weight_combat": 3,
+        "map_weight_elite": 3,
+        "map_weight_event": 4,
+        "map_weight_grace": 1,
+        "map_weight_merchant": 1,
         "boss_name": "接肢贵族",
         "boss_title": "贵族厅堂",
         "boss_body": "接肢贵族在湖底厅堂等待。胜利意味着这趟褪色旅程暂时落幕。",
@@ -190,6 +247,7 @@ body = "{body}"
 
     reward_str = ", ".join(f'"{c}"' for c in act["reward_cards"])
     event_str = ", ".join(f'"{e}"' for e in act.get("event_ids", []))
+    merchant_str = ", ".join(f'"{o}"' for o in act.get("merchant_offer_ids", []))
     fixed_str = ", ".join(refs)
     combat_arr = ", ".join(combat_refs)
     elite_arr = ", ".join(elite_refs)
@@ -218,6 +276,13 @@ act_boss_title = "{act["boss_title"]}"
 act_boss_body = "{act["boss_body"]}"
 is_final_act = {"true" if act["final"] else "false"}
 enemy_hp_percent = {act.get("enemy_hp_percent", 100)}
+merchant_offer_ids = Array[String]([{merchant_str}])
+merchant_cost_percent = {act.get("merchant_cost_percent", 100)}
+map_weight_combat = {act.get("map_weight_combat", 4)}
+map_weight_elite = {act.get("map_weight_elite", 2)}
+map_weight_event = {act.get("map_weight_event", 2)}
+map_weight_grace = {act.get("map_weight_grace", 1)}
+map_weight_merchant = {act.get("map_weight_merchant", 1)}
 '''
     path.write_text(content, encoding="utf-8")
 

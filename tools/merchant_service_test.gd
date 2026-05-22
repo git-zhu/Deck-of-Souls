@@ -34,6 +34,20 @@ func _initialize() -> void:
 		push_error("expected 50 souls after 100-50 purchase, got %d" % run.souls)
 		quit(1)
 		return
+
+	if merchant.effective_cost(curio, 95) != 48:
+		push_error("effective_cost 50 @ 95%% expected 48")
+		quit(1)
+		return
+	run.souls = 100
+	var limgrave_pool: Array[String] = ["curio_card", "blood_vial", "refill_flasks", "remove_card"]
+	var stock := merchant.roll_stock(run, registry, rng, 3, limgrave_pool)
+	for offer in stock:
+		var oid: String = str((offer as Object).get("id"))
+		if not limgrave_pool.has(oid):
+			push_error("roll_stock leaked offer %s" % oid)
+			quit(1)
+			return
 	if run.deck.size() != deck_before + 1:
 		push_error("expected deck +1 after curio, got %d" % run.deck.size())
 		quit(1)

@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "club"
+label = "取走铁棒"
+effect = "add_card"
+effect_value = 0
+soul_cost = 0
+card_id = "club"
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "buy_rock"
+label = "花 15 卢恩买辉石屑"
+effect = "add_card"
+effect_value = 0
+soul_cost = 15
+card_id = "rock_sling"
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2")
+id = "leave"
+label = "离开"
+effect = "nothing"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+
+[resource]
+script = ExtResource("1")
+id = "limgrave_smithing_table"
+title = "锻造台余温"
+body = "艾雷教堂旁的锻造台仍有余温，锤痕里嵌着未取走的铁屑。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1"), SubResource("Choice_2")])

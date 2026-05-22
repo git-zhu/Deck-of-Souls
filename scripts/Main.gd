@@ -42,6 +42,7 @@ var rewards: Array[String] = []
 var _merchant_stock: Array = []
 var _merchant_sold: Array[bool] = []
 var _merchant_status: String = ""
+var _merchant_cost_percent: int = 100
 
 var deck: Array[String]:
 	get:
@@ -481,7 +482,13 @@ func _show_event_result(title_text: String, body_text: String) -> void:
 
 
 func _visit_merchant() -> void:
-	_merchant_stock = merchant_service.roll_stock(run_state, registry, rng, 3)
+	var act := registry.get_act(run_state.act_index())
+	var offer_ids: Array = []
+	_merchant_cost_percent = 100
+	if act != null:
+		offer_ids = act.merchant_offer_ids
+		_merchant_cost_percent = act.merchant_cost_percent
+	_merchant_stock = merchant_service.roll_stock(run_state, registry, rng, 3, offer_ids)
 	_merchant_sold.clear()
 	for _i in _merchant_stock.size():
 		_merchant_sold.append(false)
@@ -494,7 +501,9 @@ func _test_merchant_buy(offer_id: String) -> void:
 	if offer == null:
 		push_error("Unknown merchant offer: %s" % offer_id)
 		return
-	var result: Dictionary = merchant_service.purchase(offer, run_state, registry, rng)
+	var result: Dictionary = merchant_service.purchase(
+		offer, run_state, registry, rng, _merchant_cost_percent
+	)
 	if not bool(result.get("ok", false)):
 		push_error("Merchant purchase failed: %s" % str(result.get("message", "")))
 		return
@@ -575,8 +584,9 @@ func _merchant_offer_card(offer: MerchantOfferData, slot_index: int) -> PanelCon
 		btn.text = "售罄"
 		btn.disabled = true
 	else:
-		btn.text = "购买 · %d 卢恩" % offer.soul_cost
-		btn.disabled = not merchant_service.can_afford(offer, run_state)
+		var price: int = merchant_service.effective_cost(offer, _merchant_cost_percent)
+		btn.text = "购买 · %d 卢恩" % price
+		btn.disabled = not merchant_service.can_afford(offer, run_state, _merchant_cost_percent)
 		btn.pressed.connect(_on_merchant_buy.bind(offer, slot_index))
 	v.add_child(btn)
 	return panel
@@ -585,11 +595,14 @@ func _merchant_offer_card(offer: MerchantOfferData, slot_index: int) -> PanelCon
 func _on_merchant_buy(offer: MerchantOfferData, slot_index: int) -> void:
 	if slot_index < _merchant_sold.size() and _merchant_sold[slot_index]:
 		return
-	var result: Dictionary = merchant_service.purchase(offer, run_state, registry, rng)
+	var result: Dictionary = merchant_service.purchase(
+		offer, run_state, registry, rng, _merchant_cost_percent
+	)
 	if not bool(result.get("ok", false)):
 		_merchant_status = str(result.get("message", ""))
 		_show_merchant()
 		return
+	var paid: int = int(result.get("paid_cost", offer.soul_cost))
 	_merchant_sold[slot_index] = true
 	if bool(result.get("pick_ash_replace", false)):
 		_start_ash_replace_flow(
@@ -599,7 +612,7 @@ func _on_merchant_buy(offer: MerchantOfferData, slot_index: int) -> void:
 				var old_name := old_c.name if old_c != null else removed_id
 				var new_name := new_c.name if new_c != null else new_id
 				_merchant_status = "花费 %d 卢恩，《%s》已被战灰《%s》覆盖。" % [
-					offer.soul_cost, old_name, new_name
+					paid, old_name, new_name
 				]
 				_show_merchant()
 		)
@@ -610,7 +623,7 @@ func _on_merchant_buy(offer: MerchantOfferData, slot_index: int) -> void:
 			func(card_id: String):
 				var c: CardData = registry.get_card(card_id)
 				var card_name := c.name if c != null else card_id
-				_merchant_status = "花费 %d 卢恩，已从牌组移除《%s》。" % [offer.soul_cost, card_name]
+				_merchant_status = "花费 %d 卢恩，已从牌组移除《%s》。" % [paid, card_name]
 				_show_merchant()
 		)
 	else:

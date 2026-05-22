@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "eat"
+label = "尝一颗"
+effect = "heal_percent"
+effect_value = 15
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "trade"
+label = "献出 20 卢恩，换一袋遗物"
+effect = "gain_souls"
+effect_value = 40
+soul_cost = 20
+card_id = ""
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2")
+id = "leave"
+label = "离开"
+effect = "nothing"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+
+[resource]
+script = ExtResource("1")
+id = "liurnia_shabriri_grape"
+title = "夏玻利提的葡萄"
+body = "溺水教堂外有人递来一串发紫的葡萄，香气甜得反常。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1"), SubResource("Choice_2")])
