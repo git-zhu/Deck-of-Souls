@@ -61,5 +61,5 @@ godot4.6 --headless --path . --script tools/run_flow_test.gd
 
 ## 推荐下一步
 
-- 第四幕（16 层）、默认音效包 — 见 `docs/superpowers/plans/`。
+- 默认音效包（`audio/`）；第四幕扩展暂缓。
 - 可选：在 `audio/` 放入 `ui_click.ogg` 等短音。
