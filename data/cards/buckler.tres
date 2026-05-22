@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="buckler"
-name="小圆盾"
-cost=1
-type="盾牌"
-rarity="starter"
-text="获得 5 护甲。若敌人意图攻击，削减 4 姿态。"
-tone=Color(0.529, 0.608, 0.604, 1)
-hook_id="buckler"
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "buckler"
+name = "小圆盾"
+cost = 1
+type = "盾牌"
+rarity = "starter"
+text = "获得 5 护甲。若敌人意图攻击，削减 4 姿态。"
+tone = Color(0.529, 0.608, 0.604, 1)
+hook_id = "buckler"
+exhaust_after_play = false

@@ -1,10 +1,11 @@
 class_name RunState
 extends RefCounted
 
+const OriginData = preload("res://data/OriginData.gd")
+
 const FLOORS_PER_ACT := 4
 const ACT_COUNT := 3
 const TOTAL_FLOORS := 12
-const MAP_FLOORS_PHASE1 := 6
 
 var run_seed: int = 0
 var origin_id: String = "vagabond"

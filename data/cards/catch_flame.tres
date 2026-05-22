@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="catch_flame"
-name="火焰啊！"
-cost=2
-type="祷告"
-rarity="starter"
-text="造成 9 点伤害，削减 3 姿态。巨人火焰的祷告。"
-tone=Color(0.851, 0.757, 0.427, 1)
-hook_id=""
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "catch_flame"
+name = "火焰啊！"
+cost = 2
+type = "祷告"
+rarity = "starter"
+text = "造成 9 点伤害，削减 3 姿态。巨人火焰的祷告。"
+tone = Color(0.851, 0.757, 0.427, 1)
+hook_id = ""
+exhaust_after_play = false

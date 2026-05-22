@@ -1,0 +1,578 @@
+Godot Engine v4.6.2.stable.official.71f334935 - https://godotengine.org
+
+ERROR: res://data/cards/assassins_approach.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/assassins_approach.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/battle_axe.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/battle_axe.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/black_flame.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/black_flame.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/bloodhounds_step.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/bloodhounds_step.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/buckler.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/buckler.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/catch_flame.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/catch_flame.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/club.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/club.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/crimson_flask.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/crimson_flask.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/destined_death.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/destined_death.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/glintstone_arc.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/glintstone_arc.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/glintstone_pebble.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/glintstone_pebble.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/great_knife.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/great_knife.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/halberd.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/halberd.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/heal.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/heal.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/heater_shield.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/heater_shield.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/lions_claw.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/lions_claw.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/longbow.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/longbow.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/longsword.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/longsword.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/magic_glintblade.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/magic_glintblade.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/rotten_breath.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/rotten_breath.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/scimitar.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/scimitar.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/uchigatana.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/uchigatana.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/urgent_heal.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/urgent_heal.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/cards/volcano_pot.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/cards/volcano_pot.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_cards (res://scripts/core/DataRegistry.gd:72)
+       [1] load_all (res://scripts/core/DataRegistry.gd:10)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/origins/astrologer.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/origins/astrologer.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/origins/prophet.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/origins/prophet.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/origins/samurai.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/origins/samurai.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/origins/vagabond.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/origins/vagabond.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/origins/warrior.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/origins/warrior.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/origins/wretch.tres:1 - Parse Error: Unrecognized file type 'resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/origins/wretch.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_origins (res://scripts/core/DataRegistry.gd:90)
+       [1] load_all (res://scripts/core/DataRegistry.gd:11)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/academy_glintstone_sorcerer.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/academy_glintstone_sorcerer.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/caelid_mercenary.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/caelid_mercenary.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/gargoyle_knight.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/gargoyle_knight.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/geirik_knight.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/geirik_knight.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/geirik_soldier.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/geirik_soldier.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/gravekeeper_dualrander.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/gravekeeper_dualrander.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/kaguth.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/kaguth.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/kaguth_chief.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/kaguth_chief.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/kindred_of_rot.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/kindred_of_rot.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/margit.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/margit.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/mohg_lovula.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/mohg_lovula.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/stoneminer.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/stoneminer.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/stoneminer_fiend.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/stoneminer_fiend.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/warhound_of_famiazurla.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/warhound_of_famiazurla.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: res://data/enemies/wild_wolf.tres:1 - Parse Error: Unrecognized file type 'sub_resource'.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+ERROR: Failed loading resource: res://data/enemies/wild_wolf.tres.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_enemies (res://scripts/core/DataRegistry.gd:132)
+       [1] load_all (res://scripts/core/DataRegistry.gd:12)
+       [2] _ready (res://scripts/Main.gd:56)
+SCRIPT ERROR: Invalid access to property or key 'id' on a base object of type 'Nil'.
+   at: RunState.reset_for_origin (res://scripts/core/RunState.gd:42)
+   GDScript backtrace (most recent call first):
+       [0] reset_for_origin (res://scripts/core/RunState.gd:42)
+       [1] _start_run (res://scripts/Main.gd:261)
+       [2] _initialize (res://tools/smoke_test.gd:13)
+SCRIPT ERROR: Invalid access to property or key 'name' on a base object of type 'Nil'.
+   at: _start_run (res://scripts/Main.gd:263)
+   GDScript backtrace (most recent call first):
+       [0] _start_run (res://scripts/Main.gd:263)
+       [1] _initialize (res://tools/smoke_test.gd:13)
+SCRIPT ERROR: Out of bounds get index '0' (on base: 'Array')
+   at: DataRegistry.pick_enemy (res://scripts/core/DataRegistry.gd:52)
+   GDScript backtrace (most recent call first):
+       [0] pick_enemy (res://scripts/core/DataRegistry.gd:52)
+       [1] pick_named_enemy (res://scripts/core/DataRegistry.gd:59)
+       [2] _choose_map_option (res://scripts/Main.gd:335)
+       [3] _initialize (res://tools/smoke_test.gd:31)
+SCRIPT ERROR: Invalid access to property or key 'max_hp' on a base object of type 'Dictionary'.
+   at: CombatController.start_combat (res://scripts/core/CombatController.gd:38)
+   GDScript backtrace (most recent call first):
+       [0] start_combat (res://scripts/core/CombatController.gd:38)
+       [1] _begin_combat (res://scripts/Main.gd:390)
+       [2] _choose_map_option (res://scripts/Main.gd:335)
+       [3] _initialize (res://tools/smoke_test.gd:31)
+SCRIPT ERROR: Invalid access to property or key 'name' on a base object of type 'Dictionary'.
+   at: _render_combat (res://scripts/Main.gd:442)
+   GDScript backtrace (most recent call first):
+       [0] _render_combat (res://scripts/Main.gd:442)
+       [1] _begin_combat (res://scripts/Main.gd:391)
+       [2] _choose_map_option (res://scripts/Main.gd:335)
+       [3] _initialize (res://tools/smoke_test.gd:31)
+SCRIPT ERROR: Invalid call. Nonexistent function '_end_player_turn (via call)' in base 'Control (Main.gd)'.
+   at: _initialize (res://tools/smoke_test.gd:37)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/smoke_test.gd:37)

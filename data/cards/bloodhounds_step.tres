@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="bloodhounds_step"
-name="猎犬步法"
-cost=1
-type="战灰"
-rarity="common"
-text="获得 4 护甲，抽 1 张牌。血指猎人留下的闪步。"
-tone=Color(0.647, 0.529, 0.529, 1)
-hook_id=""
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bloodhounds_step"
+name = "猎犬步法"
+cost = 1
+type = "战灰"
+rarity = "common"
+text = "获得 4 护甲，抽 1 张牌。血指猎人留下的闪步。"
+tone = Color(0.647, 0.529, 0.529, 1)
+hook_id = ""
+exhaust_after_play = false

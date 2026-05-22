@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"D:\\\\Z\\\\game\\\\Deck-of-Souls\\\\data\\\\cards\" \"D:\\\\Z\\\\game\\\\Deck-of-Souls\\\\data\\\\enemies\" \"D:\\\\Z\\\\game\\\\Deck-of-Souls\\\\data\\\\origins\")",
+      "Bash(godot4.6 --headless --script \"tools/smoke_test.gd\")",
+      "Bash(godot4.6 --headless --script tools/smoke_test.gd)",
+      "Bash(dir \"C:\\\\Program Files\\\\Godot\")",
+      "Bash(dir \"C:\\\\Users\\\\zhujinhuagz\\\\AppData\\\\Local\\\\Godot\")",
+      "Bash(where /R \"C:\\\\Program Files\" Godot.exe)",
+      "Bash(where /R \"C:\\\\Users\\\\zhujinhuagz\\\\AppData\\\\Local\\\\Programs\" Godot.exe)",
+      "Bash(where /R \"C:\\\\Users\\\\zhujinhuagz\\\\AppData\\\\Local\\\\Godot\" Godot.exe)"
+    ]
+  }
+}

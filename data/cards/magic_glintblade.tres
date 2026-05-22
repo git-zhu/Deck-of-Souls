@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="magic_glintblade"
-name="魔法辉剑"
-cost=1
-type="魔法"
-rarity="starter"
-text="造成 8 点伤害。若本回合还剩集中，追加 3 点伤害。"
-tone=Color(0.482, 0.627, 0.878, 1)
-hook_id="magic_glintblade"
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "magic_glintblade"
+name = "魔法辉剑"
+cost = 1
+type = "魔法"
+rarity = "starter"
+text = "造成 8 点伤害。若本回合还剩集中，追加 3 点伤害。"
+tone = Color(0.482, 0.627, 0.878, 1)
+hook_id = "magic_glintblade"
+exhaust_after_play = false

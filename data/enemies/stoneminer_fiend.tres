@@ -1,23 +1,32 @@
-[sub_resource type="MoveData" id="MoveData_1"]
-kind="attack"
-value=15
-text="山妖踩踏"
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
 
-[sub_resource type="MoveData" id="MoveData_2"]
-kind="attack_block"
-value=10
-text="岩肤硬直"
-block=10
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
 
-[sub_resource type="MoveData" id="MoveData_3"]
-kind="debuff"
-text="矿道震落"
-vulnerable=2
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack"
+value = 15
+text = "山妖踩踏"
 
-[resource name="EnemyData"]
-name="挖石山妖"
-max_hp=82
-stance=20
-souls=54
-is_elite=true
-moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "attack_block"
+value = 10
+text = "岩肤硬直"
+block = 10
+
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "debuff"
+text = "矿道震落"
+vulnerable = 2
+
+[resource]
+script = ExtResource("1")
+name = "挖石山妖"
+max_hp = 82
+stance = 20
+souls = 54
+is_elite = true
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

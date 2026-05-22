@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="volcano_pot"
-name="火山壶"
-cost=1
-type="壶"
-rarity="uncommon"
-text="造成 6 点伤害，施加 2 易伤。滚烫陶片在敌人身上炸裂。"
-tone=Color(0.788, 0.42, 0.255, 1)
-hook_id=""
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "volcano_pot"
+name = "火山壶"
+cost = 1
+type = "壶"
+rarity = "uncommon"
+text = "造成 6 点伤害，施加 2 易伤。滚烫陶片在敌人身上炸裂。"
+tone = Color(0.788, 0.42, 0.255, 1)
+hook_id = ""
+exhaust_after_play = false

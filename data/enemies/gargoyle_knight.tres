@@ -1,28 +1,41 @@
-[sub_resource type="MoveData" id="MoveData_1"]
-kind="attack"
-value=13
-text="熔炉百相之尾"
+[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
 
-[sub_resource type="MoveData" id="MoveData_2"]
-kind="attack_block"
-value=8
-text="熔炉角盾"
-block=8
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
 
-[sub_resource type="MoveData" id="MoveData_3"]
-kind="buff"
-text="古老黄金树之力"
-strength=3
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack"
+value = 13
+text = "熔炉百相之尾"
 
-[sub_resource type="MoveData" id="MoveData_4"]
-kind="attack"
-value=18
-text="熔炉百相之翼"
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "attack_block"
+value = 8
+text = "熔炉角盾"
+block = 8
 
-[resource name="EnemyData"]
-name="熔炉骑士"
-max_hp=72
-stance=18
-souls=48
-is_elite=true
-moves=[^MoveData_1, ^MoveData_2, ^MoveData_3, ^MoveData_4]
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "buff"
+text = "古老黄金树之力"
+strength = 3
+
+[sub_resource type="Resource" id="MoveData_4"]
+script = ExtResource("2")
+kind = "attack"
+value = 18
+text = "熔炉百相之翼"
+
+[resource]
+script = ExtResource("1")
+name = "熔炉骑士"
+max_hp = 72
+stance = 18
+souls = 48
+is_elite = false
+is_boss = true
+is_act_boss = true
+is_run_boss = false
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]

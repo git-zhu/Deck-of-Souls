@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="ActData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/ActData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapNodeData.gd" id="2"]
+
+[sub_resource type="Resource" id="Grace_0"]
+script = ExtResource("2")
+kind = "grace"
+title = "赐福点"
+body = "回复生命，补充圣杯瓶，或用卢恩触碰命定之死。"
+[sub_resource type="Resource" id="Grace_1"]
+script = ExtResource("2")
+kind = "grace"
+title = "艾雷教堂"
+body = "短暂停歇。锻造台旁的金光提醒你整理牌组。"
+
+[resource]
+script = ExtResource("1")
+id = "limgrave"
+title = "宁姆格福路标"
+subtitle_template = "第 %d 段 / 4。%s"
+flavor = "沿赐福指引穿过风暴山丘，接近候王礼拜堂的阴影。"
+combat_enemies = Array[String](["葛瑞克士兵", "野狼", "凯丹佣兵", "挖石矿工", "学院辉石法师"])
+elite_enemies = Array[String](["法姆亚兹拉的兽人", "亚人首领", "挖石山妖"])
+fixed_nodes = Array[MapNodeData]([SubResource("Grace_0"), SubResource("Grace_1")])
+act_boss_name = "恶兆妖鬼玛尔基特"
+act_boss_title = "通城隧道"
+act_boss_body = "恶兆妖鬼玛尔基特守在史东薇尔城前。穿过这道雾门，宁姆格福的开局才算结束。"
+is_final_act = false

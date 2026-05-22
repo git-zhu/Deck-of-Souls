@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="ActData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/ActData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapNodeData.gd" id="2"]
+
+[sub_resource type="Resource" id="Grace_0"]
+script = ExtResource("2")
+kind = "grace"
+title = "学院门前赐福"
+body = "辉石光芒退入石缝，你得以审视自己的牌路。"
+[sub_resource type="Resource" id="Grace_1"]
+script = ExtResource("2")
+kind = "grace"
+title = "教堂侧廊"
+body = "溺水教堂的寒气被金光挡在门外。"
+
+[resource]
+script = ExtResource("1")
+id = "liurnia"
+title = "湖之利耶尼亚"
+subtitle_template = "第 %d 段 / 4。%s"
+flavor = "金色倒影铺在湖面，学院与教堂的钟声在雾中重叠。"
+combat_enemies = Array[String](["学院辉石法师", "腐败眷属", "葛瑞克骑士", "凯丹佣兵"])
+elite_enemies = Array[String](["熔炉骑士", "守墓斗士", "挖石山妖"])
+fixed_nodes = Array[MapNodeData]([SubResource("Grace_0"), SubResource("Grace_1")])
+act_boss_name = "接肢贵族"
+act_boss_title = "贵族厅堂"
+act_boss_body = "接肢贵族在湖底厅堂等待。胜利意味着这趟褪色旅程暂时落幕。"
+is_final_act = true

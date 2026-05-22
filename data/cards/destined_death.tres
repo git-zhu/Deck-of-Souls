@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="destined_death"
-name="命定之死"
-cost=3
-type="传说"
-rarity="rare"
-text="造成 25 点伤害。若击杀敌人，永久获得 +4 最大生命。"
-tone=Color(0.608, 0.482, 0.816, 1)
-hook_id="destined_death"
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "destined_death"
+name = "命定之死"
+cost = 3
+type = "传说"
+rarity = "rare"
+text = "造成 25 点伤害。若击杀敌人，永久获得 +4 最大生命。"
+tone = Color(0.608, 0.482, 0.816, 1)
+hook_id = "destined_death"
+exhaust_after_play = false

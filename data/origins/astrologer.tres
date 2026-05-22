@@ -1,10 +1,15 @@
-[resource name="OriginData"]
-id="astrologer"
-name="观星者"
-level=6
-max_hp=62
-flasks=2
-stats="集中 15 / 智力 16 / 灵巧 12"
-equipment="辉石魔砾、辉石弯弧、短剑、观星杖"
-note="依靠雷亚卢卡利亚的辉石魔法，用脆弱生命换取稳定输出。"
-deck=["glintstone_pebble", "glintstone_pebble", "glintstone_pebble", "glintstone_arc", "longsword", "heater_shield", "magic_glintblade", "crimson_flask"]
+[gd_resource type="Resource" script_class="OriginData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/OriginData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "astrologer"
+name = "观星者"
+level = 6
+max_hp = 62
+flasks = 2
+stats = "集中 15 / 智力 16 / 灵巧 12"
+equipment = "辉石魔砾、辉石弯弧、短剑、观星杖"
+note = "依靠雷亚卢卡利亚的辉石魔法，用脆弱生命换取稳定输出。"
+deck = ["glintstone_pebble", "glintstone_pebble", "glintstone_pebble", "glintstone_arc", "longsword", "heater_shield", "magic_glintblade", "crimson_flask"]

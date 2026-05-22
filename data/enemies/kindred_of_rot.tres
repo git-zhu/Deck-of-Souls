@@ -1,22 +1,31 @@
-[sub_resource type="MoveData" id="MoveData_1"]
-kind="attack"
-value=8
-text="虫丝刃"
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
 
-[sub_resource type="MoveData" id="MoveData_2"]
-kind="rot"
-value=4
-text="猩红腐败孢子"
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
 
-[sub_resource type="MoveData" id="MoveData_3"]
-kind="attack_rot"
-value=6
-text="艾奥尼亚病灶"
-rot=2
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack"
+value = 8
+text = "虫丝刃"
 
-[resource name="EnemyData"]
-name="腐败眷属"
-max_hp=46
-stance=14
-souls=24
-moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "rot"
+value = 4
+text = "猩红腐败孢子"
+
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "attack_rot"
+value = 6
+text = "艾奥尼亚病灶"
+rot = 2
+
+[resource]
+script = ExtResource("1")
+name = "腐败眷属"
+max_hp = 46
+stance = 14
+souls = 24
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

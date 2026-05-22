@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="black_flame"
-name="黑焰"
-cost=2
-type="祷告"
-rarity="uncommon"
-text="造成 12 点伤害，并施加 3 易伤。神皮使徒的火会继续灼烧。"
-tone=Color(0.365, 0.353, 0.396, 1)
-hook_id=""
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "black_flame"
+name = "黑焰"
+cost = 2
+type = "祷告"
+rarity = "uncommon"
+text = "造成 12 点伤害，并施加 3 易伤。神皮使徒的火会继续灼烧。"
+tone = Color(0.365, 0.353, 0.396, 1)
+hook_id = ""
+exhaust_after_play = false

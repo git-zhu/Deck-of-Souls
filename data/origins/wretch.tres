@@ -1,10 +1,15 @@
-[resource name="OriginData"]
-id="wretch"
-name="一贫如洗者"
-level=1
-max_hp=60
-flasks=3
-stats="全属性 10"
-equipment="棍棒"
-note="几乎没有装备，只有均等属性和更多圣杯瓶。"
-deck=["club", "club", "club", "club", "club", "crimson_flask", "crimson_flask"]
+[gd_resource type="Resource" script_class="OriginData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/OriginData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "wretch"
+name = "一贫如洗者"
+level = 1
+max_hp = 60
+flasks = 3
+stats = "全属性 10"
+equipment = "棍棒"
+note = "几乎没有装备，只有均等属性和更多圣杯瓶。"
+deck = ["club", "club", "club", "club", "club", "crimson_flask", "crimson_flask"]

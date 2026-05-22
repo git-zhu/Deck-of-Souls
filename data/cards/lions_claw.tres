@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="lions_claw"
-name="狮子斩"
-cost=2
-type="战灰"
-rarity="common"
-text="造成 14 点伤害，削减 5 姿态。源自红狮子军的翻身重击。"
-tone=Color(0.827, 0.631, 0.255, 1)
-hook_id="lions_claw"
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "lions_claw"
+name = "狮子斩"
+cost = 2
+type = "战灰"
+rarity = "common"
+text = "造成 14 点伤害，削减 5 姿态。源自红狮子军的翻身重击。"
+tone = Color(0.827, 0.631, 0.255, 1)
+hook_id = "lions_claw"
+exhaust_after_play = false

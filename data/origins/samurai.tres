@@ -1,10 +1,15 @@
-[resource name="OriginData"]
-id="samurai"
-name="武士"
-level=9
-max_hp=70
-flasks=2
-stats="生命 12 / 耐力 13 / 灵巧 15"
-equipment="打刀、长弓、红棘圆盾"
-note="出血与远程兼备，来自芦苇之地的均衡开局。"
-deck=["uchigatana", "uchigatana", "uchigatana", "longbow", "longbow", "heater_shield", "bloodhounds_step", "crimson_flask"]
+[gd_resource type="Resource" script_class="OriginData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/OriginData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "samurai"
+name = "武士"
+level = 9
+max_hp = 70
+flasks = 2
+stats = "生命 12 / 耐力 13 / 灵巧 15"
+equipment = "打刀、长弓、红棘圆盾"
+note = "出血与远程兼备，来自芦苇之地的均衡开局。"
+deck = ["uchigatana", "uchigatana", "uchigatana", "longbow", "longbow", "heater_shield", "bloodhounds_step", "crimson_flask"]

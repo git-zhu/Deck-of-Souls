@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="halberd"
-name="戟"
-cost=2
-type="武器"
-rarity="starter"
-text="造成 13 点伤害，削减 5 姿态。长柄武器让距离成为护甲。"
-tone=Color(0.753, 0.627, 0.424, 1)
-hook_id=""
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "halberd"
+name = "戟"
+cost = 2
+type = "武器"
+rarity = "starter"
+text = "造成 13 点伤害，削减 5 姿态。长柄武器让距离成为护甲。"
+tone = Color(0.753, 0.627, 0.424, 1)
+hook_id = ""
+exhaust_after_play = false

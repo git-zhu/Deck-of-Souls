@@ -34,7 +34,7 @@ func _initialize() -> void:
 		main.call("_play_card", 0)
 		await process_frame
 
-		main.call("_end_player_turn")
+		(main.get("combat") as Object).call("end_player_turn")
 		await process_frame
 
 		main.call("_render_combat")

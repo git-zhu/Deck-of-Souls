@@ -1,29 +1,41 @@
-[sub_resource type="MoveData" id="MoveData_1"]
-kind="attack"
-value=13
-text="手杖连击"
-hits=2
+[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
 
-[sub_resource type="MoveData" id="MoveData_2"]
-kind="attack_block"
-value=14
-text="黄金短剑"
-block=10
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
 
-[sub_resource type="MoveData" id="MoveData_3"]
-kind="debuff"
-text="野心之火该灭"
-vulnerable=3
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack"
+value = 13
+text = "手杖连击"
+hits = 2
 
-[sub_resource type="MoveData" id="MoveData_4"]
-kind="attack"
-value=22
-text="黄金锤跃击"
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "attack_block"
+value = 14
+text = "黄金短剑"
+block = 10
 
-[resource name="EnemyData"]
-name="恶兆妖鬼玛尔基特"
-max_hp=110
-stance=24
-souls=120
-is_boss=true
-moves=[^MoveData_1, ^MoveData_2, ^MoveData_3, ^MoveData_4]
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "debuff"
+text = "野心之火该灭"
+vulnerable = 3
+
+[sub_resource type="Resource" id="MoveData_4"]
+script = ExtResource("2")
+kind = "attack"
+value = 22
+text = "黄金锤跃击"
+
+[resource]
+script = ExtResource("1")
+name = "恶兆妖鬼玛尔基特"
+max_hp = 110
+stance = 24
+souls = 120
+is_boss = true
+is_act_boss = true
+is_run_boss = false
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]

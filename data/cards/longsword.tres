@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="longsword"
-name="长剑"
-cost=1
-type="武器"
-rarity="starter"
-text="造成 7 点伤害，削减 3 姿态。流浪骑士的可靠起手。"
-tone=Color(0.725, 0.64, 0.482, 1)
-hook_id=""
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "longsword"
+name = "长剑"
+cost = 1
+type = "武器"
+rarity = "starter"
+text = "造成 7 点伤害，削减 3 姿态。流浪骑士的可靠起手。"
+tone = Color(0.725, 0.64, 0.482, 1)
+hook_id = ""
+exhaust_after_play = false

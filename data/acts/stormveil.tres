@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="ActData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/ActData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapNodeData.gd" id="2"]
+
+[sub_resource type="Resource" id="Grace_0"]
+script = ExtResource("2")
+kind = "grace"
+title = "城墙赐福"
+body = "在狭窄走廊里喘息，整理被撕破的战意。"
+[sub_resource type="Resource" id="Grace_1"]
+script = ExtResource("2")
+kind = "grace"
+title = "格密尔英雄墓"
+body = "墓碑旁的金光让你想起尚未完成的誓言。"
+
+[resource]
+script = ExtResource("1")
+id = "stormveil"
+title = "史东薇尔城塞"
+subtitle_template = "第 %d 段 / 4。%s"
+flavor = "城墙内回荡着接肢的金属声，黄金树的枝桠在雾上摇晃。"
+combat_enemies = Array[String](["葛瑞克骑士", "腐败眷属", "挖石山妖", "凯丹佣兵"])
+elite_enemies = Array[String](["熔炉骑士", "守墓斗士", "法姆亚兹拉的兽人"])
+fixed_nodes = Array[MapNodeData]([SubResource("Grace_0"), SubResource("Grace_1")])
+act_boss_name = "熔炉骑士"
+act_boss_title = "风暴山丘封牢"
+act_boss_body = "熔炉骑士的古老武艺仍在回响。击败他，城塞的大门才会松动。"
+is_final_act = false

@@ -1,22 +1,31 @@
-[sub_resource type="MoveData" id="MoveData_1"]
-kind="attack"
-value=5
-text="辉石魔砾连射"
-hits=2
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
 
-[sub_resource type="MoveData" id="MoveData_2"]
-kind="buff"
-text="卢瑟特辉石杖"
-strength=2
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
 
-[sub_resource type="MoveData" id="MoveData_3"]
-kind="attack"
-value=11
-text="卡利亚迅剑"
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack"
+value = 5
+text = "辉石魔砾连射"
+hits = 2
 
-[resource name="EnemyData"]
-name="学院辉石法师"
-max_hp=42
-stance=10
-souls=22
-moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "buff"
+text = "卢瑟特辉石杖"
+strength = 2
+
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "attack"
+value = 11
+text = "卡利亚迅剑"
+
+[resource]
+script = ExtResource("1")
+name = "学院辉石法师"
+max_hp = 42
+stance = 10
+souls = 22
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

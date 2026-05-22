@@ -25,13 +25,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | RunState | `scripts/core/RunState.gd` | Run HP, deck, piles, floor, statuses |
 | CombatController | `scripts/core/CombatController.gd` | Combat, damage, enemy turns |
 | CardEffectResolver | `scripts/core/CardEffectResolver.gd` | `CardEffectStep` chain + hooks |
-| MapGenerator | `scripts/core/MapGenerator.gd` | Map options (6 floors phase 1) |
+| MapGenerator | `scripts/core/MapGenerator.gd` | 12-floor map options from `ActData` |
 
 ### Data (`.tres` under `data/`)
 
 - `data/cards/*.tres` — `CardData` + optional `hook_id` / `effects`
 - `data/enemies/*.tres` — `EnemyData` + `MoveData`
 - `data/origins/*.tres` — `OriginData` starting decks
+- `data/acts/*.tres` — `ActData` per act (pools, grace nodes, boss copy)
 
 ### Game State Machine
 
@@ -43,14 +44,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Hand size:** 5 per turn; reshuffle when draw pile empty.
 - **Stance (姿态):** Enemy stance break with bonus damage window.
 - **Status:** 腐败 / 出血 / 易伤 / 力量.
-- **Run length:** Map still **6 nodes** in phase 1; constants use `RunState.TOTAL_FLOORS = 12` for UI (phase 2 enables 12-layer acts).
+- **Run length:** **12 floors** (3 acts × 4); act bosses on floors 4/8/12 (indices 3, 7, 11); final boss triggers `run_victory`.
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. **Phase 2:** `ActData`, 12-floor three-act map, `is_act_boss` / `is_run_boss` victory rules.
-2. Talismans, grace upgrades, merchant Colleen (later).
+1. Talismans, grace upgrades, merchant Colleen (later).
+2. Expand enemy/card pools per act.
 
 ## Smoke Test
+
+```bash
+godot4.6 --headless --path . --script tools/smoke_test.gd
+godot4.6 --headless --path . --script tools/map_generator_test.gd
+```
+
+Core scripts use `preload()` for cross-module types; data `.tres` files use Godot 4 `gd_resource` format (see `tools/convert_tres.py` if you add legacy `[resource name=...]` assets).
 
 `tools/smoke_test.gd` extends `SceneTree` and validates all 6 origins by:
 1. Starting a run, visiting a grace point (heal check), opening deck view.

@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="heater_shield"
-name="熨斗形盾"
-cost=1
-type="盾牌"
-rarity="starter"
-text="获得 8 护甲。若敌人意图攻击，返还 1 集中。"
-tone=Color(0.49, 0.612, 0.639, 1)
-hook_id="heater_shield"
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heater_shield"
+name = "熨斗形盾"
+cost = 1
+type = "盾牌"
+rarity = "starter"
+text = "获得 8 护甲。若敌人意图攻击，返还 1 集中。"
+tone = Color(0.49, 0.612, 0.639, 1)
+hook_id = "heater_shield"
+exhaust_after_play = false

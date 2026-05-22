@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Godot: 运行并调试",
+      "type": "godot",
+      "request": "launch",
+      "project": "${workspaceFolder}",
+      "port": 6007,
+      "address": "127.0.0.1",
+      "launch_game_instance": true,
+      "debug_collisions": false,
+      "debug_paths": false,
+      "debug_navigation": false,
+      "godot_debugger": true
+    },
+    {
+      "name": "Godot: 仅编辑器",
+      "type": "godot",
+      "request": "launch",
+      "project": "${workspaceFolder}",
+      "port": 6007,
+      "address": "127.0.0.1",
+      "launch_game_instance": false
+    }
+  ]
+}

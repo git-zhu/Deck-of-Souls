@@ -1,6 +1,8 @@
 class_name CardData
 extends Resource
 
+const CardEffectStep = preload("res://data/CardEffectStep.gd")
+
 @export_group("Basic")
 @export var id: String
 @export var name: String

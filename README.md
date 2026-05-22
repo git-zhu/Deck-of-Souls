@@ -17,6 +17,8 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 敌方意图、护甲、生命条和战斗日志。
 - 姿态崩解、腐败、出血、易伤、力量等状态。
 - 赐福点、普通战、精英战、Boss 战和战后选牌。
+- 三幕 12 层跑团（宁姆格福 → 史东薇尔 → 利耶尼亚），地图与敌池由 `data/acts/*.tres` 驱动。
+- 核心逻辑在 `scripts/core/`（`DataRegistry`、`RunState`、`CombatController`、`MapGenerator` 等）；`Main.gd` 负责 UI。
 
 ## 当前素材方向
 
@@ -26,8 +28,14 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 地图事件按前期进度扩展到艾雷教堂、关卡前废墟、亚基尔湖北岸、宁姆格福坑道、驿站街遗迹、近林洞窟、海岸洞窟、风暴山丘封牢、通城隧道等节点。
 - 战斗 UI 将手牌放入横向滚动区域，并收紧双方状态面板，避免 1280x720 下右侧敌人与底部卡牌被裁切。
 
+## 无头测试
+
+```bash
+godot4.6 --headless --path . --script tools/smoke_test.gd
+godot4.6 --headless --path . --script tools/map_generator_test.gd
+```
+
 ## 推荐下一步
 
-- 把 `scripts/Main.gd` 中的卡牌、敌人、出身数据拆成 `.tres` 资源。
 - 加入护符、记忆石、战灰替换、赐福升级和商人咖列事件。
-- 按宁姆格福、史东薇尔城、湖之利耶尼亚扩展三幕结构。
+- 按幕扩充专属敌人与卡牌池。

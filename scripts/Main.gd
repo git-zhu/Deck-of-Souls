@@ -10,6 +10,13 @@ const STARTER_DECK := [
 	"halberd", "crimson_flask"
 ]
 
+const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
+const RunState = preload("res://scripts/core/RunState.gd")
+const CombatController = preload("res://scripts/core/CombatController.gd")
+const MapGenerator = preload("res://scripts/core/MapGenerator.gd")
+const OriginData = preload("res://data/OriginData.gd")
+const CardData = preload("res://data/CardData.gd")
+
 var rng := RandomNumberGenerator.new()
 var screen := GameScreen.TITLE
 var registry: DataRegistry
@@ -72,6 +79,8 @@ func _on_combat_ended(kind: String) -> void:
 	match kind:
 		"reward":
 			_show_rewards()
+		"act_clear":
+			_show_act_clear()
 		"run_victory":
 			_show_victory()
 		"defeat":
@@ -276,17 +285,19 @@ func _show_map() -> void:
 	wrap.add_theme_constant_override("separation", 16)
 	map_layer.add_child(wrap)
 
+	var act := registry.get_act(run_state.act_index())
 	var title := Label.new()
-	title.text = "宁姆格福路标"
+	title.text = act.title if act != null else "褪色者路标"
 	title.add_theme_font_size_override("font_size", 32)
 	title.add_theme_color_override("font_color", Color("#e2bd65"))
 	wrap.add_child(title)
 
 	var desc := Label.new()
-	desc.text = "第 %d 段 / %d。沿赐福指引穿过风暴山丘，接近候王礼拜堂的阴影。" % [
-		run_state.floor_index + 1,
-		RunState.TOTAL_FLOORS,
-	]
+	if act != null:
+		var local_step: int = (run_state.floor_index % RunState.FLOORS_PER_ACT) + 1
+		desc.text = act.subtitle_template % [local_step, act.flavor]
+	else:
+		desc.text = "第 %d 层 / %d。" % [run_state.floor_index + 1, RunState.TOTAL_FLOORS]
 	desc.add_theme_color_override("font_color", Color("#c8bca5"))
 	wrap.add_child(desc)
 
@@ -295,7 +306,7 @@ func _show_map() -> void:
 	choices.add_theme_constant_override("separation", 14)
 	wrap.add_child(choices)
 
-	var options := map_gen.options_for_floor(run_state.floor_index, rng)
+	var options := map_gen.options_for_floor(run_state, registry, rng)
 	for option in options:
 		var card := _map_choice_card(option)
 		choices.add_child(card)
@@ -524,55 +535,122 @@ func _small_stat(text: String) -> Label:
 
 
 func _show_deck_view() -> void:
+	var counts := _card_counts(run_state.deck)
 	var popup := AcceptDialog.new()
 	popup.title = "牌组"
-	popup.min_size = Vector2i(620, 520)
+	popup.ok_button_text = "关闭"
+	popup.min_size = Vector2i(660, 520)
 	add_child(popup)
 
+	var body := MarginContainer.new()
+	body.add_theme_constant_override("margin_left", 12)
+	body.add_theme_constant_override("margin_right", 12)
+	body.add_theme_constant_override("margin_top", 10)
+	body.add_theme_constant_override("margin_bottom", 6)
+	body.custom_minimum_size = Vector2(620, 440)
+	popup.add_child(body)
+
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 10)
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_child(outer)
+
+	var summary := Label.new()
+	summary.text = "共 %d 张（%d 种）" % [run_state.deck.size(), counts.size()]
+	summary.add_theme_font_size_override("font_size", 17)
+	summary.add_theme_color_override("font_color", Color("#d8ccb4"))
+	outer.add_child(summary)
+
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(580, 420)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(596, 400)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	popup.add_child(scroll)
+	outer.add_child(scroll)
 
 	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_theme_constant_override("separation", 8)
 	scroll.add_child(list)
 
-	var counts := _card_counts(run_state.deck)
-	var ids: Array = counts.keys()
-	ids.sort_custom(func(a: String, b: String) -> bool:
-		var ca: CardData = registry.get_card(a)
-		var cb: CardData = registry.get_card(b)
-		return ca.name < cb.name if ca != null and cb != null else str(a) < str(b)
-	)
-	for id in ids:
-		var card: CardData = registry.get_card(str(id))
-		if card == null:
-			continue
-		var row := PanelContainer.new()
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color("#242018")
-		style.border_color = card.tone.darkened(0.1)
-		style.set_border_width_all(1)
-		style.corner_radius_top_left = 6
-		style.corner_radius_top_right = 6
-		style.corner_radius_bottom_left = 6
-		style.corner_radius_bottom_right = 6
-		style.content_margin_left = 10
-		style.content_margin_right = 10
-		style.content_margin_top = 8
-		style.content_margin_bottom = 8
-		row.add_theme_stylebox_override("panel", style)
-		list.add_child(row)
-
-		var text := Label.new()
-		text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		text.text = "x%d  %s  [%s / 集中:%d]\n%s" % [counts[id], card.name, card.type, card.cost, card.text]
-		row.add_child(text)
+	if counts.is_empty():
+		var empty := Label.new()
+		empty.text = "牌组为空。"
+		empty.add_theme_color_override("font_color", Color("#9a8f78"))
+		list.add_child(empty)
+	else:
+		var ids: Array = counts.keys()
+		ids.sort_custom(func(a: String, b: String) -> bool:
+			var ca: CardData = registry.get_card(a)
+			var cb: CardData = registry.get_card(b)
+			return ca.name < cb.name if ca != null and cb != null else str(a) < str(b)
+		)
+		for id in ids:
+			var card: CardData = registry.get_card(str(id))
+			if card == null:
+				continue
+			list.add_child(_deck_card_row(card, int(counts[id])))
 
 	popup.popup_centered()
 	popup.close_requested.connect(func(): popup.queue_free())
+
+
+func _deck_card_row(card: CardData, count: int) -> PanelContainer:
+	const ROW_TEXT_WIDTH := 520.0
+	var row := PanelContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#242018")
+	style.border_color = card.tone.darkened(0.1)
+	style.set_border_width_all(1)
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
+	row.add_theme_stylebox_override("panel", style)
+
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 12)
+	h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(h)
+
+	var badge := Label.new()
+	badge.text = "×%d" % count
+	badge.custom_minimum_size = Vector2(40, 0)
+	badge.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	badge.add_theme_font_size_override("font_size", 20)
+	badge.add_theme_color_override("font_color", Color("#e0c06c"))
+	h.add_child(badge)
+
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 4)
+	h.add_child(info)
+
+	var title := Label.new()
+	title.text = "%s  ·  %s  ·  集中 %d" % [card.name, card.type, card.cost]
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_color", card.tone.lightened(0.25))
+	info.add_child(title)
+
+	var desc := Label.new()
+	desc.text = card.text
+	desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc.custom_minimum_size.x = ROW_TEXT_WIDTH
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.add_theme_font_size_override("font_size", 15)
+	desc.add_theme_color_override("font_color", Color("#c8bca5"))
+	info.add_child(desc)
+
+	return row
 
 
 func _card_counts(card_ids: Array[String]) -> Dictionary:
@@ -658,6 +736,49 @@ func _card_button(card_id: String, index: int) -> Button:
 
 func _play_card(index: int) -> void:
 	combat.play_card(index)
+
+
+func _show_act_clear() -> void:
+	run_state.hp = run_state.max_hp
+	run_state.flasks = run_state.max_flasks
+	screen = GameScreen.REWARD
+	_hide_layers()
+	reward_layer.visible = true
+	_clear(reward_layer)
+	_build_header()
+	rewards = combat.roll_rewards()
+
+	var act := registry.get_act(run_state.act_index())
+	var act_title := act.title if act != null else "幕间休整"
+
+	var box := VBoxContainer.new()
+	box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	box.add_theme_constant_override("separation", 14)
+	reward_layer.add_child(box)
+	var title := Label.new()
+	title.text = "%s · 幕末" % act_title
+	title.add_theme_font_size_override("font_size", 34)
+	title.add_theme_color_override("font_color", Color("#e0c06c"))
+	box.add_child(title)
+	var desc := Label.new()
+	desc.text = "雾门后的金光回满生命与圣杯瓶。选一张牌带走，或直接踏上下一幕。"
+	box.add_child(desc)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(row)
+	for id in rewards:
+		row.add_child(_reward_card(id))
+
+	var skip := Button.new()
+	skip.text = "不取牌，继续前进"
+	skip.custom_minimum_size = Vector2(240, 48)
+	skip.pressed.connect(func():
+		run_state.advance_floor()
+		_show_map()
+	)
+	box.add_child(skip)
 
 
 func _show_rewards() -> void:

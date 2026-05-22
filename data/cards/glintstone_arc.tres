@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="glintstone_arc"
-name="辉石弯弧"
-cost=2
-type="魔法"
-rarity="starter"
-text="造成 10 点伤害，削减 4 姿态。弧形辉石划过雾中。"
-tone=Color(0.482, 0.627, 0.878, 1)
-hook_id=""
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "glintstone_arc"
+name = "辉石弯弧"
+cost = 2
+type = "魔法"
+rarity = "starter"
+text = "造成 10 点伤害，削减 4 姿态。弧形辉石划过雾中。"
+tone = Color(0.482, 0.627, 0.878, 1)
+hook_id = ""
+exhaust_after_play = false

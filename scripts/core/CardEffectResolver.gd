@@ -1,6 +1,10 @@
 class_name CardEffectResolver
 extends RefCounted
 
+const CombatController = preload("res://scripts/core/CombatController.gd")
+const CardData = preload("res://data/CardData.gd")
+const CardEffectStep = preload("res://data/CardEffectStep.gd")
+
 var combat: CombatController
 
 
@@ -35,10 +39,10 @@ func _apply_step(step: CardEffectStep) -> void:
 			combat.apply_enemy_bleed(step.value)
 		CardEffectStep.Kind.APPLY_ROT_ON_ENEMY:
 			combat.enemy.rot += step.value
-			combat.log("%s 被腐败吐息侵染。" % combat.enemy.name)
+			combat.combat_log("%s 被腐败吐息侵染。" % combat.enemy.name)
 		CardEffectStep.Kind.APPLY_VULN_ON_ENEMY:
 			combat.enemy.vulnerable += step.value
-			combat.log("敌人获得 %d 易伤。" % step.value)
+			combat.combat_log("敌人获得 %d 易伤。" % step.value)
 
 
 func _catalog_steps(card_id: String) -> Array:
@@ -168,12 +172,12 @@ func _run_hook(hook_id: String) -> void:
 			combat.gain_block(8)
 			if _enemy_attacking():
 				combat.ember += 1
-				combat.log("盾面稳住冲击，返还 1 集中。")
+				combat.combat_log("盾面稳住冲击，返还 1 集中。")
 		"buckler":
 			combat.gain_block(5)
 			if _enemy_attacking():
 				combat.enemy.stance_now -= 4
-				combat.log("小圆盾架开武器，削减 4 姿态。")
+				combat.combat_log("小圆盾架开武器，削减 4 姿态。")
 		"longbow":
 			combat.deal_enemy_damage(5 + combat.run.player_strength, 1)
 			if int(combat.enemy.block) <= 0:
@@ -201,7 +205,7 @@ func _run_hook(hook_id: String) -> void:
 			if was_alive and int(combat.enemy.hp) <= 0:
 				combat.run.max_hp += 4
 				combat.run.hp += 4
-				combat.log("命定之死留下空位：最大生命 +4。")
+				combat.combat_log("命定之死留下空位：最大生命 +4。")
 		"urgent_heal":
 			combat.heal_player(5)
 			if combat.run.hp < combat.run.max_hp / 2:

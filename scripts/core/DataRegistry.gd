@@ -1,15 +1,25 @@
 class_name DataRegistry
 extends RefCounted
 
+const CardData = preload("res://data/CardData.gd")
+const OriginData = preload("res://data/OriginData.gd")
+const EnemyData = preload("res://data/EnemyData.gd")
+const MoveData = preload("res://data/MoveData.gd")
+const ActData = preload("res://data/ActData.gd")
+
+const ACT_ORDER: Array[String] = ["limgrave", "stormveil", "liurnia"]
+
 var cards: Dictionary = {}
 var origins: Dictionary = {}
 var _enemy_templates: Array = []
+var acts: Array = []
 
 
 func load_all() -> void:
 	cards = _load_cards()
 	origins = _load_origins()
 	_enemy_templates = _load_enemies()
+	acts = _load_acts()
 
 
 func get_card(id: String) -> CardData:
@@ -50,6 +60,13 @@ func pick_enemy(rng: RandomNumberGenerator, elite: bool, boss: bool) -> Dictiona
 				return not bool(e.get("boss", false)) and not bool(e.get("elite", false))
 		)
 	return pool[rng.randi_range(0, pool.size() - 1)].duplicate(true)
+
+
+func get_act(index: int) -> ActData:
+	if acts.is_empty():
+		return null
+	var i: int = clampi(index, 0, acts.size() - 1)
+	return acts[i] as ActData
 
 
 func pick_named_enemy(rng: RandomNumberGenerator, enemy_name: String, elite: bool, boss: bool) -> Dictionary:
@@ -115,8 +132,32 @@ func _enemy_to_dict(template: EnemyData) -> Dictionary:
 		"souls": template.souls,
 		"boss": template.is_boss,
 		"elite": template.is_elite,
+		"is_act_boss": template.is_act_boss,
+		"is_run_boss": template.is_run_boss,
 		"moves": moves,
 	}
+
+
+func _load_acts() -> Array:
+	var by_id: Dictionary = {}
+	var dir := DirAccess.open("res://data/acts")
+	if dir == null:
+		push_error("Failed to open data/acts directory")
+		return []
+	dir.list_dir_begin()
+	var file := dir.get_next()
+	while file != "":
+		if file.ends_with(".tres") and not file.begins_with("."):
+			var act := load("res://data/acts/%s" % file) as ActData
+			if act != null and act.id != "":
+				by_id[act.id] = act
+		file = dir.get_next()
+	dir.list_dir_end()
+	var ordered: Array = []
+	for act_id in ACT_ORDER:
+		if by_id.has(act_id):
+			ordered.append(by_id[act_id])
+	return ordered
 
 
 func _load_enemies() -> Array:

@@ -1,10 +1,15 @@
-[resource name="CardData"]
-id="heal"
-name="恢复"
-cost=2
-type="祷告"
-rarity="starter"
-text="回复 8 生命，获得 3 护甲。双指信仰留下喘息。"
-tone=Color(0.851, 0.757, 0.427, 1)
-hook_id=""
-exhaust_after_play=false
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heal"
+name = "恢复"
+cost = 2
+type = "祷告"
+rarity = "starter"
+text = "回复 8 生命，获得 3 护甲。双指信仰留下喘息。"
+tone = Color(0.851, 0.757, 0.427, 1)
+hook_id = ""
+exhaust_after_play = false

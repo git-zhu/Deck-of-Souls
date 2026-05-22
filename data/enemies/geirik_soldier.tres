@@ -1,22 +1,31 @@
-[sub_resource type="MoveData" id="MoveData_1"]
-kind="attack"
-value=7
-text="君主军直剑"
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
 
-[sub_resource type="MoveData" id="MoveData_2"]
-kind="attack_block"
-value=5
-text="黄铜盾防线"
-block=5
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
 
-[sub_resource type="MoveData" id="MoveData_3"]
-kind="debuff"
-text="风暴关卡号令"
-vulnerable=2
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack"
+value = 7
+text = "君主军直剑"
 
-[resource name="EnemyData"]
-name="葛瑞克士兵"
-max_hp=38
-stance=12
-souls=16
-moves=[^MoveData_1, ^MoveData_2, ^MoveData_3]
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "attack_block"
+value = 5
+text = "黄铜盾防线"
+block = 5
+
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "debuff"
+text = "风暴关卡号令"
+vulnerable = 2
+
+[resource]
+script = ExtResource("1")
+name = "葛瑞克士兵"
+max_hp = 38
+stance = 12
+souls = 16
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]
