@@ -79,6 +79,17 @@ OFFERS = [
         "min_deck_size": 0,
         "card_rarity_filter": "",
     },
+    {
+        "file": "ash_replace",
+        "id": "ash_replace",
+        "title": "战灰传授",
+        "body": "咖列演示战灰技法：选一张牌被覆盖，再从三张战灰中选一张替换。",
+        "effect": "ash_replace",
+        "effect_value": 0,
+        "soul_cost": 70,
+        "min_deck_size": 6,
+        "card_rarity_filter": "",
+    },
 ]
 
 

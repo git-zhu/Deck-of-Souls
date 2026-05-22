@@ -79,6 +79,17 @@ OPTIONS = [
         "card_id": "",
         "min_deck_size": 0,
     },
+    {
+        "file": "ash_replace",
+        "id": "ash_replace",
+        "title": "战灰传授",
+        "body": "以战灰覆盖牌组中的一张牌：先选要被替换的牌，再从三张战灰中选一张。",
+        "effect": "ash_replace",
+        "effect_value": 0,
+        "soul_cost": 0,
+        "card_id": "",
+        "min_deck_size": 6,
+    },
 ]
 
 

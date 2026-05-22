@@ -28,6 +28,8 @@ func is_eligible(offer: MerchantOfferData, run: RunState) -> bool:
 			return run.max_flasks < MAX_FLASKS
 		"memory_stone":
 			return run.can_gain_memory_stone()
+		"ash_replace":
+			return run.deck.size() > 5
 		_:
 			return true
 
@@ -73,7 +75,9 @@ func purchase(
 				"pick_card": false,
 			}
 		"remove_card":
-			return {"ok": true, "message": "", "pick_card": true}
+			return {"ok": true, "message": "", "pick_card": true, "pick_ash_replace": false}
+		"ash_replace":
+			return {"ok": true, "message": "", "pick_card": false, "pick_ash_replace": true}
 		"heal_percent":
 			var heal: int = int(ceil(float(run.max_hp) * float(offer.effect_value) / 100.0))
 			run.hp = mini(run.max_hp, run.hp + heal)

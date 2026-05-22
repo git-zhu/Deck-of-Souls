@@ -18,6 +18,7 @@ const GraceService = preload("res://scripts/core/GraceService.gd")
 const MerchantService = preload("res://scripts/core/MerchantService.gd")
 const GraceOptionData = preload("res://data/GraceOptionData.gd")
 const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
+const AshService = preload("res://scripts/core/AshService.gd")
 const OriginData = preload("res://data/OriginData.gd")
 const CardData = preload("res://data/CardData.gd")
 
@@ -29,6 +30,7 @@ var combat: CombatController
 var map_gen := MapGenerator.new()
 var grace_service := GraceService.new()
 var merchant_service := MerchantService.new()
+var ash_service := AshService.new()
 var rewards: Array[String] = []
 var _merchant_stock: Array = []
 var _merchant_sold: Array[bool] = []
@@ -476,7 +478,19 @@ func _on_merchant_buy(offer: MerchantOfferData, slot_index: int) -> void:
 		_show_merchant()
 		return
 	_merchant_sold[slot_index] = true
-	if bool(result.get("pick_card", false)):
+	if bool(result.get("pick_ash_replace", false)):
+		_start_ash_replace_flow(
+			func(removed_id: String, new_id: String):
+				var old_c: CardData = registry.get_card(removed_id)
+				var new_c: CardData = registry.get_card(new_id)
+				var old_name := old_c.name if old_c != null else removed_id
+				var new_name := new_c.name if new_c != null else new_id
+				_merchant_status = "花费 %d 卢恩，《%s》已被战灰《%s》覆盖。" % [
+					offer.soul_cost, old_name, new_name
+				]
+				_show_merchant()
+		)
+	elif bool(result.get("pick_card", false)):
 		_show_remove_card_picker(
 			"整理行囊",
 			"选择要从牌组中移除的一张牌。",
@@ -585,6 +599,18 @@ func _on_grace_option_picked(option: GraceOptionData) -> void:
 				var card_name := c.name if c != null else card_id
 				_show_grace_result("遗忘仪式", "已从牌组移除《%s》。" % card_name)
 		)
+	elif summary == GraceService.PICK_ASH_REPLACE:
+		_start_ash_replace_flow(
+			func(removed_id: String, new_id: String):
+				var old_c: CardData = registry.get_card(removed_id)
+				var new_c: CardData = registry.get_card(new_id)
+				var old_name := old_c.name if old_c != null else removed_id
+				var new_name := new_c.name if new_c != null else new_id
+				_show_grace_result(
+					"战灰传授",
+					"《%s》已被战灰《%s》覆盖。" % [old_name, new_name]
+				)
+		)
 	else:
 		_show_grace_result(option.title, summary)
 
@@ -621,7 +647,69 @@ func _show_grace_result(title_text: String, body_text: String) -> void:
 	box.add_child(next)
 
 
-func _show_remove_card_picker(title_text: String, hint_text: String, on_removed: Callable) -> void:
+func _start_ash_replace_flow(on_done: Callable) -> void:
+	_show_remove_card_picker(
+		"战灰替换",
+		"选择要被战灰覆盖的牌。",
+		func(removed_id: String):
+			var options: Array = ash_service.roll_ash_cards(registry, rng, 3)
+			_show_ash_replace_picker(removed_id, options, on_done),
+		false
+	)
+
+
+func _show_ash_replace_picker(removed_id: String, card_ids: Array, on_done: Callable) -> void:
+	screen = GameScreen.REWARD
+	_hide_layers()
+	reward_layer.visible = true
+	_clear(reward_layer)
+	_build_header()
+
+	var wrap := VBoxContainer.new()
+	wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrap.add_theme_constant_override("separation", 14)
+	reward_layer.add_child(wrap)
+
+	var title := Label.new()
+	title.text = "战灰传授"
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color("#e2bd65"))
+	wrap.add_child(title)
+
+	var hint := Label.new()
+	hint.text = "从下列战灰中选择一张，覆盖你选定的牌。"
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_color_override("font_color", Color("#c8bca5"))
+	wrap.add_child(hint)
+
+	var row := HBoxContainer.new()
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 12)
+	wrap.add_child(row)
+
+	for card_id in card_ids:
+		var c: CardData = registry.get_card(str(card_id))
+		var btn := Button.new()
+		btn.custom_minimum_size = Vector2(250, 300)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if c != null:
+			btn.text = "%s\n%s  集中:%d\n稀有度:%s\n\n%s" % [c.name, c.type, c.cost, c.rarity, c.text]
+		else:
+			btn.text = str(card_id)
+		btn.pressed.connect(func():
+			var picked := str(card_id)
+			run_state.replace_card_in_deck(removed_id, picked)
+			on_done.call(removed_id, picked)
+		)
+		row.add_child(btn)
+
+
+func _show_remove_card_picker(
+	title_text: String,
+	hint_text: String,
+	on_removed: Callable,
+	remove_immediately: bool = true
+) -> void:
 	screen = GameScreen.REWARD
 	_hide_layers()
 	reward_layer.visible = true
@@ -662,10 +750,12 @@ func _show_remove_card_picker(title_text: String, hint_text: String, on_removed:
 		btn.text = "%s ×%d" % [label, count]
 		btn.custom_minimum_size = Vector2(0, 44)
 		btn.pressed.connect(func():
-			var idx := run_state.deck.find(str(card_id))
-			if idx >= 0:
-				run_state.deck.remove_at(idx)
-			on_removed.call(str(card_id))
+			var cid := str(card_id)
+			if remove_immediately:
+				var idx := run_state.deck.find(cid)
+				if idx >= 0:
+					run_state.deck.remove_at(idx)
+			on_removed.call(cid)
 		)
 		list.add_child(btn)
 

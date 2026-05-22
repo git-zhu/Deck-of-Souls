@@ -6,6 +6,7 @@ const RunState = preload("res://scripts/core/RunState.gd")
 const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 
 const PICK_CARD := "__pick_card__"
+const PICK_ASH_REPLACE := "__pick_ash_replace__"
 const MAX_FLASKS := 5
 
 var _options: Array = []
@@ -31,6 +32,8 @@ func is_eligible(option: GraceOptionData, run: RunState) -> bool:
 			return run.max_flasks < MAX_FLASKS
 		"memory_stone":
 			return run.can_gain_memory_stone()
+		"ash_replace":
+			return run.deck.size() > 5
 		_:
 			return true
 
@@ -76,6 +79,8 @@ func apply(option: GraceOptionData, run: RunState) -> String:
 			return "圣杯瓶上限现为 %d。" % run.max_flasks
 		"remove_card":
 			return PICK_CARD
+		"ash_replace":
+			return PICK_ASH_REPLACE
 		"clear_debuffs":
 			run.player_rot = 0
 			run.player_bleed = 0

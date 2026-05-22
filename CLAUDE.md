@@ -29,6 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | GraceService | `scripts/core/GraceService.gd` | Grace campfire roll/apply |
 | MerchantService | `scripts/core/MerchantService.gd` | Colleen shop roll/purchase |
 | RelicService | `scripts/core/RelicService.gd` | Run relics, combat-start hooks |
+| AshService | `scripts/core/AshService.gd` | War-ash replace pool (type 战灰) |
 
 ### Data (`.tres` under `data/`)
 
@@ -54,7 +55,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. Ash replacement (swap card identity), post-combat relic rewards.
+1. Post-combat relic rewards (elite / act clear).
 2. Expand enemy/card pools per act.
 
 **Workflow:** After each implementation phase, create a focused `git commit` for that phase.
@@ -68,6 +69,7 @@ godot4.6 --headless --path . --script tools/grace_service_test.gd
 godot4.6 --headless --path . --script tools/merchant_service_test.gd
 godot4.6 --headless --path . --script tools/relic_service_test.gd
 godot4.6 --headless --path . --script tools/memory_stone_test.gd
+godot4.6 --headless --path . --script tools/ash_service_test.gd
 ```
 
 Core scripts use `preload()` for cross-module types; data `.tres` files use Godot 4 `gd_resource` format (see `tools/convert_tres.py` if you add legacy `[resource name=...]` assets).

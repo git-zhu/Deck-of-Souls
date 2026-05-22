@@ -64,6 +64,13 @@ func can_gain_memory_stone() -> bool:
 	return memory_stones < MAX_MEMORY_STONES
 
 
+func replace_card_in_deck(removed_id: String, new_id: String) -> void:
+	var idx := deck.find(removed_id)
+	if idx >= 0:
+		deck.remove_at(idx)
+	deck.append(new_id)
+
+
 func player_hand_draw(extra_from_relics: int = 0) -> int:
 	return BASE_HAND_DRAW + memory_stones + extra_from_relics
 	draw_pile.clear()
