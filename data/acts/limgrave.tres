@@ -47,8 +47,8 @@ body = "亚人首领在黑暗中聚众嚎叫，洞外通向龙飨教堂。"
 [sub_resource type="Resource" id="Enc_8"]
 script = ExtResource("3")
 enemy_name = "挖石山妖"
-title = "挖石山妖"
-body = "精英敌人挡在路前。"
+title = "坑道深处"
+body = "挖石山妖在矿道底层抬起巨臂，碎石从顶上落下。"
 [sub_resource type="Resource" id="Node_9"]
 script = ExtResource("2")
 kind = "grace"

@@ -37,8 +37,8 @@ body = "守墓斗士守在墓碑之间，巨斧扬起时风声如哭。"
 [sub_resource type="Resource" id="Enc_6"]
 script = ExtResource("3")
 enemy_name = "挖石山妖"
-title = "挖石山妖"
-body = "精英敌人挡在路前。"
+title = "坑道深处"
+body = "挖石山妖在矿道底层抬起巨臂，碎石从顶上落下。"
 [sub_resource type="Resource" id="Node_7"]
 script = ExtResource("2")
 kind = "grace"
