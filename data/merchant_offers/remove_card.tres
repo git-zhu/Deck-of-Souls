@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MerchantOfferData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/MerchantOfferData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "remove_card"
+title = "整理行囊"
+body = "付费请咖列帮你丢掉一张碍事的牌。"
+effect = "remove_card"
+effect_value = 0
+soul_cost = 75
+min_deck_size = 6
+card_rarity_filter = ""

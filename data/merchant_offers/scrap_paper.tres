@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MerchantOfferData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/MerchantOfferData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "scrap_paper"
+title = "褪色者护符"
+body = "皱巴巴的护符纸，本场战斗力量 +1（占位，非永久遗物）。"
+effect = "gain_strength"
+effect_value = 1
+soul_cost = 55
+min_deck_size = 0
+card_rarity_filter = ""

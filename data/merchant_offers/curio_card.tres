@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MerchantOfferData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/MerchantOfferData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "curio_card"
+title = "咖列的货箱"
+body = "一只上了锁的木箱，里面是褪色者常用的战法卡牌。"
+effect = "add_random_card"
+effect_value = 0
+soul_cost = 50
+min_deck_size = 0
+card_rarity_filter = ""

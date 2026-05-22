@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MerchantOfferData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/MerchantOfferData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blood_vial"
+title = "血污圣杯瓶"
+body = "残血兑来的试饮，能回复部分生命。"
+effect = "heal_percent"
+effect_value = 25
+soul_cost = 35
+min_deck_size = 0
+card_rarity_filter = ""

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MerchantOfferData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/MerchantOfferData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "refill_flasks"
+title = "装满圣杯瓶"
+body = "咖列替你灌满圣杯瓶里的红露滴。"
+effect = "refill_flasks"
+effect_value = 0
+soul_cost = 30
+min_deck_size = 0
+card_rarity_filter = ""

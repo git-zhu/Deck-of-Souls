@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GraceOptionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/GraceOptionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "kindling"
+title = "添火"
+body = "在赐福旁添火，圣杯瓶上限 +1（最多 5）。"
+effect = "max_flasks"
+effect_value = 1
+soul_cost = 0
+card_id = ""
+min_deck_size = 0

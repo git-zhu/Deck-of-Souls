@@ -14,6 +14,10 @@ const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const RunState = preload("res://scripts/core/RunState.gd")
 const CombatController = preload("res://scripts/core/CombatController.gd")
 const MapGenerator = preload("res://scripts/core/MapGenerator.gd")
+const GraceService = preload("res://scripts/core/GraceService.gd")
+const MerchantService = preload("res://scripts/core/MerchantService.gd")
+const GraceOptionData = preload("res://data/GraceOptionData.gd")
+const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
 const OriginData = preload("res://data/OriginData.gd")
 const CardData = preload("res://data/CardData.gd")
 
@@ -23,7 +27,12 @@ var registry: DataRegistry
 var run_state: RunState
 var combat: CombatController
 var map_gen := MapGenerator.new()
+var grace_service := GraceService.new()
+var merchant_service := MerchantService.new()
 var rewards: Array[String] = []
+var _merchant_stock: Array = []
+var _merchant_sold: Array[bool] = []
+var _merchant_status: String = ""
 
 var deck: Array[String]:
 	get:
@@ -61,6 +70,8 @@ func _ready() -> void:
 	rng.randomize()
 	registry = DataRegistry.new()
 	registry.load_all()
+	grace_service.load_from_registry(registry)
+	merchant_service.load_from_registry(registry)
 	run_state = RunState.new()
 	combat = CombatController.new(run_state, registry, rng)
 	combat.log_message.connect(_log)
@@ -350,20 +361,313 @@ func _choose_map_option(option: Dictionary) -> void:
 			_begin_combat(registry.pick_named_enemy(rng, str(option.get("enemy", "")), false, true))
 		"grace":
 			_visit_grace()
+		"merchant":
+			_visit_merchant()
+
+
+func _visit_merchant() -> void:
+	_merchant_stock = merchant_service.roll_stock(run_state, registry, rng, 3)
+	_merchant_sold.clear()
+	for _i in _merchant_stock.size():
+		_merchant_sold.append(false)
+	_merchant_status = ""
+	_show_merchant()
+
+
+func _test_merchant_buy(offer_id: String) -> void:
+	var offer := registry.get_merchant_offer(offer_id)
+	if offer == null:
+		push_error("Unknown merchant offer: %s" % offer_id)
+		return
+	var result: Dictionary = merchant_service.purchase(offer, run_state, registry, rng)
+	if not bool(result.get("ok", false)):
+		push_error("Merchant purchase failed: %s" % str(result.get("message", "")))
+		return
+	if bool(result.get("pick_card", false)):
+		push_error("Merchant offer %s requires card picker" % offer_id)
+		return
+
+
+func _show_merchant() -> void:
+	screen = GameScreen.REWARD
+	_hide_layers()
+	reward_layer.visible = true
+	_clear(reward_layer)
+	_build_header()
+
+	var wrap := VBoxContainer.new()
+	wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrap.add_theme_constant_override("separation", 14)
+	reward_layer.add_child(wrap)
+
+	var title := Label.new()
+	title.text = "商人咖列"
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color("#e2bd65"))
+	wrap.add_child(title)
+
+	var souls_label := Label.new()
+	souls_label.text = "当前卢恩：%d" % run_state.souls
+	souls_label.add_theme_color_override("font_color", Color("#c8bca5"))
+	wrap.add_child(souls_label)
+
+	if not _merchant_status.is_empty():
+		var status := Label.new()
+		status.text = _merchant_status
+		status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		status.add_theme_color_override("font_color", Color("#d8ccb4"))
+		wrap.add_child(status)
+
+	var choices := HBoxContainer.new()
+	choices.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	choices.add_theme_constant_override("separation", 14)
+	wrap.add_child(choices)
+
+	for slot_index in _merchant_stock.size():
+		var offer := _merchant_stock[slot_index] as MerchantOfferData
+		choices.add_child(_merchant_offer_card(offer, slot_index))
+
+	var leave := Button.new()
+	leave.text = "离开商店"
+	leave.custom_minimum_size = Vector2(220, 48)
+	leave.pressed.connect(_leave_merchant)
+	wrap.add_child(leave)
+
+
+func _merchant_offer_card(offer: MerchantOfferData, slot_index: int) -> PanelContainer:
+	var panel := _panel(Color("#242018"))
+	panel.custom_minimum_size = Vector2(0, 330)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	panel.add_child(v)
+
+	var name := Label.new()
+	name.text = offer.title
+	name.add_theme_font_size_override("font_size", 26)
+	name.add_theme_color_override("font_color", Color("#e0c06c"))
+	v.add_child(name)
+
+	var body := Label.new()
+	body.text = offer.body
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(body)
+
+	var btn := Button.new()
+	var sold: bool = _merchant_sold[slot_index] if slot_index < _merchant_sold.size() else false
+	if sold:
+		btn.text = "售罄"
+		btn.disabled = true
+	else:
+		btn.text = "购买 · %d 卢恩" % offer.soul_cost
+		btn.disabled = not merchant_service.can_afford(offer, run_state)
+		btn.pressed.connect(_on_merchant_buy.bind(offer, slot_index))
+	v.add_child(btn)
+	return panel
+
+
+func _on_merchant_buy(offer: MerchantOfferData, slot_index: int) -> void:
+	if slot_index < _merchant_sold.size() and _merchant_sold[slot_index]:
+		return
+	var result: Dictionary = merchant_service.purchase(offer, run_state, registry, rng)
+	if not bool(result.get("ok", false)):
+		_merchant_status = str(result.get("message", ""))
+		_show_merchant()
+		return
+	_merchant_sold[slot_index] = true
+	if bool(result.get("pick_card", false)):
+		_show_remove_card_picker(
+			"整理行囊",
+			"选择要从牌组中移除的一张牌。",
+			func(card_id: String):
+				var c: CardData = registry.get_card(card_id)
+				var card_name := c.name if c != null else card_id
+				_merchant_status = "花费 %d 卢恩，已从牌组移除《%s》。" % [offer.soul_cost, card_name]
+				_show_merchant()
+		)
+	else:
+		_merchant_status = str(result.get("message", ""))
+		_show_merchant()
+
+
+func _leave_merchant() -> void:
+	run_state.advance_floor()
+	_show_map()
 
 
 func _visit_grace() -> void:
-	var before_hp: int = run_state.hp
-	combat.heal_player(18)
-	var recovered: int = run_state.hp - before_hp
-	run_state.flasks = run_state.max_flasks
-	if run_state.souls >= 45 and not run_state.deck.has("destined_death"):
-		run_state.souls -= 45
-		run_state.deck.append("destined_death")
-		_show_message_end("赐福点", "你回复 %d 生命，补满圣杯瓶，并以 45 卢恩窥见《命定之死》。" % recovered)
-	else:
-		_show_message_end("赐福点", "你回复 %d 生命，补满圣杯瓶。金色引导仍指向雾门。" % recovered)
+	var options := grace_service.roll_options(run_state, rng, 3)
+	_show_grace_rest(options)
+
+
+func _test_grace_pick(option_id: String) -> void:
+	var option := registry.get_grace_option(option_id)
+	if option == null:
+		push_error("Unknown grace option: %s" % option_id)
+		return
+	var summary := grace_service.apply(option, run_state)
+	if summary == GraceService.PICK_CARD:
+		push_error("Grace pick %s requires card selection UI" % option_id)
+		return
 	run_state.advance_floor()
+
+
+func _show_grace_rest(options: Array) -> void:
+	screen = GameScreen.REWARD
+	_hide_layers()
+	reward_layer.visible = true
+	_clear(reward_layer)
+	_build_header()
+
+	var wrap := VBoxContainer.new()
+	wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrap.add_theme_constant_override("separation", 16)
+	reward_layer.add_child(wrap)
+
+	var title := Label.new()
+	title.text = "赐福点"
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color("#e2bd65"))
+	wrap.add_child(title)
+
+	var desc := Label.new()
+	desc.text = "金色引导在脚下聚拢。选择一项赐福升级，然后继续上路。"
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.add_theme_color_override("font_color", Color("#c8bca5"))
+	wrap.add_child(desc)
+
+	var choices := HBoxContainer.new()
+	choices.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	choices.add_theme_constant_override("separation", 14)
+	wrap.add_child(choices)
+
+	for opt in options:
+		choices.add_child(_grace_choice_card(opt as GraceOptionData))
+
+
+func _grace_choice_card(option: GraceOptionData) -> PanelContainer:
+	var panel := _panel(Color("#242018"))
+	panel.custom_minimum_size = Vector2(0, 330)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	panel.add_child(v)
+
+	var name := Label.new()
+	name.text = option.title
+	name.add_theme_font_size_override("font_size", 26)
+	name.add_theme_color_override("font_color", Color("#e0c06c"))
+	v.add_child(name)
+
+	var body := Label.new()
+	body.text = option.body
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(body)
+
+	var btn := Button.new()
+	btn.text = "选择"
+	btn.custom_minimum_size = Vector2(0, 48)
+	btn.pressed.connect(func(): _on_grace_option_picked(option))
+	v.add_child(btn)
+	return panel
+
+
+func _on_grace_option_picked(option: GraceOptionData) -> void:
+	var summary := grace_service.apply(option, run_state)
+	if summary == GraceService.PICK_CARD:
+		_show_remove_card_picker(
+			"遗忘仪式",
+			"选择要从牌组中移除的一张牌。",
+			func(card_id: String):
+				var c: CardData = registry.get_card(card_id)
+				var card_name := c.name if c != null else card_id
+				_show_grace_result("遗忘仪式", "已从牌组移除《%s》。" % card_name)
+		)
+	else:
+		_show_grace_result(option.title, summary)
+
+
+func _show_grace_result(title_text: String, body_text: String) -> void:
+	screen = GameScreen.REWARD
+	_hide_layers()
+	reward_layer.visible = true
+	_clear(reward_layer)
+	_build_header()
+	var box := VBoxContainer.new()
+	box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 14)
+	reward_layer.add_child(box)
+	var title := Label.new()
+	title.text = title_text
+	title.add_theme_font_size_override("font_size", 34)
+	title.add_theme_color_override("font_color", Color("#e0c06c"))
+	box.add_child(title)
+	var body := Label.new()
+	body.text = body_text
+	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.custom_minimum_size = Vector2(720, 0)
+	box.add_child(body)
+	var next := Button.new()
+	next.text = "继续"
+	next.custom_minimum_size = Vector2(220, 48)
+	next.pressed.connect(func():
+		run_state.advance_floor()
+		_show_map()
+	)
+	box.add_child(next)
+
+
+func _show_remove_card_picker(title_text: String, hint_text: String, on_removed: Callable) -> void:
+	screen = GameScreen.REWARD
+	_hide_layers()
+	reward_layer.visible = true
+	_clear(reward_layer)
+	_build_header()
+
+	var wrap := VBoxContainer.new()
+	wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrap.add_theme_constant_override("separation", 12)
+	reward_layer.add_child(wrap)
+
+	var title := Label.new()
+	title.text = title_text
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color("#e2bd65"))
+	wrap.add_child(title)
+
+	var hint := Label.new()
+	hint.text = hint_text
+	hint.add_theme_color_override("font_color", Color("#c8bca5"))
+	wrap.add_child(hint)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 400)
+	wrap.add_child(scroll)
+
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", 8)
+	scroll.add_child(list)
+
+	var counts := _card_counts(run_state.deck)
+	for card_id in counts.keys():
+		var c: CardData = registry.get_card(str(card_id))
+		var label := c.name if c != null else str(card_id)
+		var count: int = int(counts[card_id])
+		var btn := Button.new()
+		btn.text = "%s ×%d" % [label, count]
+		btn.custom_minimum_size = Vector2(0, 44)
+		btn.pressed.connect(func():
+			var idx := run_state.deck.find(str(card_id))
+			if idx >= 0:
+				run_state.deck.remove_at(idx)
+			on_removed.call(str(card_id))
+		)
+		list.add_child(btn)
 
 
 func _show_message_end(title_text: String, body_text: String) -> void:

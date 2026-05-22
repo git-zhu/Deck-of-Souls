@@ -17,6 +17,8 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 敌方意图、护甲、生命条和战斗日志。
 - 姿态崩解、腐败、出血、易伤、力量等状态。
 - 赐福点、普通战、精英战、Boss 战和战后选牌。
+- 赐福营火式三选一（休憩、添火、删牌、净化等，数据见 `data/grace_options/`）。
+- 商人咖列节点：花卢恩购买货箱卡牌、删牌、回血等（`data/merchant_offers/`）。
 - 三幕 12 层跑团（宁姆格福 → 史东薇尔 → 利耶尼亚），地图与敌池由 `data/acts/*.tres` 驱动。
 - 核心逻辑在 `scripts/core/`（`DataRegistry`、`RunState`、`CombatController`、`MapGenerator` 等）；`Main.gd` 负责 UI。
 
@@ -33,9 +35,11 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 ```bash
 godot4.6 --headless --path . --script tools/smoke_test.gd
 godot4.6 --headless --path . --script tools/map_generator_test.gd
+godot4.6 --headless --path . --script tools/grace_service_test.gd
+godot4.6 --headless --path . --script tools/merchant_service_test.gd
 ```
 
 ## 推荐下一步
 
-- 加入护符、记忆石、战灰替换、赐福升级和商人咖列事件。
+- 护符（`RelicData`）、记忆石、战灰替换。
 - 按幕扩充专属敌人与卡牌池。

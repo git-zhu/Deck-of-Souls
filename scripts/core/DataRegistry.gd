@@ -6,6 +6,8 @@ const OriginData = preload("res://data/OriginData.gd")
 const EnemyData = preload("res://data/EnemyData.gd")
 const MoveData = preload("res://data/MoveData.gd")
 const ActData = preload("res://data/ActData.gd")
+const GraceOptionData = preload("res://data/GraceOptionData.gd")
+const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
 
 const ACT_ORDER: Array[String] = ["limgrave", "stormveil", "liurnia"]
 
@@ -13,6 +15,8 @@ var cards: Dictionary = {}
 var origins: Dictionary = {}
 var _enemy_templates: Array = []
 var acts: Array = []
+var grace_options: Dictionary = {}
+var merchant_offers: Dictionary = {}
 
 
 func load_all() -> void:
@@ -20,6 +24,8 @@ func load_all() -> void:
 	origins = _load_origins()
 	_enemy_templates = _load_enemies()
 	acts = _load_acts()
+	grace_options = _load_grace_options()
+	merchant_offers = _load_merchant_offers()
 
 
 func get_card(id: String) -> CardData:
@@ -67,6 +73,22 @@ func get_act(index: int) -> ActData:
 		return null
 	var i: int = clampi(index, 0, acts.size() - 1)
 	return acts[i] as ActData
+
+
+func get_grace_option(id: String) -> GraceOptionData:
+	return grace_options.get(id) as GraceOptionData
+
+
+func all_grace_option_ids() -> Array:
+	return grace_options.keys()
+
+
+func get_merchant_offer(id: String) -> MerchantOfferData:
+	return merchant_offers.get(id) as MerchantOfferData
+
+
+func all_merchant_offer_ids() -> Array:
+	return merchant_offers.keys()
 
 
 func pick_named_enemy(rng: RandomNumberGenerator, enemy_name: String, elite: bool, boss: bool) -> Dictionary:
@@ -158,6 +180,42 @@ func _load_acts() -> Array:
 		if by_id.has(act_id):
 			ordered.append(by_id[act_id])
 	return ordered
+
+
+func _load_grace_options() -> Dictionary:
+	var result := {}
+	var dir := DirAccess.open("res://data/grace_options")
+	if dir == null:
+		push_error("Failed to open data/grace_options directory")
+		return result
+	dir.list_dir_begin()
+	var file := dir.get_next()
+	while file != "":
+		if file.ends_with(".tres") and not file.begins_with("."):
+			var opt := load("res://data/grace_options/%s" % file) as GraceOptionData
+			if opt != null and opt.id != "":
+				result[opt.id] = opt
+		file = dir.get_next()
+	dir.list_dir_end()
+	return result
+
+
+func _load_merchant_offers() -> Dictionary:
+	var result := {}
+	var dir := DirAccess.open("res://data/merchant_offers")
+	if dir == null:
+		push_error("Failed to open data/merchant_offers directory")
+		return result
+	dir.list_dir_begin()
+	var file := dir.get_next()
+	while file != "":
+		if file.ends_with(".tres") and not file.begins_with("."):
+			var offer := load("res://data/merchant_offers/%s" % file) as MerchantOfferData
+			if offer != null and offer.id != "":
+				result[offer.id] = offer
+		file = dir.get_next()
+	dir.list_dir_end()
+	return result
 
 
 func _load_enemies() -> Array:

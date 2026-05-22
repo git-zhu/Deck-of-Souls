@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GraceOptionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/GraceOptionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "clarity"
+title = "净化"
+body = "赐福洗净腐败、出血与易伤。"
+effect = "clear_debuffs"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0

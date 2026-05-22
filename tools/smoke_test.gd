@@ -15,7 +15,7 @@ func _initialize() -> void:
 
 		var starting_deck_size: int = (main.get("deck") as Array).size()
 		main.set("hp", 10)
-		main.call("_visit_grace")
+		main.call("_test_grace_pick", "rest")
 		await process_frame
 		if int(main.get("hp")) <= 10:
 			push_error("Grace did not heal for origin %s" % origin_id)

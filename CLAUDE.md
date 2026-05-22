@@ -26,6 +26,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | CombatController | `scripts/core/CombatController.gd` | Combat, damage, enemy turns |
 | CardEffectResolver | `scripts/core/CardEffectResolver.gd` | `CardEffectStep` chain + hooks |
 | MapGenerator | `scripts/core/MapGenerator.gd` | 12-floor map options from `ActData` |
+| GraceService | `scripts/core/GraceService.gd` | Grace campfire roll/apply |
+| MerchantService | `scripts/core/MerchantService.gd` | Colleen shop roll/purchase |
 
 ### Data (`.tres` under `data/`)
 
@@ -33,6 +35,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `data/enemies/*.tres` — `EnemyData` + `MoveData`
 - `data/origins/*.tres` — `OriginData` starting decks
 - `data/acts/*.tres` — `ActData` per act (pools, grace nodes, boss copy)
+- `data/grace_options/*.tres` — `GraceOptionData` campfire upgrades
+- `data/merchant_offers/*.tres` — `MerchantOfferData` shop stock
 
 ### Game State Machine
 
@@ -48,7 +52,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. Talismans, grace upgrades, merchant Colleen (later).
+1. Talismans (`RelicData`), memory stones, ash replacement.
 2. Expand enemy/card pools per act.
 
 ## Smoke Test
@@ -56,6 +60,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 godot4.6 --headless --path . --script tools/smoke_test.gd
 godot4.6 --headless --path . --script tools/map_generator_test.gd
+godot4.6 --headless --path . --script tools/grace_service_test.gd
+godot4.6 --headless --path . --script tools/merchant_service_test.gd
 ```
 
 Core scripts use `preload()` for cross-module types; data `.tres` files use Godot 4 `gd_resource` format (see `tools/convert_tres.py` if you add legacy `[resource name=...]` assets).

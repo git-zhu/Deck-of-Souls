@@ -1,4 +1,4 @@
-"""Generate data/acts/*.tres with MapNodeData grace nodes."""
+"""Generate data/acts/*.tres with MapNodeData grace and merchant nodes."""
 from pathlib import Path
 
 ACTS = [
@@ -11,6 +11,9 @@ ACTS = [
         "grace": [
             ("赐福点", "回复生命，补充圣杯瓶，或用卢恩触碰命定之死。"),
             ("艾雷教堂", "短暂停歇。锻造台旁的金光提醒你整理牌组。"),
+        ],
+        "merchant": [
+            ("商人咖列", "流浪商人坐在熄灭篝火旁，货箱上贴着褪色者也能看懂的价签。"),
         ],
         "boss_name": "恶兆妖鬼玛尔基特",
         "boss_title": "通城隧道",
@@ -27,6 +30,9 @@ ACTS = [
             ("城墙赐福", "在狭窄走廊里喘息，整理被撕破的战意。"),
             ("格密尔英雄墓", "墓碑旁的金光让你想起尚未完成的誓言。"),
         ],
+        "merchant": [
+            ("城墙下的咖列", "咖列把货箱藏在垛口后，只卖给还能喘气的褪色者。"),
+        ],
         "boss_name": "熔炉骑士",
         "boss_title": "风暴山丘封牢",
         "boss_body": "熔炉骑士的古老武艺仍在回响。击败他，城塞的大门才会松动。",
@@ -42,6 +48,7 @@ ACTS = [
             ("学院门前赐福", "辉石光芒退入石缝，你得以审视自己的牌路。"),
             ("教堂侧廊", "溺水教堂的寒气被金光挡在门外。"),
         ],
+        "merchant": [],
         "boss_name": "接肢贵族",
         "boss_title": "贵族厅堂",
         "boss_body": "接肢贵族在湖底厅堂等待。胜利意味着这趟褪色旅程暂时落幕。",
@@ -49,50 +56,47 @@ ACTS = [
     },
 ]
 
-COMBAT_NODES = {
-    "葛瑞克士兵": ("关卡前废墟", "葛瑞克士兵巡逻。胜利后获得一张牌与少量卢恩。"),
-    "野狼": ("艾雷教堂北侧", "野狼在林间徘徊，商人咖列的篝火还在身后。"),
-    "凯丹佣兵": ("亚基尔湖北岸", "凯丹佣兵沿湖道游荡，远处能听见飞龙亚基尔的风声。"),
-    "挖石矿工": ("宁姆格福坑道", "挖石矿工守着锻造石，矿镐比看上去更硬。"),
-    "学院辉石法师": ("驿站街遗迹", "学院辉石法师藏在废墟地下，辉石光芒从石缝里透出。"),
-    "葛瑞克骑士": ("史东薇尔城墙", "葛瑞克骑士巡逻于城墙之上，铠甲上还带着宁姆格福的泥。"),
-    "腐败眷属": ("腐败湖畔", "腐败眷属在湖畔蠕动，金色的菌丝缠住脚踝。"),
-    "挖石山妖": ("坑道深处", "挖石山妖在矿道底层抬起巨臂，碎石从顶上落下。"),
-}
-
-ELITE_NODES = {
-    "法姆亚兹拉的兽人": ("近林洞窟", "法姆亚兹拉的兽人盘踞洞底，这是许多褪色者的第一个洞窟首领。"),
-    "亚人首领": ("海岸洞窟", "亚人首领在黑暗中聚众嚎叫，洞外通向龙飨教堂。"),
-    "挖石山妖": ("宁姆格福坑道深处", "挖石山妖在矿道底层抬起巨臂，碎石从顶上落下。"),
-    "熔炉骑士": ("封牢深处", "熔炉骑士的古老武艺仍在回响。"),
-    "守墓斗士": ("英雄墓地", "守墓斗士守在墓碑之间，巨斧扬起时风声如哭。"),
-}
-
 
 def write_act(path: Path, act: dict) -> None:
-    grace_blocks = []
-    grace_refs = []
-    for i, (title, body) in enumerate(act["grace"]):
-        grace_blocks.append(
-            f'''[sub_resource type="Resource" id="Grace_{i}"]
+    node_blocks = []
+    node_refs = []
+    idx = 0
+
+    for title, body in act.get("grace", []):
+        node_blocks.append(
+            f'''[sub_resource type="Resource" id="Node_{idx}"]
 script = ExtResource("2")
 kind = "grace"
 title = "{title}"
 body = "{body}"
 '''
         )
-        grace_refs.append(f"SubResource(\"Grace_{i}\")")
+        node_refs.append(f'SubResource("Node_{idx}")')
+        idx += 1
+
+    for title, body in act.get("merchant", []):
+        node_blocks.append(
+            f'''[sub_resource type="Resource" id="Node_{idx}"]
+script = ExtResource("2")
+kind = "merchant"
+title = "{title}"
+body = "{body}"
+'''
+        )
+        node_refs.append(f'SubResource("Node_{idx}")')
+        idx += 1
 
     combat_str = ", ".join(f'"{n}"' for n in act["combat"])
     elite_str = ", ".join(f'"{n}"' for n in act["elite"])
-    fixed_str = ", ".join(grace_refs)
+    fixed_str = ", ".join(node_refs)
+    load_steps = idx + 3
 
-    content = f'''[gd_resource type="Resource" script_class="ActData" load_steps={len(act["grace"]) + 3} format=3]
+    content = f'''[gd_resource type="Resource" script_class="ActData" load_steps={load_steps} format=3]
 
 [ext_resource type="Script" path="res://data/ActData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MapNodeData.gd" id="2"]
 
-{"".join(grace_blocks)}
+{"".join(node_blocks)}
 [resource]
 script = ExtResource("1")
 id = "{act["id"]}"
