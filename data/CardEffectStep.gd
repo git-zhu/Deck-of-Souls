@@ -9,6 +9,7 @@ enum Kind {
 	APPLY_BLEED,
 	APPLY_ROT_ON_ENEMY,
 	APPLY_VULN_ON_ENEMY,
+	GAIN_STRENGTH,
 }
 
 @export var kind: Kind = Kind.DAMAGE

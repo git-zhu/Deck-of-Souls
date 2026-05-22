@@ -25,8 +25,8 @@ text = "咆哮重劈"
 [resource]
 script = ExtResource("1")
 name = "法姆亚兹拉的兽人"
-max_hp = 66
+max_hp = 68
 stance = 17
-souls = 42
+souls = 45
 is_elite = true
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

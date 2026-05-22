@@ -17,3 +17,4 @@ const MapEncounterData = preload("res://data/MapEncounterData.gd")
 @export var act_boss_title: String = ""
 @export var act_boss_body: String = ""
 @export var is_final_act: bool = false
+@export var enemy_hp_percent: int = 100

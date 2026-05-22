@@ -25,7 +25,7 @@ strength = 2
 [resource]
 script = ExtResource("1")
 name = "葛瑞克骑士"
-max_hp = 54
+max_hp = 52
 stance = 15
-souls = 28
+souls = 26
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

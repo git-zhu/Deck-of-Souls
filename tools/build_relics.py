@@ -7,6 +7,9 @@ RELICS = [
     ("cerulean_medallion", "蔚蓝勋章", "每场战斗开始额外 1 点集中。", "combat_extra_ember", 1),
     ("ancestral_spirit", "祖灵骨灰瓶", "每场战斗开始多抽 1 张牌。", "combat_extra_draw", 1),
     ("greatshield_talisman", "大盾护符", "每场战斗开始获得 4 点护甲。", "combat_start_block", 4),
+    ("erdtree_favor", "黄金树恩惠", "获得时最大生命 +12。", "on_acquire_max_hp", 12),
+    ("green_turtle_talisman", "绿龟护符", "每场战斗开始获得 3 点护甲。", "combat_start_block", 3),
+    ("gold_scarab", "金色粪金龟", "每场战斗胜利额外获得 5 卢恩。", "combat_souls_bonus", 5),
 ]
 
 

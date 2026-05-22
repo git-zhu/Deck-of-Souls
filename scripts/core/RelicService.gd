@@ -57,6 +57,8 @@ func hook_summary(relic: RelicData) -> String:
 			return "每回合多抽 %d 张" % relic.value
 		"combat_start_block":
 			return "战斗开始：护甲 +%d" % relic.value
+		"combat_souls_bonus":
+			return "战斗胜利：额外 +%d 卢恩" % relic.value
 		_:
 			return relic.hook
 
@@ -85,6 +87,15 @@ func apply_combat_start(run: RunState, registry: DataRegistry, combat: CombatCon
 				combat.ember += relic.value
 			"combat_start_block":
 				combat.block += relic.value
+
+
+func combat_souls_bonus(run: RunState, registry: DataRegistry) -> int:
+	var total := 0
+	for relic_id in run.relics:
+		var relic := registry.get_relic(str(relic_id)) as RelicData
+		if relic != null and relic.hook == "combat_souls_bonus":
+			total += relic.value
+	return total
 
 
 func combat_extra_draw(run: RunState, registry: DataRegistry) -> int:

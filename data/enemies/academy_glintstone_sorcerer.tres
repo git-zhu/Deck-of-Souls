@@ -25,7 +25,7 @@ text = "卡利亚迅剑"
 [resource]
 script = ExtResource("1")
 name = "学院辉石法师"
-max_hp = 42
+max_hp = 44
 stance = 10
-souls = 22
+souls = 20
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

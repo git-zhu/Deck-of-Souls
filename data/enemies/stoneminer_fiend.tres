@@ -25,8 +25,8 @@ vulnerable = 2
 [resource]
 script = ExtResource("1")
 name = "挖石山妖"
-max_hp = 82
+max_hp = 74
 stance = 20
-souls = 54
+souls = 48
 is_elite = true
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

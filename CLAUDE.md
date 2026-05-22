@@ -41,7 +41,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `data/MapEncounterData.gd` — map combat/elite encounter copy
 - `data/grace_options/*.tres` — `GraceOptionData` campfire upgrades
 - `data/merchant_offers/*.tres` — `MerchantOfferData` shop stock
-- `data/relics/*.tres` — `RelicData` talismans
+- `data/relics/*.tres` — `RelicData` talismans (8；含 `combat_souls_bonus`)
+- `ActData.enemy_hp_percent` — per-act enemy HP scaling (100 / 110 / 125)
 - `data/events/*.tres` — `MapEventData` narrative choices
 
 ### Game State Machine
@@ -58,8 +59,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. Balance pass; more relics/cards/events; fix act `reward_cards` starter ids.
-2. Optional: event-specific UI polish, weighted event spawn.
+1. UI/音效抛光；事件权重；更多事件与敌人种类。
+2. 可选：按幕商人差异化、Monte Carlo 平衡工具。
 
 **Workflow:** After each implementation phase, create a focused `git commit` for that phase.
 
@@ -76,7 +77,10 @@ godot4.6 --headless --path . --script tools/ash_service_test.gd
 godot4.6 --headless --path . --script tools/relic_reward_test.gd
 godot4.6 --headless --path . --script tools/act_content_test.gd
 godot4.6 --headless --path . --script tools/event_service_test.gd
+godot4.6 --headless --path . --script tools/balance_content_test.gd
 ```
+
+Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_enemies.py`.
 
 Core scripts use `preload()` for cross-module types; data `.tres` files use Godot 4 `gd_resource` format (see `tools/convert_tres.py` if you add legacy `[resource name=...]` assets).
 

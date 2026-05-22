@@ -27,5 +27,5 @@ script = ExtResource("1")
 name = "葛瑞克士兵"
 max_hp = 38
 stance = 12
-souls = 16
+souls = 14
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

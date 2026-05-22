@@ -43,6 +43,10 @@ func start_combat(template: Dictionary) -> void:
 	run.player_vulnerable = 0
 	run.player_strength = 0
 	enemy = template.duplicate(true)
+	var act := registry.get_act(run.act_index())
+	if act != null and act.enemy_hp_percent != 100:
+		var scaled := int(round(float(enemy.max_hp) * act.enemy_hp_percent / 100.0))
+		enemy.max_hp = maxi(1, scaled)
 	enemy.hp = enemy.max_hp
 	enemy.block = 0
 	enemy.rot = 0
@@ -267,8 +271,9 @@ func intent_text() -> String:
 func check_combat_end() -> void:
 	if enemy.has("hp") and int(enemy.hp) <= 0 and not combat_over:
 		combat_over = true
-		run.souls += int(enemy.souls)
-		combat_log("%s 倒下。你获得 %d 卢恩。" % [enemy.name, enemy.souls])
+		var soul_gain: int = int(enemy.souls) + relic_service.combat_souls_bonus(run, registry)
+		run.souls += soul_gain
+		combat_log("%s 倒下。你获得 %d 卢恩。" % [enemy.name, soul_gain])
 		if bool(enemy.get("is_run_boss", false)):
 			combat_ended.emit("run_victory")
 		elif bool(enemy.get("is_act_boss", false)):

@@ -31,9 +31,9 @@ text = "熔炉百相之翼"
 [resource]
 script = ExtResource("1")
 name = "熔炉骑士"
-max_hp = 72
+max_hp = 108
 stance = 18
-souls = 48
+souls = 100
 is_elite = false
 is_boss = true
 is_act_boss = true

@@ -43,6 +43,9 @@ func _apply_step(step: CardEffectStep) -> void:
 		CardEffectStep.Kind.APPLY_VULN_ON_ENEMY:
 			combat.enemy.vulnerable += step.value
 			combat.combat_log("敌人获得 %d 易伤。" % step.value)
+		CardEffectStep.Kind.GAIN_STRENGTH:
+			combat.run.player_strength += step.value
+			combat.combat_log("力量 +%d（本回合）。" % step.value)
 
 
 func _catalog_steps(card_id: String) -> Array:
@@ -163,6 +166,29 @@ func _catalog_steps(card_id: String) -> Array:
 			flask.kind = CardEffectStep.Kind.HEAL
 			flask.value = 12
 			steps.append(flask)
+		"rock_sling":
+			s.kind = CardEffectStep.Kind.DAMAGE
+			s.value = 6
+			s.stance = 2
+			steps.append(s)
+		"flame_grant_me_strength":
+			var str_step := CardEffectStep.new()
+			str_step.kind = CardEffectStep.Kind.GAIN_STRENGTH
+			str_step.value = 2
+			steps.append(str_step)
+		"glintstone_stars":
+			for _i in 2:
+				var star := CardEffectStep.new()
+				star.kind = CardEffectStep.Kind.DAMAGE
+				star.value = 4
+				star.stance = 1
+				steps.append(star)
+		"hoarfrost_stomp":
+			var stomp := CardEffectStep.new()
+			stomp.kind = CardEffectStep.Kind.DAMAGE
+			stomp.value = 5
+			stomp.stance = 3
+			steps.append(stomp)
 	return steps
 
 

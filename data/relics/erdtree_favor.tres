@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "erdtree_favor"
+name = "黄金树恩惠"
+body = "获得时最大生命 +12。"
+hook = "on_acquire_max_hp"
+value = 12

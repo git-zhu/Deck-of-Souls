@@ -24,8 +24,8 @@ text = "链锤处刑"
 [resource]
 script = ExtResource("1")
 name = "守墓斗士"
-max_hp = 70
+max_hp = 72
 stance = 18
-souls = 46
+souls = 48
 is_elite = true
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

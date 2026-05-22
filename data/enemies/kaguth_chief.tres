@@ -26,8 +26,8 @@ block = 6
 [resource]
 script = ExtResource("1")
 name = "亚人首领"
-max_hp = 68
+max_hp = 70
 stance = 16
-souls = 44
+souls = 46
 is_elite = true
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

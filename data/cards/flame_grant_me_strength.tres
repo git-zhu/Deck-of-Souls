@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "flame_grant_me_strength"
+name = "火焰啊，赐予我力量！"
+cost = 1
+type = "祷告"
+rarity = "uncommon"
+text = "本回合力量 +2。"
+tone = Color(0.878, 0.529, 0.353, 1)
+hook_id = ""
+exhaust_after_play = false

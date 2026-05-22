@@ -27,5 +27,5 @@ script = ExtResource("1")
 name = "野狼"
 max_hp = 30
 stance = 9
-souls = 10
+souls = 12
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]

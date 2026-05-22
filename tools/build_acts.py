@@ -66,9 +66,11 @@ ACTS = [
             "great_knife",
             "bloodhounds_step",
             "assassins_approach",
-            "glintstone_pebble",
-            "heal",
+            "scimitar",
+            "catch_flame",
+            "rock_sling",
         ],
+        "enemy_hp_percent": 100,
         "grace": [
             ("赐福点", "回复生命，补充圣杯瓶，或用卢恩触碰命定之死。"),
             ("艾雷教堂", "短暂停歇。锻造台旁的金光提醒你整理牌组。"),
@@ -94,7 +96,9 @@ ACTS = [
             "rotten_breath",
             "battle_axe",
             "longbow",
+            "hoarfrost_stomp",
         ],
+        "enemy_hp_percent": 110,
         "grace": [
             ("城墙赐福", "在狭窄走廊里喘息，整理被撕破的战意。"),
             ("格密尔英雄墓", "墓碑旁的金光让你想起尚未完成的誓言。"),
@@ -120,7 +124,11 @@ ACTS = [
             "catch_flame",
             "destined_death",
             "magic_glintblade",
+            "rock_sling",
+            "flame_grant_me_strength",
+            "glintstone_stars",
         ],
+        "enemy_hp_percent": 125,
         "grace": [
             ("学院门前赐福", "辉石光芒退入石缝，你得以审视自己的牌路。"),
             ("教堂侧廊", "溺水教堂的寒气被金光挡在门外。"),
@@ -209,6 +217,7 @@ act_boss_name = "{act["boss_name"]}"
 act_boss_title = "{act["boss_title"]}"
 act_boss_body = "{act["boss_body"]}"
 is_final_act = {"true" if act["final"] else "false"}
+enemy_hp_percent = {act.get("enemy_hp_percent", 100)}
 '''
     path.write_text(content, encoding="utf-8")
 

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "green_turtle_talisman"
+name = "绿龟护符"
+body = "每场战斗开始获得 3 点护甲。"
+hook = "combat_start_block"
+value = 3

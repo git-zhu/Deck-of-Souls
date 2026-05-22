@@ -19,7 +19,9 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 赐福点、普通战、精英战、Boss 战和战后选牌。
 - 赐福营火式三选一（休憩、添火、删牌、净化等，数据见 `data/grace_options/`）。
 - 商人咖列节点：花卢恩购买货箱卡牌、删牌、回血等（`data/merchant_offers/`）。
-- 护符（Relic）：跑团持久加成，战斗开始/获得时生效（`data/relics/`）。
+- 护符（Relic）：8 种，跑团持久加成（战斗开始/获得时/胜利卢恩，`data/relics/`）。
+- 按幕敌人 HP 缩放（幕 1/2/3：100% / 110% / 125%）；敌人卢恩与 HP 由 `tools/build_enemies.py` 维护。
+- 战后奖励池仅非 starter 卡；新增 4 张通用卡（岩石球、火焰赐予力量、辉石流星、冰雾踏地）。
 - 记忆石（最多 3 颗）：每场战斗每回合多抽 1 张牌。
 - 三幕 12 层跑团（宁姆格福 → 史东薇尔 → 利耶尼亚），地图与敌池由 `data/acts/*.tres` 驱动。
 - 地图事件节点：非战斗抉择（卢恩/生命/得牌等），数据见 `data/events/`。
@@ -42,8 +44,9 @@ godot4.6 --headless --path . --script tools/grace_service_test.gd
 godot4.6 --headless --path . --script tools/merchant_service_test.gd
 godot4.6 --headless --path . --script tools/relic_service_test.gd
 godot4.6 --headless --path . --script tools/memory_stone_test.gd
+godot4.6 --headless --path . --script tools/balance_content_test.gd
 ```
 
 ## 推荐下一步
 
-- 平衡性调优、更多事件/护符/卡牌、按幕商人差异化。
+- UI/音效抛光；更多事件与敌人种类；按幕商人差异化。
