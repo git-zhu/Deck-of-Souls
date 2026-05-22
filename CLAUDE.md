@@ -64,7 +64,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. 阶段十五：`CombatHudView` 迁出战斗 HUD；音效钩子；更多敌人/事件链。
+1. **阶段十五：** `CombatHudView` + `RunHeaderView` + `GameAudio`（见 `docs/superpowers/plans/2026-05-21-phase15-combat-hud-audio.md`）。
+2. 阶段十六：地图/标题/出身屏迁出；+3 敌人；事件链。
 3. 可选 Monte Carlo 平衡工具。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
@@ -89,6 +90,7 @@ godot4.6 --headless --path . --script tools/balance_content_test.gd
 godot4.6 --headless --path . --script tools/act_economy_test.gd
 godot4.6 --headless --path . --script tools/ui_layout_test.gd
 godot4.6 --headless --path . --script tools/reward_ui_test.gd
+godot4.6 --headless --path . --script tools/combat_hud_test.gd
 ```
 
 Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_enemies.py`, `build_events.py`.

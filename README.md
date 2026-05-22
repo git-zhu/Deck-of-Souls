@@ -55,4 +55,5 @@ godot4.6 --headless --path . --script tools/reward_ui_test.gd
 
 ## 推荐下一步
 
-- 战斗 HUD 迁出（`CombatHudView`）；音效；更多敌人种类。
+- 战斗 HUD（`CombatHudView`）、顶栏（`RunHeaderView`）、音效钩子（`GameAudio`）——见 `docs/superpowers/plans/2026-05-21-phase15-combat-hud-audio.md`。
+- 之后：地图/出身屏迁出；更多敌人；事件链。
