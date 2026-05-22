@@ -1,7 +1,7 @@
 # 局内暂停菜单与顶栏 UI 调整 — 设计规格
 
 **日期：** 2026-05-21  
-**状态：** 待实现  
+**状态：** 已实现  
 **图标：** `☰`（汉堡菜单）  
 **实现计划：** `docs/superpowers/plans/2026-05-21-ingame-pause-menu.md`  
 **依赖：** `RunSaveService`（`docs/superpowers/specs/2026-05-21-title-menu-save-design.md`）

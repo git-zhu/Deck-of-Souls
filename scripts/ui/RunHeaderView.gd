@@ -10,9 +10,9 @@ static func build(
 	header: HBoxContainer,
 	run_state: RunState,
 	registry: DataRegistry,
-	is_combat_screen: bool,
-	on_deck_view: Callable
-) -> Button:
+	_on_deck_view: Callable,
+	on_pause_menu: Callable
+) -> Dictionary:
 	for child in header.get_children():
 		child.queue_free()
 
@@ -26,12 +26,6 @@ static func build(
 			UiBuilders.small_stat("记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES])
 		)
 	header.add_child(UiBuilders.small_stat("牌组 %d" % run_state.deck.size()))
-	if is_combat_screen:
-		header.add_child(
-			UiBuilders.small_stat(
-				"抽牌 %d  弃牌 %d" % [run_state.draw_pile.size(), run_state.discard_pile.size()]
-			)
-		)
 
 	var act := registry.get_act(run_state.act_index())
 	var local_step: int = (run_state.floor_index % RunState.FLOORS_PER_ACT) + 1
@@ -56,9 +50,21 @@ static func build(
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
 
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 8)
+	header.add_child(actions)
+
 	var deck_button := Button.new()
 	deck_button.text = "查看牌组"
 	deck_button.custom_minimum_size = Vector2(118, 34)
-	deck_button.pressed.connect(on_deck_view)
-	header.add_child(deck_button)
-	return deck_button
+	deck_button.pressed.connect(_on_deck_view)
+	actions.add_child(deck_button)
+
+	var menu_button := Button.new()
+	menu_button.text = "☰"
+	menu_button.tooltip_text = "选项"
+	menu_button.custom_minimum_size = Vector2(40, 34)
+	menu_button.pressed.connect(on_pause_menu)
+	actions.add_child(menu_button)
+
+	return {"deck": deck_button, "menu": menu_button}

@@ -16,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Save roundtrip: `godot4.6 --headless --script tools/save_roundtrip_test.gd`
 - Title menu: `godot4.6 --headless --script tools/title_menu_test.gd`
 - Save load (Main): `godot4.6 --headless --script tools/save_load_test.gd`
+- Pause menu: `godot4.6 --headless --script tools/pause_menu_test.gd`
 
 ## Architecture
 
@@ -27,6 +28,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | RunRewardFlow | `scripts/core/RunRewardFlow.gd` | Merchant, grace, ash, post-combat reward UI flow |
 | RunFlowController | `scripts/core/RunFlowController.gd` | Map options, events, combat entry, combat_ended routing |
 | RunSaveService | `scripts/core/RunSaveService.gd` | Single-slot `user://run_save.json` autosave / continue |
+| RunPauseMenuView | `scripts/ui/RunPauseMenuView.gd` | In-run pause overlay (resume / title / abandon) |
 | TitleScreenView / OriginScreenView / MapScreenView / DeckPopupView / EndScreenView | `scripts/ui/*ScreenView.gd` | Title, origin, map, deck popup, end screens |
 | DeckUtils | `scripts/ui/DeckUtils.gd` | Deck card counts helper |
 | GameTheme | `scripts/ui/GameTheme.gd` | Palette, map kind badges, intent colors |

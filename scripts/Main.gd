@@ -32,6 +32,7 @@ const EndScreenView = preload("res://scripts/ui/EndScreenView.gd")
 const RunRewardFlow = preload("res://scripts/core/RunRewardFlow.gd")
 const RunFlowController = preload("res://scripts/core/RunFlowController.gd")
 const RunSaveService = preload("res://scripts/core/RunSaveService.gd")
+const RunPauseMenuView = preload("res://scripts/ui/RunPauseMenuView.gd")
 
 var rng := RandomNumberGenerator.new()
 var screen := GameScreen.TITLE
@@ -76,6 +77,8 @@ var player_panel: PanelContainer
 var end_turn_button: Button
 var flask_button: Button
 var deck_button: Button
+var menu_button: Button
+var pause_overlay: Control
 
 func _ready() -> void:
 	rng.randomize()
@@ -152,6 +155,7 @@ func _clear(node: Node) -> void:
 
 
 func _hide_layers() -> void:
+	_hide_pause_menu()
 	for layer in [title_layer, map_layer, combat_layer, reward_layer, end_layer]:
 		layer.visible = false
 	_clear(header)
@@ -174,6 +178,7 @@ func _maybe_autosave() -> void:
 
 
 func _show_title() -> void:
+	_hide_pause_menu()
 	screen = GameScreen.TITLE
 	_hide_layers()
 	title_layer.visible = true
@@ -309,13 +314,54 @@ func _render_combat() -> void:
 
 
 func _build_header() -> void:
-	deck_button = RunHeaderView.build(
+	var refs := RunHeaderView.build(
 		header,
 		run_state,
 		registry,
-		screen == GameScreen.COMBAT,
-		_show_deck_view
+		_show_deck_view,
+		_show_pause_menu
 	)
+	deck_button = refs["deck"]
+	menu_button = refs["menu"]
+
+
+func _show_pause_menu() -> void:
+	if pause_overlay != null:
+		return
+	pause_overlay = RunPauseMenuView.build(
+		_hide_pause_menu,
+		_on_pause_return_title,
+		_on_pause_abandon_run
+	)
+	add_child(pause_overlay)
+
+
+func _hide_pause_menu() -> void:
+	if pause_overlay == null:
+		return
+	pause_overlay.queue_free()
+	pause_overlay = null
+
+
+func _on_pause_return_title() -> void:
+	_maybe_autosave()
+	_hide_pause_menu()
+	_show_title()
+
+
+func _on_pause_abandon_run() -> void:
+	var dlg := AcceptDialog.new()
+	dlg.title = "放弃当前进度？"
+	dlg.dialog_text = "放弃后本局存档将删除，无法继续。"
+	dlg.confirmed.connect(func():
+		dlg.queue_free()
+		RunSaveService.delete_save()
+		_hide_pause_menu()
+		_show_title()
+	)
+	dlg.canceled.connect(dlg.queue_free)
+	add_child(dlg)
+	dlg.popup_centered()
 
 
 func _show_deck_view() -> void:

@@ -6,6 +6,7 @@ const OriginScreenView = preload("res://scripts/ui/OriginScreenView.gd")
 const MapScreenView = preload("res://scripts/ui/MapScreenView.gd")
 const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const RunState = preload("res://scripts/core/RunState.gd")
+const RunHeaderView = preload("res://scripts/ui/RunHeaderView.gd")
 
 
 func _initialize() -> void:
@@ -50,6 +51,19 @@ func _initialize() -> void:
 		_fail("map screen missing title/description")
 		return
 	map_root.queue_free()
+
+	var header := HBoxContainer.new()
+	var header_refs := RunHeaderView.build(
+		header, run_state, registry, Callable(), Callable()
+	)
+	if header_refs.get("menu") == null:
+		_fail("run header missing menu button")
+		return
+	var menu_btn: Button = header_refs["menu"] as Button
+	if menu_btn.text != "☰":
+		_fail("run header menu button should be ☰")
+		return
+	header.queue_free()
 
 	print("flow_screen_test: OK")
 	quit()
