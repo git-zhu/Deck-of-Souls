@@ -64,6 +64,7 @@ flavor = "金色倒影铺在湖面，学院与教堂的钟声在雾中重叠。"
 combat_encounters = Array[MapEncounterData]([SubResource("Enc_0"), SubResource("Enc_1"), SubResource("Enc_2"), SubResource("Enc_3")])
 elite_encounters = Array[MapEncounterData]([SubResource("Enc_4"), SubResource("Enc_5"), SubResource("Enc_6")])
 reward_cards = Array[String](["glintstone_arc", "volcano_pot", "catch_flame", "destined_death", "magic_glintblade"])
+event_ids = Array[String](["liurnia_scholar", "liurnia_drowned"])
 fixed_nodes = Array[MapNodeData]([SubResource("Node_7"), SubResource("Node_8"), SubResource("Node_9")])
 act_boss_name = "接肢贵族"
 act_boss_title = "贵族厅堂"

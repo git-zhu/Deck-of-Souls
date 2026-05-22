@@ -32,6 +32,15 @@ func _initialize() -> void:
 			push_error("act %s has empty combat_encounters" % act.id)
 			quit(1)
 			return
+		if act.event_ids.size() < 2:
+			push_error("act %s expected >= 2 event_ids" % act.id)
+			quit(1)
+			return
+		for event_id in act.event_ids:
+			if registry.get_event(str(event_id)) == null:
+				push_error("unknown event %s on act %s" % [event_id, act.id])
+				quit(1)
+				return
 
 		for enc in act.combat_encounters:
 			var encounter := enc as MapEncounterData

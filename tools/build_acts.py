@@ -76,6 +76,7 @@ ACTS = [
         "merchant": [
             ("商人咖列", "流浪商人坐在熄灭篝火旁，货箱上贴着褪色者也能看懂的价签。"),
         ],
+        "event_ids": ["limgrave_corpse", "limgrave_beggar"],
         "boss_name": "恶兆妖鬼玛尔基特",
         "boss_title": "通城隧道",
         "boss_body": "恶兆妖鬼玛尔基特守在史东薇尔城前。穿过这道雾门，宁姆格福的开局才算结束。",
@@ -101,6 +102,7 @@ ACTS = [
         "merchant": [
             ("城墙下的咖列", "咖列把货箱藏在垛口后，只卖给还能喘气的褪色者。"),
         ],
+        "event_ids": ["stormveil_armory", "stormveil_shrine"],
         "boss_name": "熔炉骑士",
         "boss_title": "风暴山丘封牢",
         "boss_body": "熔炉骑士的古老武艺仍在回响。击败他，城塞的大门才会松动。",
@@ -126,6 +128,7 @@ ACTS = [
         "merchant": [
             ("湖畔咖列", "咖列把船系在教堂遗迹旁，高价收购卢恩，低价卖出麻烦。"),
         ],
+        "event_ids": ["liurnia_scholar", "liurnia_drowned"],
         "boss_name": "接肢贵族",
         "boss_title": "贵族厅堂",
         "boss_body": "接肢贵族在湖底厅堂等待。胜利意味着这趟褪色旅程暂时落幕。",
@@ -178,6 +181,7 @@ body = "{body}"
         idx += 1
 
     reward_str = ", ".join(f'"{c}"' for c in act["reward_cards"])
+    event_str = ", ".join(f'"{e}"' for e in act.get("event_ids", []))
     fixed_str = ", ".join(refs)
     combat_arr = ", ".join(combat_refs)
     elite_arr = ", ".join(elite_refs)
@@ -199,6 +203,7 @@ flavor = "{act["flavor"]}"
 combat_encounters = Array[MapEncounterData]([{combat_arr}])
 elite_encounters = Array[MapEncounterData]([{elite_arr}])
 reward_cards = Array[String]([{reward_str}])
+event_ids = Array[String]([{event_str}])
 fixed_nodes = Array[MapNodeData]([{fixed_str}])
 act_boss_name = "{act["boss_name"]}"
 act_boss_title = "{act["boss_title"]}"

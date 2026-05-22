@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "take_axe"
+label = "拿走战斧"
+effect = "add_card"
+effect_value = 0
+soul_cost = 0
+card_id = "battle_axe"
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "trap"
+label = "翻找货架"
+effect = "damage_percent"
+effect_value = 15
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+
+[resource]
+script = ExtResource("1")
+id = "stormveil_armory"
+title = "废弃军械库"
+body = "城墙夹层里堆着生锈的武器。角落里似乎还连着某种机关。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1")])

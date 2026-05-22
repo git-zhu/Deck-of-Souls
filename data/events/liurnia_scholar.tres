@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "copy"
+label = "抄录符文"
+effect = "add_card"
+effect_value = 0
+soul_cost = 0
+card_id = "glintstone_arc"
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "disturb"
+label = "打断他的工作"
+effect = "damage_percent"
+effect_value = 10
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+
+[resource]
+script = ExtResource("1")
+id = "liurnia_scholar"
+title = "落灰学者"
+body = "学者蹲在遗迹台阶上抄写辉石符文。他抬头看你一眼，又低下头去。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1")])

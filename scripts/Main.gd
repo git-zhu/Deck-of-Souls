@@ -23,6 +23,9 @@ const OriginData = preload("res://data/OriginData.gd")
 const CardData = preload("res://data/CardData.gd")
 const RelicData = preload("res://data/RelicData.gd")
 const RelicService = preload("res://scripts/core/RelicService.gd")
+const EventService = preload("res://scripts/core/EventService.gd")
+const MapEventData = preload("res://data/MapEventData.gd")
+const MapEventChoiceData = preload("res://data/MapEventChoiceData.gd")
 
 var rng := RandomNumberGenerator.new()
 var screen := GameScreen.TITLE
@@ -34,6 +37,7 @@ var grace_service := GraceService.new()
 var merchant_service := MerchantService.new()
 var ash_service := AshService.new()
 var relic_service := RelicService.new()
+var event_service := EventService.new()
 var rewards: Array[String] = []
 var _merchant_stock: Array = []
 var _merchant_sold: Array[bool] = []
@@ -351,7 +355,7 @@ func _map_choice_card(option: Dictionary) -> PanelContainer:
 	v.add_child(body)
 
 	var btn := Button.new()
-	btn.text = "踏入"
+	btn.text = "介入" if str(option.get("kind", "")) == "event" else "踏入"
 	btn.custom_minimum_size = Vector2(0, 48)
 	btn.pressed.connect(func(): _choose_map_option(option))
 	v.add_child(btn)
@@ -370,6 +374,110 @@ func _choose_map_option(option: Dictionary) -> void:
 			_visit_grace()
 		"merchant":
 			_visit_merchant()
+		"event":
+			_visit_event(str(option.get("event_id", "")))
+
+
+func _visit_event(event_id: String) -> void:
+	var event := registry.get_event(event_id) as MapEventData
+	if event == null:
+		push_error("Unknown map event: %s" % event_id)
+		run_state.advance_floor()
+		_show_map()
+		return
+	_show_event(event)
+
+
+func _show_event(event: MapEventData) -> void:
+	screen = GameScreen.REWARD
+	_hide_layers()
+	reward_layer.visible = true
+	_clear(reward_layer)
+	_build_header()
+
+	var wrap := VBoxContainer.new()
+	wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrap.add_theme_constant_override("separation", 14)
+	reward_layer.add_child(wrap)
+
+	var title := Label.new()
+	title.text = event.title
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color("#e2bd65"))
+	wrap.add_child(title)
+
+	var desc := Label.new()
+	desc.text = event.body
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.add_theme_color_override("font_color", Color("#c8bca5"))
+	wrap.add_child(desc)
+
+	var choices := VBoxContainer.new()
+	choices.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	choices.add_theme_constant_override("separation", 10)
+	wrap.add_child(choices)
+
+	for choice in event.choices:
+		var ch := choice as MapEventChoiceData
+		if ch == null:
+			continue
+		var btn := Button.new()
+		btn.text = ch.label
+		if ch.soul_cost > 0:
+			btn.text += " · %d 卢恩" % ch.soul_cost
+		btn.custom_minimum_size = Vector2(0, 44)
+		btn.disabled = not event_service.is_choice_eligible(ch, run_state, registry)
+		btn.pressed.connect(func(): _on_event_choice(ch, event))
+		choices.add_child(btn)
+
+
+func _on_event_choice(choice: MapEventChoiceData, event: MapEventData) -> void:
+	var summary := event_service.apply(choice, run_state, registry, rng)
+	if summary == EventService.PICK_CARD:
+		var min_size: int = choice.min_deck_size if choice.min_deck_size > 0 else 6
+		_show_remove_card_picker(
+			event.title,
+			"选择要从牌组中移除的一张牌。（牌组需多于 %d 张）" % min_size,
+			func(card_id: String):
+				var c: CardData = registry.get_card(card_id)
+				var card_name := c.name if c != null else card_id
+				_show_event_result(event.title, "已从牌组移除《%s》。" % card_name),
+			true
+		)
+	else:
+		_show_event_result(event.title, summary)
+
+
+func _show_event_result(title_text: String, body_text: String) -> void:
+	screen = GameScreen.REWARD
+	_hide_layers()
+	reward_layer.visible = true
+	_clear(reward_layer)
+	_build_header()
+	var box := VBoxContainer.new()
+	box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 14)
+	reward_layer.add_child(box)
+	var title := Label.new()
+	title.text = title_text
+	title.add_theme_font_size_override("font_size", 34)
+	title.add_theme_color_override("font_color", Color("#e0c06c"))
+	box.add_child(title)
+	var body := Label.new()
+	body.text = body_text
+	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.custom_minimum_size = Vector2(720, 0)
+	box.add_child(body)
+	var next := Button.new()
+	next.text = "继续"
+	next.custom_minimum_size = Vector2(220, 48)
+	next.pressed.connect(func():
+		run_state.advance_floor()
+		_show_map()
+	)
+	box.add_child(next)
 
 
 func _visit_merchant() -> void:

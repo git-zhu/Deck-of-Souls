@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "flask"
+label = "饮尽祭坛残露"
+effect = "refill_flasks"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "offer"
+label = "献祭 30 卢恩"
+effect = "max_hp"
+effect_value = 8
+soul_cost = 30
+card_id = ""
+min_deck_size = 0
+
+[resource]
+script = ExtResource("1")
+id = "stormveil_shrine"
+title = "英雄墓旁祭坛"
+body = "墓碑间的祭坛仍有余温。黄金树的光从垛口斜照进来。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1")])

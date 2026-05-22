@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "listen"
+label = "聆听回音"
+effect = "gain_souls"
+effect_value = 20
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "rest"
+label = "在门廊休息"
+effect = "heal_percent"
+effect_value = 25
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+
+[resource]
+script = ExtResource("1")
+id = "liurnia_drowned"
+title = "溺水教堂遗声"
+body = "湖底升起的回音像祷词又像诅咒。金光在门外拦住寒气。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1")])

@@ -11,6 +11,7 @@ const MapEncounterData = preload("res://data/MapEncounterData.gd")
 @export var combat_encounters: Array[MapEncounterData] = []
 @export var elite_encounters: Array[MapEncounterData] = []
 @export var reward_cards: Array[String] = []
+@export var event_ids: Array[String] = []
 @export var fixed_nodes: Array[MapNodeData] = []
 @export var act_boss_name: String = ""
 @export var act_boss_title: String = ""

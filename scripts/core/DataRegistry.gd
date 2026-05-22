@@ -9,6 +9,7 @@ const ActData = preload("res://data/ActData.gd")
 const GraceOptionData = preload("res://data/GraceOptionData.gd")
 const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
 const RelicData = preload("res://data/RelicData.gd")
+const MapEventData = preload("res://data/MapEventData.gd")
 
 const ACT_ORDER: Array[String] = ["limgrave", "stormveil", "liurnia"]
 
@@ -19,6 +20,7 @@ var acts: Array = []
 var grace_options: Dictionary = {}
 var merchant_offers: Dictionary = {}
 var relics: Dictionary = {}
+var events: Dictionary = {}
 
 
 func load_all() -> void:
@@ -29,6 +31,7 @@ func load_all() -> void:
 	grace_options = _load_grace_options()
 	merchant_offers = _load_merchant_offers()
 	relics = _load_relics()
+	events = _load_events()
 
 
 func get_card(id: String) -> CardData:
@@ -100,6 +103,14 @@ func get_relic(id: String) -> RelicData:
 
 func all_relic_ids() -> Array:
 	return relics.keys()
+
+
+func get_event(id: String) -> MapEventData:
+	return events.get(id) as MapEventData
+
+
+func all_event_ids() -> Array:
+	return events.keys()
 
 
 func pick_named_enemy(rng: RandomNumberGenerator, enemy_name: String, elite: bool, boss: bool) -> Dictionary:
@@ -224,6 +235,24 @@ func _load_relics() -> Dictionary:
 			var relic := load("res://data/relics/%s" % file) as RelicData
 			if relic != null and relic.id != "":
 				result[relic.id] = relic
+		file = dir.get_next()
+	dir.list_dir_end()
+	return result
+
+
+func _load_events() -> Dictionary:
+	var result := {}
+	var dir := DirAccess.open("res://data/events")
+	if dir == null:
+		push_error("Failed to open data/events directory")
+		return result
+	dir.list_dir_begin()
+	var file := dir.get_next()
+	while file != "":
+		if file.ends_with(".tres") and not file.begins_with("."):
+			var event := load("res://data/events/%s" % file) as MapEventData
+			if event != null and event.id != "":
+				result[event.id] = event
 		file = dir.get_next()
 	dir.list_dir_end()
 	return result

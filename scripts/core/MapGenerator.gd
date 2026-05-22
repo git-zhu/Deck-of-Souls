@@ -28,6 +28,15 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 		pool.append(_encounter_to_dict(enc as MapEncounterData, "combat"))
 	for enc in act.elite_encounters:
 		pool.append(_encounter_to_dict(enc as MapEncounterData, "elite"))
+	for event_id in act.event_ids:
+		var event := registry.get_event(str(event_id))
+		if event != null:
+			pool.append({
+				"kind": "event",
+				"event_id": event.id,
+				"title": event.title,
+				"body": event.body,
+			})
 	pool.shuffle()
 	return pool.slice(0, 3)
 

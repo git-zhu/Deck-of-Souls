@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "loot"
+label = "搜刮遗骸"
+effect = "gain_souls"
+effect_value = 25
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "pray"
+label = "敬拜逝者"
+effect = "max_hp"
+effect_value = 6
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2")
+id = "leave"
+label = "悄然离开"
+effect = "nothing"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+
+[resource]
+script = ExtResource("1")
+id = "limgrave_corpse"
+title = "褪色者遗骸"
+body = "路旁躺着一具同样穿着褪色者装束的尸体，口袋鼓鼓，武器却不见了。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1"), SubResource("Choice_2")])

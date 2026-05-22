@@ -74,6 +74,7 @@ flavor = "沿赐福指引穿过风暴山丘，接近候王礼拜堂的阴影。"
 combat_encounters = Array[MapEncounterData]([SubResource("Enc_0"), SubResource("Enc_1"), SubResource("Enc_2"), SubResource("Enc_3"), SubResource("Enc_4"), SubResource("Enc_5")])
 elite_encounters = Array[MapEncounterData]([SubResource("Enc_6"), SubResource("Enc_7"), SubResource("Enc_8")])
 reward_cards = Array[String](["great_knife", "bloodhounds_step", "assassins_approach", "glintstone_pebble", "heal"])
+event_ids = Array[String](["limgrave_corpse", "limgrave_beggar"])
 fixed_nodes = Array[MapNodeData]([SubResource("Node_9"), SubResource("Node_10"), SubResource("Node_11")])
 act_boss_name = "恶兆妖鬼玛尔基特"
 act_boss_title = "通城隧道"

@@ -22,6 +22,7 @@ Godot 4.6 卡牌 Roguelike 原型。背景与素材名词以《艾尔登法环�
 - 护符（Relic）：跑团持久加成，战斗开始/获得时生效（`data/relics/`）。
 - 记忆石（最多 3 颗）：每场战斗每回合多抽 1 张牌。
 - 三幕 12 层跑团（宁姆格福 → 史东薇尔 → 利耶尼亚），地图与敌池由 `data/acts/*.tres` 驱动。
+- 地图事件节点：非战斗抉择（卢恩/生命/得牌等），数据见 `data/events/`。
 - 核心逻辑在 `scripts/core/`（`DataRegistry`、`RunState`、`CombatController`、`MapGenerator` 等）；`Main.gd` 负责 UI。
 
 ## 当前素材方向
@@ -45,4 +46,4 @@ godot4.6 --headless --path . --script tools/memory_stone_test.gd
 
 ## 推荐下一步
 
-- 战灰替换、战后奖励护符、按幕扩充卡牌/敌人池。
+- 平衡性调优、更多事件/护符/卡牌、按幕商人差异化。
