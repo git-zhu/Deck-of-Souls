@@ -16,10 +16,86 @@ var merchant_stock: Array = []
 var merchant_sold: Array[bool] = []
 var merchant_status: String = ""
 var merchant_cost_percent: int = 100
+var reward_export: Dictionary = {}
 
 
 func _init(main_host: Node) -> void:
 	host = main_host
+
+
+func export_reward_state() -> Dictionary:
+	return reward_export.duplicate(true)
+
+
+func set_event_export(event_id: String) -> void:
+	reward_export = {"kind": "event", "event_id": event_id}
+
+
+func set_grace_result_export(title_text: String, body_text: String) -> void:
+	reward_export = {
+		"kind": "grace_result",
+		"title": title_text,
+		"body": body_text,
+	}
+
+
+func _set_merchant_export() -> void:
+	var offer_ids: Array[String] = []
+	for offer in merchant_stock:
+		if offer is MerchantOfferData:
+			offer_ids.append(offer.id)
+	reward_export = {
+		"kind": "merchant",
+		"merchant_offer_ids": offer_ids,
+		"merchant_sold": merchant_sold.duplicate(),
+		"merchant_status": merchant_status,
+		"merchant_cost_percent": merchant_cost_percent,
+	}
+
+
+func restore_reward_state(data: Variant) -> void:
+	if typeof(data) != TYPE_DICTIONARY:
+		host.get("run_flow").show_map()
+		return
+	var d: Dictionary = data
+	match str(d.get("kind", "")):
+		"merchant":
+			_restore_merchant(d)
+			show_merchant()
+		"event":
+			var registry = host.get("registry")
+			var event := registry.get_event(str(d.get("event_id", "")))
+			if event != null:
+				host.get("run_flow").show_event(event)
+			else:
+				host.get("run_flow").show_map()
+		"grace_result":
+			set_grace_result_export(str(d.get("title", "")), str(d.get("body", "")))
+			host.call(
+				"_present_reward_layer",
+				RewardLayerViews.build_centered_continue(
+					str(d.get("title", "")),
+					str(d.get("body", "")),
+					"继续",
+					host.get("run_flow").advance_floor_and_show_map
+				)
+			)
+		_:
+			host.get("run_flow").show_map()
+
+
+func _restore_merchant(data: Dictionary) -> void:
+	var registry = host.get("registry")
+	merchant_stock.clear()
+	for offer_id in data.get("merchant_offer_ids", []):
+		var offer: MerchantOfferData = registry.get_merchant_offer(str(offer_id)) as MerchantOfferData
+		if offer != null:
+			merchant_stock.append(offer)
+	merchant_sold.clear()
+	for sold in data.get("merchant_sold", []):
+		merchant_sold.append(bool(sold))
+	merchant_status = str(data.get("merchant_status", ""))
+	merchant_cost_percent = int(data.get("merchant_cost_percent", 100))
 
 
 func visit_merchant() -> void:
@@ -61,6 +137,7 @@ func test_merchant_buy(offer_id: String) -> void:
 
 
 func show_merchant() -> void:
+	_set_merchant_export()
 	host.call(
 		"_present_reward_layer",
 		RewardLayerViews.build_merchant_screen(

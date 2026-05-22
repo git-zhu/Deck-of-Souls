@@ -1,0 +1,200 @@
+class_name RunSaveService
+extends RefCounted
+
+const RunState = preload("res://scripts/core/RunState.gd")
+const CombatController = preload("res://scripts/core/CombatController.gd")
+const RunRewardFlow = preload("res://scripts/core/RunRewardFlow.gd")
+
+const SAVE_PATH := "user://run_save.json"
+const SAVE_VERSION := 1
+
+# Matches Main.GameScreen: MAP=2, COMBAT=3, REWARD=4
+const SCREEN_MAP := 2
+const SCREEN_COMBAT := 3
+const SCREEN_REWARD := 4
+
+
+static func has_save() -> bool:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return false
+	var data := _read_json()
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+	return int(data.get("save_version", 0)) == SAVE_VERSION and _is_restorable_screen(int(data.get("screen", -1)))
+
+
+static func delete_save() -> void:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return
+	var dir := DirAccess.open("user://")
+	if dir != null:
+		dir.remove("run_save.json")
+
+
+static func save_snapshot(main: Node) -> bool:
+	var screen: int = int(main.get("screen"))
+	if not _is_restorable_screen(screen):
+		return false
+	var run_state: RunState = main.get("run_state")
+	if run_state == null:
+		return false
+	var snap := {
+		"save_version": SAVE_VERSION,
+		"screen": screen,
+		"run": run_to_dict(run_state),
+		"combat": {},
+		"reward": {},
+		"log_lines": _string_array_from(main.get("log_lines")),
+	}
+	if screen == SCREEN_COMBAT:
+		var combat: CombatController = main.get("combat")
+		if combat != null:
+			snap["combat"] = combat_to_dict(combat)
+	if screen == SCREEN_REWARD:
+		var reward_flow: RunRewardFlow = main.get("reward_flow")
+		if reward_flow != null:
+			snap["reward"] = reward_flow.export_reward_state()
+	return _write_json(snap)
+
+
+static func load_snapshot(main: Node) -> bool:
+	var data := _read_json()
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+	if int(data.get("save_version", 0)) != SAVE_VERSION:
+		return false
+	var screen: int = int(data.get("screen", -1))
+	if not _is_restorable_screen(screen):
+		delete_save()
+		return false
+	var run_state: RunState = main.get("run_state")
+	if run_state == null:
+		return false
+	run_from_dict(run_state, data.get("run", {}))
+	var rng: RandomNumberGenerator = main.get("rng")
+	if rng != null:
+		rng.seed = run_state.run_seed
+	var log_src: Variant = data.get("log_lines", [])
+	if log_src is Array:
+		main.set("log_lines", _string_array_from(log_src))
+	main.set("screen", screen)
+	match screen:
+		SCREEN_MAP:
+			main.get("run_flow").show_map()
+		SCREEN_COMBAT:
+			var combat: CombatController = main.get("combat")
+			if combat != null:
+				combat_from_dict(combat, data.get("combat", {}))
+			main.call("_render_combat")
+		SCREEN_REWARD:
+			var reward_flow: RunRewardFlow = main.get("reward_flow")
+			if reward_flow != null:
+				reward_flow.restore_reward_state(data.get("reward", {}))
+		_:
+			return false
+	return true
+
+
+static func run_to_dict(run: RunState) -> Dictionary:
+	return {
+		"run_seed": run.run_seed,
+		"origin_id": run.origin_id,
+		"hp": run.hp,
+		"max_hp": run.max_hp,
+		"flasks": run.flasks,
+		"max_flasks": run.max_flasks,
+		"souls": run.souls,
+		"floor_index": run.floor_index,
+		"deck": run.deck.duplicate(),
+		"draw_pile": run.draw_pile.duplicate(),
+		"hand": run.hand.duplicate(),
+		"discard_pile": run.discard_pile.duplicate(),
+		"exhaust_pile": run.exhaust_pile.duplicate(),
+		"player_rot": run.player_rot,
+		"player_bleed": run.player_bleed,
+		"player_vulnerable": run.player_vulnerable,
+		"player_strength": run.player_strength,
+		"relics": run.relics.duplicate(),
+		"memory_stones": run.memory_stones,
+	}
+
+
+static func run_from_dict(run: RunState, data: Variant) -> void:
+	if typeof(data) != TYPE_DICTIONARY:
+		return
+	var d: Dictionary = data
+	run.run_seed = int(d.get("run_seed", 0))
+	run.origin_id = str(d.get("origin_id", "vagabond"))
+	run.hp = int(d.get("hp", run.max_hp))
+	run.max_hp = int(d.get("max_hp", run.hp))
+	run.flasks = int(d.get("flasks", 0))
+	run.max_flasks = int(d.get("max_flasks", run.flasks))
+	run.souls = int(d.get("souls", 0))
+	run.floor_index = int(d.get("floor_index", 0))
+	run.deck = _string_array_from(d.get("deck", []))
+	run.draw_pile = _string_array_from(d.get("draw_pile", []))
+	run.hand = _string_array_from(d.get("hand", []))
+	run.discard_pile = _string_array_from(d.get("discard_pile", []))
+	run.exhaust_pile = _string_array_from(d.get("exhaust_pile", []))
+	run.player_rot = int(d.get("player_rot", 0))
+	run.player_bleed = int(d.get("player_bleed", 0))
+	run.player_vulnerable = int(d.get("player_vulnerable", 0))
+	run.player_strength = int(d.get("player_strength", 0))
+	run.relics = _string_array_from(d.get("relics", []))
+	run.memory_stones = int(d.get("memory_stones", 0))
+
+
+static func combat_to_dict(combat: CombatController) -> Dictionary:
+	return {
+		"enemy": combat.enemy.duplicate(true),
+		"enemy_intent": combat.enemy_intent.duplicate(true),
+		"ember": combat.ember,
+		"max_ember": combat.max_ember,
+		"block": combat.block,
+		"combat_over": combat.combat_over,
+	}
+
+
+static func combat_from_dict(combat: CombatController, data: Variant) -> void:
+	if typeof(data) != TYPE_DICTIONARY:
+		return
+	var d: Dictionary = data
+	var enemy: Variant = d.get("enemy", {})
+	if typeof(enemy) == TYPE_DICTIONARY:
+		combat.enemy = enemy.duplicate(true)
+	var intent: Variant = d.get("enemy_intent", {})
+	if typeof(intent) == TYPE_DICTIONARY:
+		combat.enemy_intent = intent.duplicate(true)
+	combat.ember = int(d.get("ember", combat.max_ember))
+	combat.max_ember = int(d.get("max_ember", 3))
+	combat.block = int(d.get("block", 0))
+	combat.combat_over = bool(d.get("combat_over", false))
+
+
+static func _is_restorable_screen(screen: int) -> bool:
+	return screen == SCREEN_MAP or screen == SCREEN_COMBAT or screen == SCREEN_REWARD
+
+
+static func _string_array_from(value: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if value is Array:
+		for item in value:
+			out.append(str(item))
+	return out
+
+
+static func _read_json() -> Variant:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return null
+	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if f == null:
+		return null
+	return JSON.parse_string(f.get_as_text())
+
+
+static func _write_json(obj: Dictionary) -> bool:
+	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if f == null:
+		return false
+	f.store_string(JSON.stringify(obj))
+	return true

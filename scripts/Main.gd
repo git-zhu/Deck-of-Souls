@@ -31,6 +31,7 @@ const DeckPopupView = preload("res://scripts/ui/DeckPopupView.gd")
 const EndScreenView = preload("res://scripts/ui/EndScreenView.gd")
 const RunRewardFlow = preload("res://scripts/core/RunRewardFlow.gd")
 const RunFlowController = preload("res://scripts/core/RunFlowController.gd")
+const RunSaveService = preload("res://scripts/core/RunSaveService.gd")
 
 var rng := RandomNumberGenerator.new()
 var screen := GameScreen.TITLE
@@ -164,6 +165,12 @@ func _present_reward_layer(root: Control) -> void:
 	_build_header()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	reward_layer.add_child(root)
+	_maybe_autosave()
+
+
+func _maybe_autosave() -> void:
+	if screen in [GameScreen.MAP, GameScreen.COMBAT, GameScreen.REWARD]:
+		RunSaveService.save_snapshot(self)
 
 
 func _show_title() -> void:
@@ -171,7 +178,36 @@ func _show_title() -> void:
 	_hide_layers()
 	title_layer.visible = true
 	_clear(title_layer)
-	title_layer.add_child(TitleScreenView.build(_show_origin))
+	var has_save := RunSaveService.has_save()
+	title_layer.add_child(
+		TitleScreenView.build(has_save, _on_title_new_game, _on_title_continue, _on_title_quit)
+	)
+
+
+func _on_title_new_game() -> void:
+	if RunSaveService.has_save():
+		var dlg := AcceptDialog.new()
+		dlg.title = "放弃当前进度？"
+		dlg.dialog_text = "开始新游戏将覆盖现有存档。"
+		dlg.confirmed.connect(func():
+			dlg.queue_free()
+			_show_origin()
+		)
+		dlg.canceled.connect(dlg.queue_free)
+		add_child(dlg)
+		dlg.popup_centered()
+	else:
+		_show_origin()
+
+
+func _on_title_continue() -> void:
+	if not RunSaveService.load_snapshot(self):
+		_show_title()
+
+
+func _on_title_quit() -> void:
+	_maybe_autosave()
+	get_tree().quit()
 
 
 func _show_origin() -> void:
@@ -190,6 +226,7 @@ func _start_run(origin_id: String = "vagabond") -> void:
 	if origin == null:
 		origin = registry.get_origin("vagabond")
 	run_state.reset_for_origin(origin, seed)
+	RunSaveService.delete_save()
 	log_lines.clear()
 	_log("出身：%s。装备：%s。" % [origin.name, origin.equipment])
 	run_flow.show_map()
@@ -206,6 +243,7 @@ func _enter_map_layer(content: Control) -> void:
 	_clear(map_layer)
 	_build_header()
 	map_layer.add_child(content)
+	_maybe_autosave()
 
 
 func _choose_map_option(option: Dictionary) -> void:
@@ -237,6 +275,12 @@ func _begin_combat(template: Dictionary) -> void:
 	_log_reset()
 	combat.start_combat(template)
 	_render_combat()
+	_maybe_autosave()
+
+
+func _end_player_turn() -> void:
+	combat.end_player_turn()
+	_maybe_autosave()
 
 
 func _render_combat() -> void:
@@ -253,7 +297,7 @@ func _render_combat() -> void:
 		CARD_H,
 		_play_card,
 		combat.use_flask,
-		combat.end_player_turn
+		_end_player_turn
 	)
 	combat_layer.add_child(refs.root)
 	player_panel = refs.player_panel
@@ -284,6 +328,7 @@ func _play_card(index: int) -> void:
 
 
 func _show_game_over() -> void:
+	RunSaveService.delete_save()
 	GameAudio.play(self, "defeat")
 	screen = GameScreen.GAME_OVER
 	_hide_layers()
@@ -293,6 +338,7 @@ func _show_game_over() -> void:
 
 
 func _show_victory() -> void:
+	RunSaveService.delete_save()
 	GameAudio.play(self, "victory")
 	screen = GameScreen.VICTORY
 	_hide_layers()

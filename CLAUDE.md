@@ -13,6 +13,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Open `project.godot` in Godot 4.6 and run `res://scenes/Main.tscn`.
 - Smoke test (headless): `godot4.6 --headless --script tools/smoke_test.gd`
+- Save roundtrip: `godot4.6 --headless --script tools/save_roundtrip_test.gd`
+- Title menu: `godot4.6 --headless --script tools/title_menu_test.gd`
+- Save load (Main): `godot4.6 --headless --script tools/save_load_test.gd`
 
 ## Architecture
 
@@ -23,6 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Main | `scripts/Main.gd` | Screen routing, combat/map/event flow |
 | RunRewardFlow | `scripts/core/RunRewardFlow.gd` | Merchant, grace, ash, post-combat reward UI flow |
 | RunFlowController | `scripts/core/RunFlowController.gd` | Map options, events, combat entry, combat_ended routing |
+| RunSaveService | `scripts/core/RunSaveService.gd` | Single-slot `user://run_save.json` autosave / continue |
 | TitleScreenView / OriginScreenView / MapScreenView / DeckPopupView / EndScreenView | `scripts/ui/*ScreenView.gd` | Title, origin, map, deck popup, end screens |
 | DeckUtils | `scripts/ui/DeckUtils.gd` | Deck card counts helper |
 | GameTheme | `scripts/ui/GameTheme.gd` | Palette, map kind badges, intent colors |
@@ -71,7 +75,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. 阶段十七b：第四幕（16 层）、默认音效包（见 `docs/superpowers/plans/`）。
+1. 默认音效包（`audio/*.ogg` + 路径测试）；第四幕（16 层）**暂缓**，不在近期计划内。
 3. 可选 Monte Carlo 平衡工具。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.

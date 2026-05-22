@@ -9,9 +9,15 @@ const RunState = preload("res://scripts/core/RunState.gd")
 
 
 func _initialize() -> void:
-	var title := TitleScreenView.build(func(): pass)
-	if not _tree_has_button_text(title, "选择出身"):
+	var title := TitleScreenView.build(false, Callable(), Callable(), Callable())
+	if not _tree_has_button_text(title, "开始游戏"):
 		_fail("title screen missing start button")
+		return
+	if not _tree_has_button_text(title, "继续游戏"):
+		_fail("title screen missing continue button")
+		return
+	if not _tree_has_button_text(title, "退出游戏"):
+		_fail("title screen missing quit button")
 		return
 	title.queue_free()
 

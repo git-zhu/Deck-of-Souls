@@ -71,6 +71,7 @@ func show_event(event: MapEventData) -> void:
 	var registry = host.get("registry")
 	var run_state = host.get("run_state")
 	var event_service = host.get("event_service")
+	host.get("reward_flow").set_event_export(event.id)
 	host.call(
 		"_present_reward_layer",
 		RewardLayerViews.build_event_screen(
@@ -109,6 +110,7 @@ func on_event_choice(choice: MapEventChoiceData, event: MapEventData) -> void:
 
 
 func show_event_result(title_text: String, body_text: String) -> void:
+	host.get("reward_flow").set_grace_result_export(title_text, body_text)
 	host.call(
 		"_present_reward_layer",
 		RewardLayerViews.build_centered_continue(
