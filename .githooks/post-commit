@@ -1,0 +1,5 @@
+#!/bin/sh
+# Auto-push after each commit (Deck-of-Souls team workflow).
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" || exit 0
+[ -n "$branch" ] || exit 0
+git push origin "$branch"

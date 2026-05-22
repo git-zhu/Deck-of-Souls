@@ -63,11 +63,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. 将奖励/赐福/商人屏迁入 `scripts/ui/`；`Main.gd` 压至约 1000 行。
-2. 更多敌人种类；事件链；可选 Monte Carlo 平衡工具。
-3. 音效钩子（按钮、胜利）。
+1. **阶段十四：** `RewardLayerViews.gd` 迁出商人/赐福/事件/战后奖励 UI；`Main.gd` ≤ 1050 行（见 `docs/superpowers/plans/2026-05-21-phase14-reward-ui-extraction.md`）。
+2. 阶段十五：`CombatHudView`、音效钩子、更多敌人/事件链。
+3. 可选 Monte Carlo 平衡工具。
 
-**Workflow:** After each implementation phase, create a focused `git commit` for that phase.
+**Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
+
+- One-time per clone (auto-push on every commit): `.\scripts\setup-git-hooks.ps1` — sets `core.hooksPath` to `.githooks/post-commit`.
+- Agents: always run `git push` after committing a phase, even if hooks are not installed.
 
 ## Smoke Test
 
@@ -85,6 +88,7 @@ godot4.6 --headless --path . --script tools/event_service_test.gd
 godot4.6 --headless --path . --script tools/balance_content_test.gd
 godot4.6 --headless --path . --script tools/act_economy_test.gd
 godot4.6 --headless --path . --script tools/ui_layout_test.gd
+godot4.6 --headless --path . --script tools/reward_ui_test.gd
 ```
 
 Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_enemies.py`, `build_events.py`.
