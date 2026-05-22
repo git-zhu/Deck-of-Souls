@@ -20,10 +20,7 @@ func _initialize() -> void:
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
-	var relic_service := RelicService.new()
-	relic_service.load_from_registry(registry)
 	var combat := CombatController.new(run_state, registry, rng)
-	combat.relic_service = relic_service
 
 	var template := registry.pick_named_enemy(rng, "葛瑞克士兵", false, false)
 	if template.is_empty():

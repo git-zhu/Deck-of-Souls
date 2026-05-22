@@ -67,7 +67,13 @@ func _initialize() -> void:
 
 	run.floor_index = RunState.FLOORS_PER_ACT * 2
 	var combat := CombatController.new(run, registry, rng)
-	var template := {"name": "测试", "max_hp": 100, "stance": 5, "souls": 10, "moves": []}
+	var template := {
+		"name": "测试",
+		"max_hp": 100,
+		"stance": 5,
+		"souls": 10,
+		"moves": [{"kind": "attack", "value": 8, "hits": 1, "text": "试探"}],
+	}
 	combat.start_combat(template)
 	if combat.enemy.max_hp != 125:
 		_fail("act 3 scaled hp expected 125 got %d" % combat.enemy.max_hp)

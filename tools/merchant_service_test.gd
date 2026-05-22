@@ -61,8 +61,8 @@ func _initialize() -> void:
 
 	run.deck = ["a", "b", "c", "d", "e"]
 	for _i in range(20):
-		var stock := merchant.roll_stock(run, registry, rng, 3)
-		for offer in stock:
+		var rolled := merchant.roll_stock(run, registry, rng, 3)
+		for offer in rolled:
 			if str((offer as Object).get("id")) == "remove_card":
 				push_error("remove_card should not appear when deck size is 5")
 				quit(1)

@@ -23,7 +23,7 @@ func _initialize() -> void:
 		push_error("on_acquire_max_hp expected +10, got %d" % run.max_hp)
 		quit(1)
 		return
-	if not relics.add_relic(run, registry, "crimson_amulet"):
+	if relics.add_relic(run, registry, "crimson_amulet"):
 		push_error("duplicate add should fail")
 		quit(1)
 		return

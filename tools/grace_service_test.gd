@@ -31,8 +31,9 @@ func _initialize() -> void:
 	run.deck = ["a", "b", "c", "d", "e"]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 99
+	var opts: Array = []
 	for _i in range(20):
-		var opts := grace.roll_options(run, rng, 3)
+		opts = grace.roll_options(run, rng, 3)
 		for opt in opts:
 			if str((opt as Object).get("id")) == "purge":
 				push_error("purge should not appear when deck size is 5")

@@ -246,7 +246,10 @@ func take_player_damage(amount: int, ignores_block: bool) -> void:
 
 
 func choose_enemy_intent() -> void:
-	var moves: Array = enemy.moves
+	var moves: Array = enemy.get("moves", [])
+	if moves.is_empty():
+		enemy_intent = {"kind": "attack", "value": 6, "hits": 1, "text": "攻击"}
+		return
 	enemy_intent = moves[rng.randi_range(0, moves.size() - 1)].duplicate(true)
 
 

@@ -27,8 +27,8 @@ func _initialize() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
 
-	if registry.events.size() != 12:
-		_fail("expected 12 events, got %d" % registry.events.size())
+	if registry.events.size() != 15:
+		_fail("expected 15 events, got %d" % registry.events.size())
 		return
 
 	for act_index in range(RunState.ACT_COUNT):
@@ -72,7 +72,7 @@ func _initialize() -> void:
 		return
 
 	run.souls = 200
-	run.deck = origin.starting_deck.duplicate()
+	run.deck = origin.deck.duplicate()
 	var limgrave_stock := merchant.roll_stock(run, registry, rng, 3, LIMGRAVE_MERCHANT)
 	for offer in limgrave_stock:
 		var oid: String = str((offer as Object).get("id"))

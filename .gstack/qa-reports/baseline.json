@@ -1,0 +1,16 @@
+{
+  "date": "2026-05-22",
+  "url": "godot-headless",
+  "healthScore": 86,
+  "issues": [],
+  "categoryScores": {
+    "console": 90,
+    "links": 100,
+    "visual": 80,
+    "functional": 85,
+    "ux": 80,
+    "performance": 90,
+    "content": 88,
+    "accessibility": 80
+  }
+}

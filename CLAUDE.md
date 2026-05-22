@@ -107,6 +107,18 @@ Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_e
 
 Core scripts use `preload()` for cross-module types; data `.tres` files use Godot 4 `gd_resource` format (see `tools/convert_tres.py` if you add legacy `[resource name=...]` assets).
 
+## QA finish (commit + push)
+
+After `/gstack-qa` or a full headless test run passes, from repo root:
+
+```powershell
+.\scripts\post-qa-commit.ps1
+```
+
+This stages `scripts/`, `data/`, `tools/`, and `.gstack/qa-reports/`, commits, then pushes (`post-commit` hook if `.\scripts\setup-git-hooks.ps1` was run once per clone).
+
+Optional: `.\scripts\post-qa-commit.ps1 -Message "fix(qa): …"` or `-SkipPush`.
+
 `tools/smoke_test.gd` extends `SceneTree` and validates all 6 origins by:
 1. Starting a run, visiting a grace point (heal check), opening deck view.
 2. Starting combat, playing a card, ending turn, rendering combat.

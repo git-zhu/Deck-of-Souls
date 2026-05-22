@@ -2,6 +2,7 @@ class_name RunFlowController
 extends RefCounted
 
 const CardData = preload("res://data/CardData.gd")
+const ActData = preload("res://data/ActData.gd")
 const EventService = preload("res://scripts/core/EventService.gd")
 const MapEventData = preload("res://data/MapEventData.gd")
 const MapEventChoiceData = preload("res://data/MapEventChoiceData.gd")
@@ -21,8 +22,8 @@ func show_map() -> void:
 	var run_state = host.get("run_state")
 	var rng = host.get("rng")
 	var map_gen = host.get("map_gen")
-	var act := registry.get_act(run_state.act_index())
-	var options := map_gen.options_for_floor(run_state, registry, rng)
+	var act: ActData = registry.get_act(run_state.act_index()) as ActData
+	var options: Array = map_gen.options_for_floor(run_state, registry, rng)
 	host.call(
 		"_enter_map_layer",
 		MapScreenView.build(act, run_state, options, choose_map_option)
@@ -86,7 +87,7 @@ func on_event_choice(choice: MapEventChoiceData, event: MapEventData) -> void:
 	var rng = host.get("rng")
 	var event_service = host.get("event_service")
 	var reward_flow = host.get("reward_flow")
-	var summary := event_service.apply(choice, run_state, registry, rng)
+	var summary: String = event_service.apply(choice, run_state, registry, rng)
 	if summary == EventService.PICK_CARD:
 		var min_size: int = choice.min_deck_size if choice.min_deck_size > 0 else 6
 		reward_flow.show_remove_card_picker(
