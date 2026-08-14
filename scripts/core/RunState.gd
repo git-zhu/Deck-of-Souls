@@ -73,7 +73,3 @@ func replace_card_in_deck(removed_id: String, new_id: String) -> void:
 
 func player_hand_draw(extra_from_relics: int = 0) -> int:
 	return BASE_HAND_DRAW + memory_stones + extra_from_relics
-	draw_pile.clear()
-	hand.clear()
-	discard_pile.clear()
-	exhaust_pile.clear()
