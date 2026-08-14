@@ -15,25 +15,27 @@ func setup(p_index: int, p_on_play: Callable) -> void:
 	_setup_hover_lift()
 
 
-# StS 式悬停：拿起牌（放大 1.5x + 上浮 + z 提升），离开放下
+# StS 式悬停：拿起牌（放大 1.5x + z 提升），离开放下。
+# 注意：卡片在 HBoxContainer 内，position 由容器管理——绝不 tween position（会导致下坠/错位），
+# 只改 scale + z_index，并用 pivot_offset 底部中心锚点实现视觉"上浮"。
 func _setup_hover_lift() -> void:
 	mouse_entered.connect(func() -> void:
 		if disabled:
 			return
 		_kill_hover()
 		z_index = 50
-		var tw := create_tween().set_parallel(true)
+		# 底部中心为缩放锚点：放大时向上展开（视觉拿起，位置不受容器影响）
+		pivot_offset = Vector2(size.x * 0.5, size.y)
+		var tw := create_tween()
 		set_meta("_lift_tween", tw)
-		tw.tween_property(self, "scale", Vector2(1.45, 1.45), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(self, "position", Vector2(position.x, position.y - 18.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(self, "scale", Vector2(1.5, 1.5), 0.13).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	)
 	mouse_exited.connect(func() -> void:
 		_kill_hover()
 		z_index = 0
-		var tw := create_tween().set_parallel(true)
+		var tw := create_tween()
 		set_meta("_lift_tween", tw)
-		tw.tween_property(self, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(self, "position", Vector2(position.x, position.y + 18.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(self, "scale", Vector2.ONE, 0.13).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	)
 
 

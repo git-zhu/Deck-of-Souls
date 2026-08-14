@@ -527,23 +527,28 @@ static func intent_banner(intent_kind: String, intent_text: String) -> PanelCont
 	tag.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
 	row.add_child(tag)
 
-	# 意图图标：优先 PNG 自产图标，缺失时回退自绘几何图形（IntentIcon）
+	# 意图图标：固定 28px（SHRINK_CENTER 防 HBox 拉伸），PNG 优先、自绘兜底
 	var icon_path := _intent_icon_path(intent_kind)
 	var icon := IntentIcon.new()
 	icon.setup(intent_kind)
-	icon.custom_minimum_size = Vector2(32, 32)
+	icon.custom_minimum_size = Vector2(28, 28)
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(icon)
 	if icon_path != "":
 		var tex := load(icon_path) as Texture2D
 		if tex != null:
 			var tex_icon := TextureRect.new()
 			tex_icon.texture = tex
-			tex_icon.custom_minimum_size = Vector2(32, 32)
+			tex_icon.custom_minimum_size = Vector2(28, 28)
 			tex_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			tex_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			tex_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			tex_icon.modulate = accent
-			icon.add_child(tex_icon)
-			tex_icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+			var icon_center := CenterContainer.new()
+			icon_center.set_anchors_preset(Control.PRESET_FULL_RECT)
+			icon.add_child(icon_center)
+			icon_center.add_child(tex_icon)
 
 	var action := Label.new()
 	action.text = intent_text
