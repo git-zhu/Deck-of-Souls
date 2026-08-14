@@ -191,6 +191,62 @@ static func merchant_offer_card(
 	)
 
 
+static func build_attr_upgrade_screen(
+	run: RunState,
+	on_upgrade: Callable,
+	on_continue: Callable
+) -> Control:
+	# 属性升级选择器：展示 5 属性 + 当前值 + 升级成本，可点选升级或继续
+	const LevelingService = preload("res://scripts/core/LevelingService.gd")
+	var wrap := _full_vbox(14)
+	wrap.add_child(_heading_label("属性升级"))
+	wrap.add_child(_muted_label("触碰赐福，消耗卢恩唤醒自身潜能。升级后继续上路。"))
+
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
+	wrap.add_child(grid)
+
+	for key in LevelingService.ATTR_ORDER:
+		var info: Dictionary = LevelingService.ATTR_INFO[key]
+		var level: int = run.attr_upgrade_level(key)
+		var cost: int = LevelingService.attr_upgrade_cost(level)
+		var affordable: bool = run.souls >= cost
+		var card := UiBuilders.panel(GameTheme.PANEL)
+		card.custom_minimum_size = Vector2(0, 150)
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var v := VBoxContainer.new()
+		v.add_theme_constant_override("separation", 8)
+		card.add_child(v)
+		var name := Label.new()
+		name.text = "%s  %d" % [info.label, run.attr(key)]
+		name.add_theme_font_size_override("font_size", 22)
+		name.add_theme_color_override("font_color", GameTheme.GOLD)
+		v.add_child(name)
+		var desc := Label.new()
+		desc.text = str(info.desc)
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc.add_theme_color_override("font_color", GameTheme.BODY_MUTED)
+		v.add_child(desc)
+		var btn := Button.new()
+		btn.text = "升级（%d 卢恩）" % cost
+		btn.custom_minimum_size = Vector2(0, 42)
+		btn.disabled = not affordable
+		if affordable:
+			btn.pressed.connect(on_upgrade.bind(key))
+		v.add_child(btn)
+		grid.add_child(card)
+
+	var continue_btn := Button.new()
+	continue_btn.text = "继续上路"
+	continue_btn.custom_minimum_size = Vector2(220, 48)
+	continue_btn.pressed.connect(on_continue)
+	wrap.add_child(continue_btn)
+	return wrap
+
+
 static func build_grace_rest(options: Array, on_pick: Callable) -> Control:
 	var wrap := _full_vbox(16)
 	wrap.add_child(_heading_label("赐福点"))

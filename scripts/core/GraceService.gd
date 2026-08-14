@@ -34,6 +34,8 @@ func is_eligible(option: GraceOptionData, run: RunState) -> bool:
 			return run.can_gain_memory_stone()
 		"ash_replace":
 			return run.deck.size() > 5
+		"level_up":
+			return true
 		_:
 			return true
 
@@ -96,6 +98,8 @@ func apply(option: GraceOptionData, run: RunState) -> String:
 				run.memory_stones,
 				RunState.MAX_MEMORY_STONES,
 			]
+		"level_up":
+			return "__level_up__"
 		_:
 			return "赐福回响，却无事发生。"
 

@@ -7,6 +7,7 @@ const GraceOptionData = preload("res://data/GraceOptionData.gd")
 const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
 const MapEventData = preload("res://data/MapEventData.gd")
 const GraceService = preload("res://scripts/core/GraceService.gd")
+const LevelingService = preload("res://scripts/core/LevelingService.gd")
 const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const RunState = preload("res://scripts/core/RunState.gd")
 const RewardLayerViews = preload("res://scripts/ui/RewardLayerViews.gd")
@@ -235,6 +236,9 @@ func on_grace_option_picked(option: GraceOptionData) -> void:
 	var run_state = host.get("run_state")
 	var grace_service = host.get("grace_service")
 	var summary: String = grace_service.apply(option, run_state)
+	if summary == "__level_up__":
+		show_attr_upgrade()
+		return
 	if summary == GraceService.PICK_CARD:
 		show_remove_card_picker(
 			"遗忘仪式",
@@ -258,6 +262,33 @@ func on_grace_option_picked(option: GraceOptionData) -> void:
 		)
 	else:
 		show_grace_result(option.title, summary)
+
+
+func show_attr_upgrade() -> void:
+	# 属性升级界面：可反复升级，点"继续上路"进入结果
+	host.call(
+		"_present_reward_layer",
+		RewardLayerViews.build_attr_upgrade_screen(
+			host.get("run_state"),
+			_on_attr_upgrade_pressed,
+			func() -> void: show_grace_result("属性升级", "潜能已被唤醒。")
+		)
+	)
+
+
+func _on_attr_upgrade_pressed(key: String) -> void:
+	# 实际执行升级（扣卢恩 + 加属性），然后重绘界面
+	var run_state = host.get("run_state")
+	var result: Dictionary = LevelingService.apply_attr_upgrade(run_state, key)
+	if bool(result.get("ok", false)):
+		host.call(
+			"_present_reward_layer",
+			RewardLayerViews.build_attr_upgrade_screen(
+				run_state,
+				_on_attr_upgrade_pressed,
+				func() -> void: show_grace_result("属性升级", "潜能已被唤醒。")
+			)
+		)
 
 
 func show_grace_result(title_text: String, body_text: String) -> void:

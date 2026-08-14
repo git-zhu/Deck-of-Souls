@@ -13,6 +13,13 @@ extends Resource
 @export var equipment: String
 @export var note: String
 
+@export_group("Attributes")
+@export var attr_vigor: int = 10
+@export var attr_strength: int = 10
+@export var attr_dexterity: int = 10
+@export var attr_mind: int = 10
+@export var attr_faith: int = 10
+
 @export_group("Gameplay")
 @export var deck: Array[String] = []
 @export var weapons: Array[String] = []

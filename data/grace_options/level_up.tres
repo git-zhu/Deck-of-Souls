@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GraceOptionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/GraceOptionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "level_up"
+title = "属性升级"
+body = "触碰赐福，以卢恩唤醒自身潜能。（力量/灵巧/集中/信仰/生命）"
+effect = "level_up"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 6
