@@ -462,7 +462,7 @@ static func compact_fighter_hud(
 		border = GameTheme.GOLD
 		border_width = 2
 
-	# 紧凑 9-slice 面板：content margin 6px（默认 14px 会导致 HUD 过高）
+	# 统一卡片式状态框：玩家/敌人等宽等高（240×116），名称/血量/血条/状态 chip 全部居中
 	var panel_node := PanelContainer.new()
 	var pstyle := StyleBoxTexture.new()
 	pstyle.texture = load("res://assets/panel_9slice.png") as Texture2D
@@ -477,36 +477,40 @@ static func compact_fighter_hud(
 	if border_width >= 2:
 		pstyle.modulate_color = border
 	panel_node.add_theme_stylebox_override("panel", pstyle)
-	panel_node.custom_minimum_size = Vector2(228, 0)
+	panel_node.custom_minimum_size = Vector2(240, 116)
 	panel_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 3)
+	v.add_theme_constant_override("separation", 4)
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	panel_node.add_child(v)
 
-	var name_row := HBoxContainer.new()
-	v.add_child(name_row)
 	var name := Label.new()
 	name.text = name_text
+	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name.add_theme_font_size_override("font_size", 15)
 	name.add_theme_color_override("font_color", Color("#e4c06d"))
 	name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_row.add_child(name)
+	v.add_child(name)
+
 	var hp_label := Label.new()
 	hp_label.text = "%d / %d" % [cur_hp, full_hp]
-	hp_label.add_theme_font_size_override("font_size", 19)
+	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hp_label.add_theme_font_size_override("font_size", 18)
 	hp_label.add_theme_color_override("font_color", Color("#ffffff"))
-	name_row.add_child(hp_label)
+	v.add_child(hp_label)
 
 	var bar := ProgressBar.new()
 	bar.max_value = full_hp
 	bar.value = cur_hp
-	bar.custom_minimum_size = Vector2(0, 9)
+	bar.custom_minimum_size = Vector2(0, 10)
 	bar.show_percentage = false
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.add_child(bar)
 
 	var chips := HBoxContainer.new()
 	chips.add_theme_constant_override("separation", 4)
+	chips.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(chips)
 	if cur_block > 0:
 		chips.add_child(status_chip("护甲 %d" % cur_block, GameTheme.CARD_DEFENSE, "res://assets/external/kenney_icons/shield.png"))
@@ -569,63 +573,60 @@ static func status_chip(text: String, color: Color, icon_path: String = "") -> P
 
 
 static func intent_banner(intent_kind: String, intent_text: String) -> PanelContainer:
-	# 敌人意图：高优先级视觉元素（语义色描边 + 图标 + 大字号，紧凑高度）
+	# 敌方意图：小型胶囊提示（置于敌方状态框正上方，不遮挡玩家/敌人状态文本）
 	var accent := GameTheme.intent_color(intent_kind)
 	var panel_node := PanelContainer.new()
 	var pstyle := StyleBoxFlat.new()
 	pstyle.bg_color = Color("#1d1812")
 	pstyle.border_color = accent.lightened(0.2)
-	pstyle.set_border_width_all(2)
-	pstyle.corner_radius_top_left = 8
-	pstyle.corner_radius_top_right = 8
-	pstyle.corner_radius_bottom_left = 8
-	pstyle.corner_radius_bottom_right = 8
+	pstyle.set_border_width_all(1)
+	pstyle.corner_radius_top_left = 17
+	pstyle.corner_radius_top_right = 17
+	pstyle.corner_radius_bottom_left = 17
+	pstyle.corner_radius_bottom_right = 17
 	pstyle.shadow_color = accent.darkened(0.3)
-	pstyle.shadow_size = 8
-	pstyle.content_margin_left = 16
-	pstyle.content_margin_right = 16
-	pstyle.content_margin_top = 8
-	pstyle.content_margin_bottom = 8
+	pstyle.shadow_size = 5
+	pstyle.content_margin_left = 14
+	pstyle.content_margin_right = 14
+	pstyle.content_margin_top = 3
+	pstyle.content_margin_bottom = 3
 	panel_node.add_theme_stylebox_override("panel", pstyle)
-	panel_node.custom_minimum_size = Vector2(0, 52)
 	panel_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", 8)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	panel_node.add_child(row)
 
 	var tag := Label.new()
 	tag.text = "敌方意图"
-	tag.add_theme_font_size_override("font_size", 14)
+	tag.add_theme_font_size_override("font_size", 12)
 	tag.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
 	row.add_child(tag)
 
-	# 意图图标：固定 24px 的 Kenney PNG（语义色调色；不用 IntentIcon 自绘避免双重显示）
+	# 意图图标：固定 16px 的 Kenney PNG（语义色调色）
 	var icon_path := _intent_icon_path(intent_kind)
 	var tex := load(icon_path) as Texture2D
 	if tex != null:
 		var tex_icon := TextureRect.new()
 		tex_icon.texture = tex
-		tex_icon.custom_minimum_size = Vector2(24, 24)
+		tex_icon.custom_minimum_size = Vector2(16, 16)
 		tex_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		tex_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tex_icon.modulate = accent
-		tex_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		tex_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(tex_icon)
 
 	var action := Label.new()
 	action.text = intent_text
-	action.add_theme_font_size_override("font_size", 24)
+	action.add_theme_font_size_override("font_size", 16)
 	action.add_theme_color_override("font_color", accent.lightened(0.25))
 	row.add_child(action)
 	return panel_node
 
 
 static func combat_stage(player_name: String, enemy_name: String) -> Control:
-	# 中央战斗区域视觉主体：玩家 ←→ 敌人，镀金框内
+	# 中央交战区（Action Zone）：玩家 ◈ 交叉武器 ◈ 敌人；收紧占比、武器指示器完美居中
 	var stage := Control.new()
 	stage.custom_minimum_size = Vector2(0, 0)
 	stage.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -636,44 +637,54 @@ static func combat_stage(player_name: String, enemy_name: String) -> Control:
 	stage.add_child(center)
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 36)
+	row.add_theme_constant_override("separation", 6)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(row)
 
 	row.add_child(_fighter_token(player_name, Color("#3d6e9e"), "P"))
+	# 交战指示器：固定宽度容器 + 内部 CenterContainer → 两把交叉武器严格居中于 P/E 正中
+	var vs_holder := Control.new()
+	vs_holder.custom_minimum_size = Vector2(76, 0)
+	vs_holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	row.add_child(vs_holder)
+	var vs_center := CenterContainer.new()
+	vs_center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vs_holder.add_child(vs_center)
 	var vs := Label.new()
 	vs.text = "⚔"
-	vs.add_theme_font_size_override("font_size", 44)
+	vs.add_theme_font_size_override("font_size", 34)
 	vs.add_theme_color_override("font_color", GameTheme.GOLD)
-	vs.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(vs)
+	vs.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.55))
+	vs.add_theme_constant_override("shadow_offset_x", 1)
+	vs.add_theme_constant_override("shadow_offset_y", 1)
+	vs_center.add_child(vs)
 	row.add_child(_fighter_token(enemy_name, Color("#9e3d3d"), "E"))
 	return stage
 
 
 static func _fighter_token(name_text: String, color: Color, initial: String) -> VBoxContainer:
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 8)
+	col.add_theme_constant_override("separation", 6)
 	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	col.custom_minimum_size = Vector2(150, 0)
+	col.custom_minimum_size = Vector2(120, 0)
 
 	var circle := PanelContainer.new()
-	circle.custom_minimum_size = Vector2(96, 96)
+	circle.custom_minimum_size = Vector2(64, 64)
 	circle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var style := StyleBoxFlat.new()
 	style.bg_color = color.darkened(0.6)
 	style.border_color = color.lightened(0.2)
 	style.set_border_width_all(3)
-	style.corner_radius_top_left = 48
-	style.corner_radius_top_right = 48
-	style.corner_radius_bottom_left = 48
-	style.corner_radius_bottom_right = 48
+	style.corner_radius_top_left = 32
+	style.corner_radius_top_right = 32
+	style.corner_radius_bottom_left = 32
+	style.corner_radius_bottom_right = 32
 	circle.add_theme_stylebox_override("panel", style)
 	var initial_label := Label.new()
 	initial_label.text = initial
 	initial_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	initial_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	initial_label.add_theme_font_size_override("font_size", 44)
+	initial_label.add_theme_font_size_override("font_size", 30)
 	initial_label.add_theme_color_override("font_color", Color("#ffffff"))
 	circle.add_child(initial_label)
 	col.add_child(circle)
@@ -681,24 +692,24 @@ static func _fighter_token(name_text: String, color: Color, initial: String) -> 
 	var name := Label.new()
 	name.text = name_text
 	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name.add_theme_font_size_override("font_size", 16)
+	name.add_theme_font_size_override("font_size", 14)
 	name.add_theme_color_override("font_color", GameTheme.TEXT)
 	col.add_child(name)
 	return col
 
 
 static func energy_orb(ember: int, max_ember: int) -> PanelContainer:
-	# StS 式能量球：金色圆环 + 大号能量数值，强调核心资源
+	# StS 式能量球：金色圆环 + 大号能量数值，强调核心资源（与控制条胶囊等高）
 	var orb := PanelContainer.new()
-	orb.custom_minimum_size = Vector2(52, 52)
+	orb.custom_minimum_size = Vector2(46, 46)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color("#3a2d10")
 	style.border_color = GameTheme.GOLD
 	style.set_border_width_all(3)
-	style.corner_radius_top_left = 26
-	style.corner_radius_top_right = 26
-	style.corner_radius_bottom_left = 26
-	style.corner_radius_bottom_right = 26
+	style.corner_radius_top_left = 23
+	style.corner_radius_top_right = 23
+	style.corner_radius_bottom_left = 23
+	style.corner_radius_bottom_right = 23
 	style.shadow_color = Color(0.88, 0.75, 0.4, 0.3)
 	style.shadow_size = 6
 	orb.add_theme_stylebox_override("panel", style)
@@ -761,6 +772,41 @@ static func resource_chip(label_text: String, value_text: String) -> PanelContai
 	value.add_theme_color_override("font_color", GameTheme.GOLD)
 	row.add_child(value)
 	return chip
+
+
+static func stat_capsule(value_text: String, label_text: String, accent: Color = GameTheme.GOLD) -> PanelContainer:
+	# 回合/资源堆控制条：绝对等宽等高的胶囊体（100×44），内容水平垂直居中
+	var capsule := PanelContainer.new()
+	capsule.custom_minimum_size = Vector2(100, 44)
+	capsule.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#1c1812")
+	style.border_color = accent.darkened(0.35)
+	style.set_border_width_all(1)
+	style.corner_radius_top_left = 22
+	style.corner_radius_top_right = 22
+	style.corner_radius_bottom_left = 22
+	style.corner_radius_bottom_right = 22
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 2
+	style.content_margin_bottom = 2
+	capsule.add_theme_stylebox_override("panel", style)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	capsule.add_child(row)
+	var value := Label.new()
+	value.text = value_text
+	value.add_theme_font_size_override("font_size", 18)
+	value.add_theme_color_override("font_color", accent.lightened(0.2))
+	row.add_child(value)
+	var label := Label.new()
+	label.text = label_text
+	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+	row.add_child(label)
+	return capsule
 
 
 static func flask_button(flasks: int, disabled: bool, on_press: Callable) -> Button:

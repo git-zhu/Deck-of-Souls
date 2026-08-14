@@ -57,7 +57,7 @@ static func build(
 	main.add_child(aim_line)
 	aim_line.move_to_front()
 
-	# ── 顶行（最优布局）：玩家 HUD（左） + 意图横幅（中） + 敌人 HUD（右），并排居中拉近操作 ──
+	# ── 战斗实体状态区（Battle Stage）：玩家（左） + 敌方意图胶囊 & 敌人状态（右） ──
 	var top_row := HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 12)
 	top_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -77,15 +77,26 @@ static func build(
 		PLAYER_PANEL_BG
 	)
 	refs.player_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	refs.player_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	top_row.add_child(refs.player_panel)
 
-	# 意图横幅内联到顶行中央（不单独占行）
+	# 中空弹性区：玩家/敌人状态贴边，交战指示器在下方 Action Zone 居中
+	var stage_spacer := Control.new()
+	stage_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_row.add_child(stage_spacer)
+
+	# 右侧：敌方意图胶囊（状态框正上方，小体积不遮挡）+ 敌人 HUD 组
+	var enemy_side := VBoxContainer.new()
+	enemy_side.add_theme_constant_override("separation", 6)
+	enemy_side.size_flags_horizontal = Control.SIZE_SHRINK_END
+	top_row.add_child(enemy_side)
+
 	var intent_panel := UiBuilders.intent_banner(
 		str(combat.enemy_intent.get("kind", "")),
 		combat.intent_text()
 	)
-	intent_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	top_row.add_child(intent_panel)
+	intent_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
+	enemy_side.add_child(intent_panel)
 	var intent_kind := str(combat.enemy_intent.get("kind", ""))
 	if intent_kind in ["attack", "attack_block", "attack_rot"]:
 		var pulse := intent_panel.create_tween().set_loops()
@@ -100,7 +111,7 @@ static func build(
 	var enemy_area := HBoxContainer.new()
 	enemy_area.add_theme_constant_override("separation", 10)
 	enemy_area.size_flags_horizontal = Control.SIZE_SHRINK_END
-	top_row.add_child(enemy_area)
+	enemy_side.add_child(enemy_area)
 
 	for ei in range(combat.enemies.size()):
 		var e: Dictionary = combat.enemies[ei]
@@ -186,15 +197,13 @@ static func build(
 	stage_wrap.add_child(stage_zone)
 	stage_zone.move_to_front()
 
-	# ── 资源 HUD：回合数 + 能量球 + 抽/弃/耗 chip 行 ──
+	# ── 回合/资源控制条（Turn Control Bar）：回合/抽牌/弃牌/消耗等宽等高胶囊 + 能量球居中 ──
 	var resource_row := HBoxContainer.new()
 	resource_row.add_theme_constant_override("separation", 10)
 	resource_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	main.add_child(resource_row)
 
-	var turn: int = main.get_meta("combat_turn", 0) + 1
-	resource_row.add_child(UiBuilders.turn_label(turn))
-	main.set_meta("combat_turn", turn)
+	resource_row.add_child(UiBuilders.stat_capsule(str(combat.turn), "回合", GameTheme.GOLD))
 
 	var orb := UiBuilders.energy_orb(combat.ember, combat.max_ember)
 	resource_row.add_child(orb)
@@ -208,9 +217,9 @@ static func build(
 				orb_pulse.kill()
 		)
 
-	resource_row.add_child(UiBuilders.resource_chip("抽牌", str(run_state.draw_pile.size())))
-	resource_row.add_child(UiBuilders.resource_chip("弃牌", str(run_state.discard_pile.size())))
-	resource_row.add_child(UiBuilders.resource_chip("消耗", str(run_state.exhaust_pile.size())))
+	resource_row.add_child(UiBuilders.stat_capsule(str(run_state.draw_pile.size()), "抽牌", GameTheme.CARD_SKILL))
+	resource_row.add_child(UiBuilders.stat_capsule(str(run_state.discard_pile.size()), "弃牌", GameTheme.CARD_DEFENSE))
+	resource_row.add_child(UiBuilders.stat_capsule(str(run_state.exhaust_pile.size()), "消耗", GameTheme.CARD_ATTACK))
 
 	# ── 底部操作行：圣杯瓶 + 手牌 + 结束回合（主 CTA） ──
 	var bottom_row := HBoxContainer.new()

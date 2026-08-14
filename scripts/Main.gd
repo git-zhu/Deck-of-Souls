@@ -70,7 +70,7 @@ var map_layer: Control
 var combat_layer: Control
 var reward_layer: Control
 var end_layer: Control
-var header: HBoxContainer
+var header: Control
 var log_box: RichTextLabel
 var hand_row: HBoxContainer
 var enemy_panel: PanelContainer
@@ -145,8 +145,8 @@ func _build_ui() -> void:
 	stack.add_theme_constant_override("separation", 12)
 	root.add_child(stack)
 
-	header = HBoxContainer.new()
-	header.add_theme_constant_override("separation", 12)
+	header = Control.new()
+	header.custom_minimum_size = Vector2(0, 46)
 	stack.add_child(header)
 
 	title_layer = _new_layer(stack)

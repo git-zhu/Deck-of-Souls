@@ -21,6 +21,7 @@ var rng: RandomNumberGenerator
 var enemies: Array = []
 var target_index: int = 0
 var combat_over: bool = false
+var turn: int = 0
 var ember: int = 3
 var max_ember: int = 3
 var block: int = 0
@@ -174,6 +175,7 @@ func start_combat(template: Dictionary) -> void:
 
 
 func start_player_turn() -> void:
+	turn += 1
 	ember = max_ember
 	block = 0
 	apply_player_start_status()
