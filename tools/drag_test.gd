@@ -24,7 +24,7 @@ func _initialize() -> void:
 	var refs := CombatHudView.build(
 		run_state, combat, registry, "日志",
 		110.0, 142.0,
-		func(i: int) -> void: combat.play_card(i),
+		func(i: int, _target: String = "") -> void: combat.play_card(i),
 		combat.use_flask, combat.end_player_turn
 	)
 	var wrap := Control.new()

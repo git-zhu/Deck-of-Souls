@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyGroupData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyGroupData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "soldier_patrol"
+title = "葛瑞克士兵巡逻队"
+body = "两名葛瑞克士兵结伴巡逻，盾牌列阵。"
+enemy_names = Array[String](["geirik_soldier", "geirik_soldier"])

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyGroupData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyGroupData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "kaguth_raiders"
+title = "亚人掠夺者"
+body = "亚人首领带着两名亚人伏击路过的褪色者。"
+enemy_names = Array[String](["kaguth", "kaguth", "kaguth_chief"])

@@ -35,6 +35,18 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 				"option": _encounter_to_dict(enc as MapEncounterData, "combat"),
 				"weight": cw,
 			})
+	# 群怪遭遇（法环群怪设计）：按幕主题混入普通战池
+	var group_ids := _act_group_pool(act, registry)
+	for gid in group_ids:
+		weighted.append({
+			"option": {
+				"kind": "combat",
+				"enemy": gid,
+				"title": str(registry.get_group(gid).title),
+				"body": str(registry.get_group(gid).body),
+			},
+			"weight": 2,
+		})
 	for enc in act.elite_encounters:
 		var ew: int = act.map_weight_elite
 		if ew > 0:
@@ -56,6 +68,24 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 				"weight": event_w,
 			})
 	return _pick_weighted(weighted, 3, rng)
+
+
+func _act_group_pool(act: ActData, registry: DataRegistry) -> Array:
+	# 按幕主题挑选群怪（法环：宁姆格福=士兵/野狼，史东薇尔=骑士/法师，利耶尼亚=腐败/学者）
+	var act_idx := 0
+	for i in range(3):
+		var a := registry.get_act(i)
+		if a != null and a.id == act.id:
+			act_idx = i
+			break
+	match act_idx:
+		0:
+			return ["soldier_patrol", "wolf_pack", "kaguth_raiders", "mercenary_duo"]
+		1:
+			return ["gargoyle_watch", "gravekeeper_party", "academy_scholars", "elite_soldier_swarm"]
+		_:
+			return ["kindred_of_rot_pair", "rot_incursion", "academy_scholars"]
+	return []
 
 
 func _weight_for_kind(act: ActData, kind: String) -> int:

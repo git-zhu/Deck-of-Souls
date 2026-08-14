@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyGroupData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyGroupData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "wolf_pack"
+title = "野狼群"
+body = "三只野狼在林间游荡，闻到血腥味。"
+enemy_names = Array[String](["wild_wolf", "wild_wolf", "wild_wolf"])

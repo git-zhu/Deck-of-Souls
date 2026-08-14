@@ -22,7 +22,7 @@ func _initialize() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
 	var combat := CombatController.new(run, registry, rng)
-	combat.enemy = {
+	combat.enemies = [{
 		"id": "test",
 		"name": "Test",
 		"hp": 5,
@@ -35,8 +35,8 @@ func _initialize() -> void:
 		"bleed": 0,
 		"vulnerable": 0,
 		"strength": 0,
-	}
-	combat.enemy_intent = {"name": "slash", "damage": 6}
+		"_intent": {"name": "slash", "damage": 6},
+	}]
 	combat.ember = 2
 	combat.combat_over = false
 

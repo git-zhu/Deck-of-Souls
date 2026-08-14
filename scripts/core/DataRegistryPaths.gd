@@ -122,3 +122,16 @@ const ENEMY_RESOURCES: Array = [
 	preload("res://data/enemies/wild_wolf.tres"),
 ]
 
+const GROUP_RESOURCES: Array = [
+	preload("res://data/enemy_groups/academy_scholars.tres"),
+	preload("res://data/enemy_groups/elite_soldier_swarm.tres"),
+	preload("res://data/enemy_groups/gargoyle_watch.tres"),
+	preload("res://data/enemy_groups/gravekeeper_party.tres"),
+	preload("res://data/enemy_groups/kaguth_raiders.tres"),
+	preload("res://data/enemy_groups/kindred_of_rot_pair.tres"),
+	preload("res://data/enemy_groups/mercenary_duo.tres"),
+	preload("res://data/enemy_groups/rot_incursion.tres"),
+	preload("res://data/enemy_groups/soldier_patrol.tres"),
+	preload("res://data/enemy_groups/wolf_pack.tres"),
+]
+

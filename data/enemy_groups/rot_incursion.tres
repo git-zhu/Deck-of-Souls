@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyGroupData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyGroupData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rot_incursion"
+title = "腐败突袭"
+body = "腐败眷属与学院法师被腐败侵蚀，成群来袭。"
+enemy_names = Array[String](["kindred_of_rot", "academy_glintstone_sorcerer"])

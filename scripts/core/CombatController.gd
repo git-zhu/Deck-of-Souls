@@ -16,13 +16,60 @@ var run: RunState
 var registry: DataRegistry
 var rng: RandomNumberGenerator
 
-var enemy: Dictionary = {}
-var enemy_intent: Dictionary = {}
+# 多敌人：所有在场敌人实例；enemy / enemy_intent 为 getter，指向当前选中目标
+var enemies: Array = []
+var target_index: int = 0
 var combat_over: bool = false
 var ember: int = 3
 var max_ember: int = 3
 var block: int = 0
 var relic_service := RelicService.new()
+
+# ── 兼容 getter：enemy = 选中目标（默认第一个存活敌人）──
+var enemy: Dictionary:
+	get:
+		return _current_enemy()
+var enemy_intent: Dictionary:
+	get:
+		return _current_enemy().get("_intent", {})
+
+
+func _current_enemy() -> Dictionary:
+	if enemies.is_empty():
+		return {}
+	var idx := target_index
+	if idx < 0 or idx >= enemies.size():
+		idx = 0
+	var e: Dictionary = enemies[idx]
+	# 若选中目标已死，回退到第一个存活敌人
+	if int(e.get("hp", 0)) <= 0:
+		for i in range(enemies.size()):
+			var cand: Dictionary = enemies[i]
+			if int(cand.get("hp", 0)) > 0:
+				target_index = i
+				return cand
+	return e
+
+
+func alive_enemies() -> Array:
+	var out: Array = []
+	for e in enemies:
+		if int(e.get("hp", 0)) > 0:
+			out.append(e)
+	return out
+
+
+func alive_count() -> int:
+	var n := 0
+	for e in enemies:
+		if int(e.get("hp", 0)) > 0:
+			n += 1
+	return n
+
+
+func set_target(index: int) -> void:
+	if index >= 0 and index < enemies.size():
+		target_index = index
 
 
 func _init(p_run: RunState, p_registry: DataRegistry, p_rng: RandomNumberGenerator) -> void:
@@ -42,27 +89,43 @@ func start_combat(template: Dictionary) -> void:
 	run.player_bleed = 0
 	run.player_vulnerable = 0
 	run.player_strength = 0
-	enemy = template.duplicate(true)
+	# 支持多敌人：template.enemies（Array[Dictionary]）或单敌人（整模板即一个敌人）
+	enemies.clear()
+	var raw_list: Array = template.get("enemies", [])
+	if raw_list.is_empty():
+		raw_list = [template]
 	var act := registry.get_act(run.act_index())
-	if act != null and act.enemy_hp_percent != 100:
-		var scaled := int(round(float(enemy.max_hp) * act.enemy_hp_percent / 100.0))
-		enemy.max_hp = maxi(1, scaled)
-	enemy.hp = enemy.max_hp
-	enemy.block = 0
-	enemy.rot = 0
-	enemy.bleed = 0
-	enemy.vulnerable = 0
-	enemy.strength = 0
-	enemy.stance_max = enemy.stance
-	enemy.stance_now = enemy.stance
+	var hp_percent: int = act.enemy_hp_percent if act != null else 100
+	for raw in raw_list:
+		var e: Dictionary = (raw as Dictionary).duplicate(true)
+		if act != null and hp_percent != 100:
+			var scaled := int(round(float(e.max_hp) * hp_percent / 100.0))
+			e.max_hp = maxi(1, scaled)
+		e.hp = e.max_hp
+		e.block = 0
+		e.rot = 0
+		e.bleed = 0
+		e.vulnerable = 0
+		e.strength = 0
+		e.stance_max = e.stance
+		e.stance_now = e.stance
+		e["_intent"] = {}
+		enemies.append(e)
+	target_index = 0
 	run.draw_pile.assign(run.deck)
 	run.draw_pile.shuffle()
 	run.hand.clear()
 	run.discard_pile.clear()
 	run.exhaust_pile.clear()
 	relic_service.apply_combat_start(run, registry, self)
-	combat_log("你踏入雾中。%s 举起武器。" % enemy.name)
-	choose_enemy_intent()
+	if enemies.size() == 1:
+		combat_log("你踏入雾中。%s 举起武器。" % enemies[0].name)
+	else:
+		var names: Array = []
+		for e in enemies:
+			names.append(str(e.name))
+		combat_log("你踏入雾中。%s 拦住了去路。" % "、".join(names))
+	_choose_all_intents()
 	start_player_turn()
 
 
@@ -113,35 +176,51 @@ func play_card(index: int) -> void:
 	combat_changed.emit()
 
 
-func deal_enemy_damage(amount: int, stance_damage: int) -> bool:
+func deal_enemy_damage(amount: int, stance_damage: int, target_idx: int = -1) -> bool:
+	# 对指定目标（-1 = 当前选中目标）造成伤害与姿态削减
+	var e := _target_dict(target_idx)
+	if e.is_empty() or int(e.get("hp", 0)) <= 0:
+		return false
 	var final: int = amount
-	if enemy.vulnerable > 0:
+	if int(e.get("vulnerable", 0)) > 0:
 		final = int(ceil(final * 1.5))
-	if enemy.stance_now <= 0:
+	if int(e.get("stance_now", 0)) <= 0:
 		final = int(ceil(final * 1.35))
-	var blocked: int = mini(int(enemy.block), final)
-	enemy.block -= blocked
+	var blocked: int = mini(int(e.get("block", 0)), final)
+	e.block = int(e.get("block", 0)) - blocked
 	final -= blocked
-	enemy.hp = maxi(0, int(enemy.hp) - final)
-	enemy.stance_now -= stance_damage
-	combat_log("造成 %d 伤害，削减 %d 姿态。" % [final, stance_damage])
+	e.hp = maxi(0, int(e.get("hp", 0)) - final)
+	e.stance_now = int(e.get("stance_now", 0)) - stance_damage
+	combat_log("对%s造成 %d 伤害，削减 %d 姿态。" % [e.name, final, stance_damage])
 	var broke: bool = false
-	if enemy.stance_now <= 0:
+	if int(e.get("stance_now", 0)) <= 0:
 		broke = true
-		enemy.vulnerable += 1
-		enemy.stance_now = enemy.stance_max
-		combat_log("姿态崩解，%s 短暂露出破绽。" % enemy.name)
+		e.vulnerable = int(e.get("vulnerable", 0)) + 1
+		e.stance_now = e.stance_max
+		combat_log("%s 姿态崩解，短暂露出破绽。" % e.name)
+	check_enemy_death(target_idx)
 	return broke
 
 
-func apply_enemy_bleed(value: int) -> void:
-	enemy.bleed += value
-	combat_log("出血积累 +%d。" % value)
-	if enemy.bleed >= 10:
-		enemy.bleed -= 10
-		var burst: int = maxi(8, int(enemy.max_hp * 0.16))
-		enemy.hp = maxi(0, int(enemy.hp) - burst)
-		combat_log("出血爆发，追加 %d 点伤害。" % burst)
+func apply_enemy_bleed(value: int, target_idx: int = -1) -> void:
+	var e := _target_dict(target_idx)
+	if e.is_empty() or int(e.get("hp", 0)) <= 0:
+		return
+	e.bleed = int(e.get("bleed", 0)) + value
+	combat_log("%s 出血积累 +%d。" % [e.name, value])
+	if int(e.get("bleed", 0)) >= 10:
+		e.bleed = int(e.get("bleed", 0)) - 10
+		var burst: int = maxi(8, int(e.get("max_hp", 1) * 0.16))
+		e.hp = maxi(0, int(e.get("hp", 0)) - burst)
+		combat_log("%s 出血爆发，追加 %d 点伤害。" % [e.name, burst])
+		check_enemy_death(target_idx)
+
+
+func _target_dict(target_idx: int) -> Dictionary:
+	# -1 → 当前选中目标；否则按索引取敌人
+	if target_idx >= 0 and target_idx < enemies.size():
+		return enemies[target_idx]
+	return _current_enemy()
 
 
 func gain_block(value: int) -> void:
@@ -184,56 +263,67 @@ func end_player_turn() -> void:
 
 
 func enemy_turn() -> void:
-	enemy.block = 0
-	if enemy.rot > 0:
-		enemy.hp = maxi(0, int(enemy.hp) - int(enemy.rot))
-		combat_log("腐败啃食 %s：%d 点伤害。" % [enemy.name, enemy.rot])
-		enemy.rot = maxi(0, int(enemy.rot) - 1)
-	if enemy.bleed >= 10:
-		enemy.bleed -= 10
-		var burst: int = maxi(8, int(enemy.max_hp * 0.16))
-		enemy.hp = maxi(0, int(enemy.hp) - burst)
-		combat_log("%s 出血爆发，受到 %d 点伤害。" % [enemy.name, burst])
-	check_combat_end()
+	# 每个存活敌人依次行动
+	for e in enemies:
+		if int(e.get("hp", 0)) <= 0:
+			continue
+		e.block = 0
+		if int(e.get("rot", 0)) > 0:
+			e.hp = maxi(0, int(e.get("hp", 0)) - int(e.get("rot", 0)))
+			combat_log("腐败啃食 %s：%d 点伤害。" % [e.name, e.rot])
+			e.rot = maxi(0, int(e.get("rot", 0)) - 1)
+		if int(e.get("bleed", 0)) >= 10:
+			e.bleed = int(e.get("bleed", 0)) - 10
+			var burst: int = maxi(8, int(e.get("max_hp", 1) * 0.16))
+			e.hp = maxi(0, int(e.get("hp", 0)) - burst)
+			combat_log("%s 出血爆发，受到 %d 点伤害。" % [e.name, burst])
+		if int(e.get("hp", 0)) <= 0:
+			continue
+		var intent: Dictionary = e.get("_intent", {})
+		_execute_enemy_action(e, intent)
+		if run.hp <= 0:
+			combat_ended.emit("defeat")
+			return
+	# 全部敌人行动后重新选意图，进入玩家回合
 	if combat_over:
 		return
-	match enemy_intent.get("kind", ""):
-		"attack":
-			enemy_attack(int(enemy_intent.value), int(enemy_intent.get("hits", 1)))
-		"attack_block":
-			enemy.block += int(enemy_intent.block)
-			combat_log("%s 获得 %d 护甲。" % [enemy.name, enemy_intent.block])
-			enemy_attack(int(enemy_intent.value), 1)
-		"debuff":
-			run.player_vulnerable += int(enemy_intent.vulnerable)
-			combat_log("%s 施加 %d 易伤。" % [enemy.name, enemy_intent.vulnerable])
-		"buff":
-			enemy.strength += int(enemy_intent.strength)
-			combat_log("%s 力量 +%d。" % [enemy.name, enemy_intent.strength])
-		"rot":
-			run.player_rot += int(enemy_intent.value)
-			combat_log("你积累 %d 腐败。" % enemy_intent.value)
-		"attack_rot":
-			enemy_attack(int(enemy_intent.value), 1)
-			run.player_rot += int(enemy_intent.rot)
-			combat_log("你积累 %d 腐败。" % enemy_intent.rot)
-	if run.hp <= 0:
-		combat_ended.emit("defeat")
-		return
-	choose_enemy_intent()
+	_choose_all_intents()
 	start_player_turn()
 
 
-func enemy_attack(value: int, hits: int) -> void:
+func _execute_enemy_action(e: Dictionary, intent: Dictionary) -> void:
+	match str(intent.get("kind", "")):
+		"attack":
+			_enemy_attack(e, int(intent.value), int(intent.get("hits", 1)))
+		"attack_block":
+			e.block = int(e.get("block", 0)) + int(intent.block)
+			combat_log("%s 获得 %d 护甲。" % [e.name, intent.block])
+			_enemy_attack(e, int(intent.value), 1)
+		"debuff":
+			run.player_vulnerable += int(intent.vulnerable)
+			combat_log("%s 施加 %d 易伤。" % [e.name, intent.vulnerable])
+		"buff":
+			e.strength = int(e.get("strength", 0)) + int(intent.strength)
+			combat_log("%s 力量 +%d。" % [e.name, intent.strength])
+		"rot":
+			run.player_rot += int(intent.value)
+			combat_log("你积累 %d 腐败。" % intent.value)
+		"attack_rot":
+			_enemy_attack(e, int(intent.value), 1)
+			run.player_rot += int(intent.rot)
+			combat_log("你积累 %d 腐败。" % intent.rot)
+
+
+func _enemy_attack(e: Dictionary, value: int, hits: int) -> void:
 	for _i in range(hits):
-		var amount: int = value + int(enemy.strength)
+		var amount: int = value + int(e.get("strength", 0))
 		if run.player_vulnerable > 0:
 			amount = int(ceil(amount * 1.5))
 		var absorbed: int = mini(block, amount)
 		block -= absorbed
 		amount -= absorbed
 		take_player_damage(amount, false)
-		combat_log("%s 造成 %d 点伤害。" % [enemy.name, amount])
+		combat_log("%s 造成 %d 点伤害。" % [e.name, amount])
 
 
 func take_player_damage(amount: int, ignores_block: bool) -> void:
@@ -246,11 +336,24 @@ func take_player_damage(amount: int, ignores_block: bool) -> void:
 
 
 func choose_enemy_intent() -> void:
-	var moves: Array = enemy.get("moves", [])
+	# 兼容单敌调用：为选中目标选意图
+	var e := _current_enemy()
+	if not e.is_empty():
+		_choose_one_intent(e)
+
+
+func _choose_all_intents() -> void:
+	for e in enemies:
+		if int(e.get("hp", 0)) > 0:
+			_choose_one_intent(e)
+
+
+func _choose_one_intent(e: Dictionary) -> void:
+	var moves: Array = e.get("moves", [])
 	if moves.is_empty():
-		enemy_intent = {"kind": "attack", "value": 6, "hits": 1, "text": "攻击"}
+		e["_intent"] = {"kind": "attack", "value": 6, "hits": 1, "text": "攻击"}
 		return
-	enemy_intent = moves[rng.randi_range(0, moves.size() - 1)].duplicate(true)
+	e["_intent"] = moves[rng.randi_range(0, moves.size() - 1)].duplicate(true)
 
 
 func intent_text() -> String:
@@ -271,20 +374,35 @@ func intent_text() -> String:
 	return label
 
 
-func check_combat_end() -> void:
-	if enemy.has("hp") and int(enemy.hp) <= 0 and not combat_over:
-		combat_over = true
-		var soul_gain: int = int(enemy.souls) + relic_service.combat_souls_bonus(run, registry)
+func check_enemy_death(target_idx: int = -1) -> void:
+	# 检查指定敌人是否死亡（奖励合并到全部死亡时结算）
+	var e := _target_dict(target_idx)
+	if e.is_empty():
+		return
+	if int(e.get("hp", 0)) <= 0 and not bool(e.get("_dead_awarded", false)):
+		e["_dead_awarded"] = true
+		var soul_gain: int = int(e.souls) + relic_service.combat_souls_bonus(run, registry)
 		run.souls += soul_gain
-		combat_log("%s 倒下。你获得 %d 卢恩。" % [enemy.name, soul_gain])
-		if bool(enemy.get("is_run_boss", false)):
-			combat_ended.emit("run_victory")
-		elif bool(enemy.get("is_act_boss", false)):
-			combat_ended.emit("act_clear")
-		elif bool(enemy.get("elite", false)):
-			combat_ended.emit("elite_reward")
-		else:
-			combat_ended.emit("reward")
+		combat_log("%s 倒下。你获得 %d 卢恩。" % [e.name, soul_gain])
+
+
+func check_combat_end() -> void:
+	# 所有敌人死亡 → 战斗结束（奖励已逐个结算，此处发结束事件）
+	if combat_over:
+		return
+	if alive_count() > 0:
+		return
+	combat_over = true
+	# 以首个敌人（或任意）判定结束类型
+	var first: Dictionary = enemies[0] if not enemies.is_empty() else {}
+	if bool(first.get("is_run_boss", false)):
+		combat_ended.emit("run_victory")
+	elif bool(first.get("is_act_boss", false)):
+		combat_ended.emit("act_clear")
+	elif bool(first.get("elite", false)):
+		combat_ended.emit("elite_reward")
+	else:
+		combat_ended.emit("reward")
 
 
 func roll_rewards(act: ActData = null) -> Array[String]:

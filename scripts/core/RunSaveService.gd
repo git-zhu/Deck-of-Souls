@@ -147,9 +147,12 @@ static func run_from_dict(run: RunState, data: Variant) -> void:
 
 
 static func combat_to_dict(combat: CombatController) -> Dictionary:
+	var enemies_data: Array = []
+	for e in combat.enemies:
+		enemies_data.append(e.duplicate(true))
 	return {
-		"enemy": combat.enemy.duplicate(true),
-		"enemy_intent": combat.enemy_intent.duplicate(true),
+		"enemies": enemies_data,
+		"target_index": combat.target_index,
 		"ember": combat.ember,
 		"max_ember": combat.max_ember,
 		"block": combat.block,
@@ -161,12 +164,18 @@ static func combat_from_dict(combat: CombatController, data: Variant) -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		return
 	var d: Dictionary = data
-	var enemy: Variant = d.get("enemy", {})
-	if typeof(enemy) == TYPE_DICTIONARY:
-		combat.enemy = enemy.duplicate(true)
-	var intent: Variant = d.get("enemy_intent", {})
-	if typeof(intent) == TYPE_DICTIONARY:
-		combat.enemy_intent = intent.duplicate(true)
+	combat.enemies.clear()
+	var enemies_data: Variant = d.get("enemies", [])
+	if typeof(enemies_data) == TYPE_ARRAY:
+		for e in enemies_data:
+			if typeof(e) == TYPE_DICTIONARY:
+				combat.enemies.append((e as Dictionary).duplicate(true))
+	# 向后兼容旧存档：单敌人（enemy 字典）
+	if combat.enemies.is_empty():
+		var old_enemy: Variant = d.get("enemy", {})
+		if typeof(old_enemy) == TYPE_DICTIONARY:
+			combat.enemies.append((old_enemy as Dictionary).duplicate(true))
+	combat.target_index = int(d.get("target_index", 0))
 	combat.ember = int(d.get("ember", combat.max_ember))
 	combat.max_ember = int(d.get("max_ember", 3))
 	combat.block = int(d.get("block", 0))

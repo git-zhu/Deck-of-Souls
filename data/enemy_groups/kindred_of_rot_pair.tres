@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyGroupData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyGroupData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "kindred_of_rot_pair"
+title = "腐败眷属一对"
+body = "两只腐败眷属拖着腐烂的身躯逼近。"
+enemy_names = Array[String](["kindred_of_rot", "kindred_of_rot"])

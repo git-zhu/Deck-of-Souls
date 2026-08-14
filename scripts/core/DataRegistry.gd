@@ -10,6 +10,7 @@ const GraceOptionData = preload("res://data/GraceOptionData.gd")
 const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
 const RelicData = preload("res://data/RelicData.gd")
 const MapEventData = preload("res://data/MapEventData.gd")
+const EnemyGroupData = preload("res://data/EnemyGroupData.gd")
 const DataRegistryPaths = preload("res://scripts/core/DataRegistryPaths.gd")
 
 const ACT_ORDER: Array[String] = ["limgrave", "stormveil", "liurnia"]
@@ -17,6 +18,7 @@ const ACT_ORDER: Array[String] = ["limgrave", "stormveil", "liurnia"]
 var cards: Dictionary = {}
 var origins: Dictionary = {}
 var _enemy_templates: Array = []
+var _enemy_groups: Dictionary = {}
 var acts: Array = []
 var grace_options: Dictionary = {}
 var merchant_offers: Dictionary = {}
@@ -28,6 +30,7 @@ func load_all() -> void:
 	cards = _load_cards()
 	origins = _load_origins()
 	_enemy_templates = _load_enemies()
+	_enemy_groups = _load_enemy_groups()
 	acts = _load_acts()
 	grace_options = _load_grace_options()
 	merchant_offers = _load_merchant_offers()
@@ -56,8 +59,11 @@ func enemy_templates() -> Array:
 
 
 func template_by_name(enemy_name: String) -> Dictionary:
+	# 支持按中文名或文件 id（如 wild_wolf）匹配
 	for template: Dictionary in _enemy_templates:
 		if str(template.get("name", "")) == enemy_name:
+			return template.duplicate(true)
+		if str(template.get("file_id", "")) == enemy_name:
 			return template.duplicate(true)
 	return {}
 
@@ -118,7 +124,48 @@ func pick_named_enemy(rng: RandomNumberGenerator, enemy_name: String, elite: boo
 	var found := template_by_name(enemy_name)
 	if not found.is_empty():
 		return found
+	# 群怪：按组名解析为多敌人模板（enemies 数组）
+	var group := resolve_group(enemy_name)
+	if not group.is_empty():
+		return group
 	return pick_enemy(rng, elite, boss)
+
+
+func _load_enemy_groups() -> Dictionary:
+	var result := {}
+	for group_res in DataRegistryPaths.GROUP_RESOURCES:
+		var g := group_res as EnemyGroupData
+		if g != null and g.id != "":
+			result[g.id] = g
+	return result
+
+
+func group_ids() -> Array:
+	return _enemy_groups.keys()
+
+
+func get_group(id: String) -> EnemyGroupData:
+	return _enemy_groups.get(id) as EnemyGroupData
+
+
+# 解析群怪模板：返回含 enemies 数组的模板（供 CombatController.start_combat 使用）
+func resolve_group(group_id: String) -> Dictionary:
+	var g := get_group(group_id)
+	if g == null or g.enemy_names.is_empty():
+		return {}
+	var templates: Array = []
+	for ename in g.enemy_names:
+		var t := template_by_name(str(ename))
+		if not t.is_empty():
+			templates.append(t)
+	if templates.is_empty():
+		return {}
+	return {
+		"group_id": g.id,
+		"title": g.title,
+		"body": g.body,
+		"enemies": templates,
+	}
 
 
 func _load_cards() -> Dictionary:
@@ -139,7 +186,7 @@ func _load_origins() -> Dictionary:
 	return result
 
 
-func _enemy_to_dict(template: EnemyData) -> Dictionary:
+func _enemy_to_dict(template: EnemyData, res_path: String = "") -> Dictionary:
 	var moves: Array = []
 	for move: MoveData in template.moves:
 		moves.append({
@@ -152,7 +199,12 @@ func _enemy_to_dict(template: EnemyData) -> Dictionary:
 			"strength": move.strength,
 			"rot": move.rot,
 		})
+	# file_id 从资源路径推断（如 res://data/enemies/wild_wolf.tres -> wild_wolf）
+	var file_id := ""
+	if res_path != "":
+		file_id = res_path.get_file().get_basename()
 	return {
+		"file_id": file_id,
 		"name": template.name,
 		"max_hp": template.max_hp,
 		"stance": template.stance,
@@ -219,5 +271,5 @@ func _load_enemies() -> Array:
 	for enemy_res in DataRegistryPaths.ENEMY_RESOURCES:
 		var enemy := enemy_res as EnemyData
 		if enemy != null:
-			result.append(_enemy_to_dict(enemy))
+			result.append(_enemy_to_dict(enemy, enemy_res.resource_path))
 	return result

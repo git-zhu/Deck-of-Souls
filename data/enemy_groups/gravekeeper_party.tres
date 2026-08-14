@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyGroupData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyGroupData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "gravekeeper_party"
+title = "守墓斗士与矿工"
+body = "守墓斗士带领挖石矿工把守洞窟深处。"
+enemy_names = Array[String](["gravekeeper_dualrander", "stoneminer"])

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyGroupData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyGroupData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mercenary_duo"
+title = "凯丹佣兵二人组"
+body = "两名凯丹佣兵背靠背战斗，配合默契。"
+enemy_names = Array[String](["caelid_mercenary", "caelid_mercenary"])

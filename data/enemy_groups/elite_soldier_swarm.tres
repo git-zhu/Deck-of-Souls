@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyGroupData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyGroupData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "elite_soldier_swarm"
+title = "葛瑞克精锐小队"
+body = "葛瑞克骑士率领士兵组成阵型。"
+enemy_names = Array[String](["geirik_knight", "geirik_soldier", "geirik_soldier"])

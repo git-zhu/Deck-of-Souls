@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyGroupData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyGroupData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "gargoyle_watch"
+title = "城门哨卫"
+body = "葛瑞克骑士与石像鬼把守城门两侧。"
+enemy_names = Array[String](["gargoyle_knight", "geirik_knight"])

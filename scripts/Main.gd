@@ -473,8 +473,12 @@ func _show_deck_view() -> void:
 	DeckPopupView.show(self, run_state.deck, registry)
 
 
-func _play_card(index: int) -> void:
+func _play_card(index: int, target_id: String = "") -> void:
 	GameAudio.play(self, "ui_click")
+	# 多敌人目标：拖拽到指定敌人时设置目标；"" = 保持当前选中目标
+	if target_id != "" and target_id.begins_with("enemy_"):
+		var ti := int(target_id.trim_prefix("enemy_"))
+		combat.set_target(ti)
 	var card_id := run_state.hand[index] if index < run_state.hand.size() else ""
 	combat.play_card(index)
 	# 战斗飘字：打出的牌名浮现在敌人面板上方

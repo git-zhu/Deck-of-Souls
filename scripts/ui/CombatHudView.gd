@@ -15,10 +15,19 @@ const GildedFrame = preload("res://scripts/ui/GildedFrame.gd")
 const DropZone = preload("res://scripts/ui/DropZone.gd")
 
 
-# 拖拽投放回调：把拖来的卡打到目标敌人（target_id 预留多敌人；当前单敌人恒为 ""）
+# 拖拽投放回调：把拖来的卡打到目标敌人（target_id = "enemy_0/enemy_1..."；"" = 默认选中目标）
 static func _make_drop_handler(on_play_card: Callable) -> Callable:
 	return func(card_index: int, target_id: String) -> void:
-		on_play_card.call(card_index)
+		on_play_card.call(card_index, target_id)
+
+
+static func _enemy_names_text(combat: CombatController) -> String:
+	if combat.enemies.size() == 1:
+		return str(combat.enemies[0].get("name", ""))
+	var names: Array = []
+	for e in combat.enemies:
+		names.append(str(e.get("name", "")))
+	return "、".join(names)
 
 
 static func build(
@@ -64,34 +73,46 @@ static func build(
 	top_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_row.add_child(top_spacer)
 
-	refs.enemy_panel = UiBuilders.compact_fighter_hud(
-		combat.enemy.name,
-		combat.enemy.hp,
-		combat.enemy.max_hp,
-		int(combat.enemy.block),
-		{
-			"rot": combat.enemy.rot,
-			"bleed": combat.enemy.bleed,
-			"vulnerable": combat.enemy.vulnerable,
-			"strength": combat.enemy.strength,
-			"stance": int(combat.enemy.stance_now),
-		},
-		ENEMY_PANEL_BG,
-		true,
-		int(combat.enemy.stance_now),
-		int(combat.enemy.stance_max)
-	)
-	refs.enemy_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
-	top_row.add_child(refs.enemy_panel)
+	# ── 敌人区：多敌人紧凑 HUD（每个含 DropZone 目标投放） ──
+	var enemy_area := HBoxContainer.new()
+	enemy_area.add_theme_constant_override("separation", 10)
+	enemy_area.size_flags_horizontal = Control.SIZE_SHRINK_END
+	top_row.add_child(enemy_area)
 
-	# 敌人投放目标区（接收手牌拖拽；target_id 预留多敌人）
-	var enemy_zone := DropZone.new()
-	enemy_zone.setup("", _make_drop_handler(on_play_card))
-	enemy_zone.set_anchors_preset(Control.PRESET_FULL_RECT)
-	refs.enemy_panel.add_child(enemy_zone)
-	enemy_zone.move_to_front()
+	for ei in range(combat.enemies.size()):
+		var e: Dictionary = combat.enemies[ei]
+		var is_target := ei == combat.target_index
+		var e_panel := UiBuilders.compact_fighter_hud(
+			str(e.name),
+			int(e.hp),
+			int(e.max_hp),
+			int(e.block),
+			{
+				"rot": int(e.rot),
+				"bleed": int(e.bleed),
+				"vulnerable": int(e.vulnerable),
+				"strength": int(e.strength),
+				"stance": int(e.stance_now),
+			},
+			ENEMY_PANEL_BG,
+			true,
+			int(e.stance_now),
+			int(e.stance_max)
+		)
+		e_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		if is_target:
+			e_panel.modulate = Color(1.06, 1.0, 0.85, 1.0)
+		enemy_area.add_child(e_panel)
+		# 每个敌人一个投放目标（target_id = "enemy_i"，供 Main 指定目标出牌）
+		var zone := DropZone.new()
+		zone.setup("enemy_%d" % ei, _make_drop_handler(on_play_card))
+		zone.set_anchors_preset(Control.PRESET_FULL_RECT)
+		e_panel.add_child(zone)
+		zone.move_to_front()
+		if ei == 0:
+			refs.enemy_panel = e_panel
 
-	# ── 敌人意图：高优先级视觉元素（攻击意图轻微脉冲强调） ──
+	# ── 敌人意图：显示当前选中目标的意图（高优先级视觉元素） ──
 	var intent_panel := UiBuilders.intent_banner(
 		str(combat.enemy_intent.get("kind", "")),
 		combat.intent_text()
@@ -115,7 +136,7 @@ static func build(
 	var stage_frame := GildedFrame.new()
 	stage_frame.set_anchors_preset(Control.PRESET_FULL_RECT)
 	stage_wrap.add_child(stage_frame)
-	var stage := UiBuilders.combat_stage("褪色者", combat.enemy.name)
+	var stage := UiBuilders.combat_stage("褪色者", _enemy_names_text(combat))
 	stage.set_anchors_preset(Control.PRESET_FULL_RECT)
 	stage_wrap.add_child(stage)
 
