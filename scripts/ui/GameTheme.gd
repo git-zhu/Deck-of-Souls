@@ -153,25 +153,6 @@ static func intent_icon(_kind: String) -> String:
 	return ""
 
 
-# 出身头像映射（外部免费素材：OGA rpg_characters_avatars，授权宽松）
-static func origin_portrait(origin_id: String) -> String:
-	match origin_id:
-		"vagabond":
-			return "res://assets/external/rpg_avatars/portraits/portrait_0.png"
-		"warrior":
-			return "res://assets/external/rpg_avatars/portraits/portrait_1.png"
-		"samurai":
-			return "res://assets/external/rpg_avatars/portraits/portrait_2.png"
-		"astrologer":
-			return "res://assets/external/rpg_avatars/portraits/portrait_3.png"
-		"prophet":
-			return "res://assets/external/rpg_avatars/portraits/portrait_4.png"
-		"wretch":
-			return "res://assets/external/rpg_avatars/portraits/portrait_5.png"
-		_:
-			return ""
-
-
 # 状态 chip 语义色
 static func status_color(status_id: String) -> Color:
 	match status_id:
