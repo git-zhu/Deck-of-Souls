@@ -248,14 +248,17 @@ static func card_button(
 	button.add_child(v_margin)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 2)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v_margin.add_child(v)
 
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 5)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(top)
 
 	var cost_badge := PanelContainer.new()
 	cost_badge.custom_minimum_size = Vector2(24, 24)
+	cost_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var cost_style := StyleBoxFlat.new()
 	cost_style.bg_color = Color("#16130f")
 	cost_style.border_color = GameTheme.GOLD
@@ -271,6 +274,7 @@ static func card_button(
 	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	cost_label.add_theme_font_size_override("font_size", 15)
 	cost_label.add_theme_color_override("font_color", GameTheme.GOLD)
+	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cost_badge.add_child(cost_label)
 	top.add_child(cost_badge)
 
@@ -293,6 +297,7 @@ static func card_button(
 
 	var type_row := HBoxContainer.new()
 	type_row.add_theme_constant_override("separation", 6)
+	type_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(type_row)
 
 	var type_label := Label.new()
@@ -310,12 +315,14 @@ static func card_button(
 
 	var sep := HSeparator.new()
 	sep.add_theme_constant_override("separation", 4)
+	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(sep)
 
 	var effect := RichTextLabel.new()
 	effect.bbcode_enabled = true
 	effect.fit_content = false
 	effect.scroll_active = false
+	effect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	effect.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	effect.text = "[font_size=12]%s[/font_size]" % emphasize_numbers(card.text)
 	v.add_child(effect)
