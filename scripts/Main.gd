@@ -25,6 +25,7 @@ const GameTheme = preload("res://scripts/ui/GameTheme.gd")
 const CombatHudView = preload("res://scripts/ui/CombatHudView.gd")
 const RunHeaderView = preload("res://scripts/ui/RunHeaderView.gd")
 const GameAudio = preload("res://scripts/ui/GameAudio.gd")
+const FloatingText = preload("res://scripts/ui/FloatingText.gd")
 const TitleScreenView = preload("res://scripts/ui/TitleScreenView.gd")
 const OriginScreenView = preload("res://scripts/ui/OriginScreenView.gd")
 const DeckPopupView = preload("res://scripts/ui/DeckPopupView.gd")
@@ -181,9 +182,10 @@ var _active_tween: Tween
 
 func _animate_layer(layer: Control) -> void:
 	# 屏幕切换：淡入 + 轻微上浮（120ms），贴近法环"雾门"过渡感
-	var prev: Tween = layer.get_meta("_anim_tween", null)
-	if prev != null and prev.is_valid():
-		prev.kill()
+	if layer.has_meta("_anim_tween"):
+		var prev: Tween = layer.get_meta("_anim_tween") as Tween
+		if prev != null and prev.is_valid():
+			prev.kill()
 	layer.modulate = Color(1, 1, 1, 0)
 	layer.position = Vector2(0, 14)
 	var tw := layer.create_tween()
@@ -424,7 +426,51 @@ func _show_deck_view() -> void:
 
 func _play_card(index: int) -> void:
 	GameAudio.play(self, "ui_click")
+	var card_id := run_state.hand[index] if index < run_state.hand.size() else ""
 	combat.play_card(index)
+	# 战斗飘字：打出的牌名浮现在敌人面板上方
+	if card_id != "" and enemy_panel != null:
+		var card := registry.get_card(card_id)
+		if card != null:
+			FloatingText.spawn(
+				combat_layer,
+				card.name,
+				enemy_panel.global_position + Vector2(enemy_panel.size.x * 0.5, 8),
+				card.tone.lightened(0.3)
+			)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	# PC 快捷键（可重映射）：数字键打牌 / F 圣杯瓶 / 空格结束回合 / D 牌组 / Esc 暂停
+	if event is InputEventKey and event.pressed and not event.echo:
+		if screen == GameScreen.COMBAT and not combat.combat_over:
+			# 1-9 打出手牌（序号 = 手牌索引）
+			for i in range(9):
+				if InputMap.action_has_event("play_card_%d" % (i + 1), event):
+					if i < run_state.hand.size():
+						_play_card(i)
+					accept_event()
+					return
+			if InputMap.action_has_event("use_flask", event):
+				combat.use_flask()
+				_maybe_autosave()
+				accept_event()
+				return
+			if InputMap.action_has_event("end_turn", event):
+				_end_player_turn()
+				accept_event()
+				return
+		if InputMap.action_has_event("show_deck", event):
+			_show_deck_view()
+			accept_event()
+			return
+		if event.keycode == KEY_ESCAPE or event.physical_keycode == KEY_ESCAPE:
+			if pause_overlay != null:
+				_hide_pause_menu()
+			elif screen in [GameScreen.MAP, GameScreen.COMBAT, GameScreen.REWARD]:
+				_show_pause_menu()
+			accept_event()
+			return
 
 
 func _show_game_over() -> void:

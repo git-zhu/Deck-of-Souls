@@ -71,6 +71,7 @@ static func choice_offer_card(
 	if not disabled:
 		btn.pressed.connect(on_press)
 	v.add_child(btn)
+	UiBuilders.attach_hover_anim(panel, 1.02)
 	return panel
 
 
@@ -117,6 +118,7 @@ static func card_reward_button(card: CardData, on_press: Callable) -> Button:
 	else:
 		button.text = "未知卡牌"
 	button.pressed.connect(on_press)
+	UiBuilders.attach_hover_anim(button, 1.04)
 	return button
 
 

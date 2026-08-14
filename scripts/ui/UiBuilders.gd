@@ -6,6 +6,28 @@ const CardData = preload("res://data/CardData.gd")
 const CombatController = preload("res://scripts/core/CombatController.gd")
 
 
+static func attach_hover_anim(ctrl: Control, scale: float = 1.03) -> void:
+	# 悬停反馈：轻微放大（PC 鼠标悬停 / 手机长按通用）
+	ctrl.mouse_entered.connect(func() -> void:
+		if ctrl.has_meta("_hover_tween"):
+			var t: Tween = ctrl.get_meta("_hover_tween")
+			if t.is_valid():
+				t.kill()
+		var tw := ctrl.create_tween()
+		ctrl.set_meta("_hover_tween", tw)
+		tw.tween_property(ctrl, "scale", Vector2(scale, scale), 0.09).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	)
+	ctrl.mouse_exited.connect(func() -> void:
+		if ctrl.has_meta("_hover_tween"):
+			var t: Tween = ctrl.get_meta("_hover_tween")
+			if t.is_valid():
+				t.kill()
+		var tw := ctrl.create_tween()
+		ctrl.set_meta("_hover_tween", tw)
+		tw.tween_property(ctrl, "scale", Vector2.ONE, 0.09).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	)
+
+
 static func panel(bg: Color, border: Color = GameTheme.BORDER, border_width: int = 1) -> PanelContainer:
 	var panel_node := PanelContainer.new()
 	var style := StyleBoxFlat.new()
@@ -73,6 +95,7 @@ static func map_choice_card(option: Dictionary, on_press: Callable) -> PanelCont
 	btn.custom_minimum_size = Vector2(0, 48)
 	btn.pressed.connect(on_press)
 	v.add_child(btn)
+	attach_hover_anim(panel_node)
 	return panel_node
 
 
@@ -141,9 +164,13 @@ static func card_button(
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(card_w, card_h)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	button.text = "%s\n%s  集中:%d\n\n%s" % [card.name, card.type, card.cost, card.text]
+	# 快捷键提示：手牌序号（1-9）显示在卡名旁，PC 上直接按数字键打牌
+	if index < 9:
+		button.text = "[%d] %s\n%s  集中:%d\n\n%s" % [index + 1, card.name, card.type, card.cost, card.text]
+	else:
+		button.text = "%s\n%s  集中:%d\n\n%s" % [card.name, card.type, card.cost, card.text]
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	button.tooltip_text = card.text
+	button.tooltip_text = "%s\n（快捷键 %d）" % [card.text, index + 1] if index < 9 else card.text
 	var unplayable: bool = card.cost > combat.ember or combat.combat_over
 	button.disabled = unplayable
 	if unplayable:
@@ -159,6 +186,7 @@ static func card_button(
 	style.corner_radius_bottom_right = 8
 	button.add_theme_stylebox_override("normal", style)
 	button.pressed.connect(on_play)
+	attach_hover_anim(button, 1.06)
 	return button
 
 

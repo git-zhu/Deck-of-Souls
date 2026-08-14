@@ -74,4 +74,5 @@ static func origin_card(origin: OriginData, origin_id: String, on_pick: Callable
 	pick.custom_minimum_size = Vector2(0, 42)
 	pick.pressed.connect(on_pick.bind(origin_id))
 	v.add_child(pick)
+	UiBuilders.attach_hover_anim(panel, 1.02)
 	return panel

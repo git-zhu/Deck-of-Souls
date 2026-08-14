@@ -122,6 +122,14 @@ static func build(
 	hand_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	main.add_child(hand_scroll)
+	# 鼠标滚轮横向滚动手牌（PC 便捷操作）
+	hand_scroll.gui_input.connect(func(ev: InputEvent) -> void:
+		if ev is InputEventMouseButton:
+			var mb := ev as InputEventMouseButton
+			if mb.pressed and (mb.button_index == MOUSE_BUTTON_WHEEL_UP or mb.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+				hand_scroll.scroll_horizontal += int(mb.factor * 90.0) * (1 if mb.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1)
+				hand_scroll.accept_event()
+	)
 
 	refs.hand_row = HBoxContainer.new()
 	refs.hand_row.add_theme_constant_override("separation", 10)

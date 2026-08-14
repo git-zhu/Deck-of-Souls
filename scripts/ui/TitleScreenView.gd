@@ -42,6 +42,13 @@ static func build(
 	hint.add_theme_color_override("font_color", HINT_MUTED)
 	top.add_child(hint)
 
+	var divider := TextureRect.new()
+	divider.texture = load("res://assets/divider_gold.svg") as Texture2D
+	divider.custom_minimum_size = Vector2(380, 24)
+	divider.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	divider.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	top.add_child(divider)
+
 	var bottom := MarginContainer.new()
 	bottom.add_theme_constant_override("margin_bottom", 28)
 	root.add_child(bottom)
