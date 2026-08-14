@@ -31,22 +31,19 @@ static func attach_hover_anim(ctrl: Control, scale: float = 1.03) -> void:
 
 static func panel(bg: Color, border: Color = GameTheme.BORDER, border_width: int = 1) -> PanelContainer:
 	var panel_node := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.set_border_width_all(border_width)
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	style.shadow_color = Color(0, 0, 0, 0.35)
-	style.shadow_size = 6
-	style.shadow_offset = Vector2(0, 3)
-	style.content_margin_left = 14
-	style.content_margin_right = 14
-	style.content_margin_top = 14
-	style.content_margin_bottom = 14
-	panel_node.add_theme_stylebox_override("panel", style)
+	# 9-slice 暗金面板底（角部固定、边缘拉伸；bg/border 参数仅作 fallback 底色）
+	var tex_style := StyleBoxTexture.new()
+	tex_style.texture = load("res://assets/panel_9slice.png") as Texture2D
+	tex_style.texture_margin_left = 24
+	tex_style.texture_margin_right = 24
+	tex_style.texture_margin_top = 24
+	tex_style.texture_margin_bottom = 24
+	tex_style.content_margin_left = 14
+	tex_style.content_margin_right = 14
+	tex_style.content_margin_top = 14
+	tex_style.content_margin_bottom = 14
+	tex_style.draw_center = true
+	panel_node.add_theme_stylebox_override("panel", tex_style)
 	# 金色符文饰条（顶部居中，装饰性叠加）
 	var ornament := TextureRect.new()
 	ornament.texture = load("res://assets/panel_ornament.png") as Texture2D
@@ -309,16 +306,18 @@ static func card_button(
 	effect.text = "[font_size=12]%s[/font_size]" % emphasize_numbers(card.text)
 	v.add_child(effect)
 
-	# 金色符文边框叠加（自产 PNG，艾尔登法环风角饰；跟随按钮尺寸）
-	var frame := TextureRect.new()
-	frame.texture = load("res://assets/card_frame_edge.png") as Texture2D
-	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	button.add_child(frame)
+	# 金色符文边框：9-slice StyleBoxTexture（角部固定、边缘拉伸，无变形）
+	var frame_style := StyleBoxTexture.new()
+	frame_style.texture = load("res://assets/card_frame_9slice.png") as Texture2D
+	frame_style.texture_margin_left = 40
+	frame_style.texture_margin_right = 40
+	frame_style.texture_margin_top = 40
+	frame_style.texture_margin_bottom = 40
+	frame_style.content_margin_left = 12
+	frame_style.content_margin_right = 12
+	frame_style.content_margin_top = 12
+	frame_style.content_margin_bottom = 12
+	button.add_theme_stylebox_override("frame", frame_style)
 
 	button.pressed.connect(on_play)
 	attach_hover_anim(button, 1.06)
