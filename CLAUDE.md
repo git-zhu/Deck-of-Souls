@@ -83,7 +83,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Recommended Next (see `docs/superpowers/plans/`)
 
 1. ~~默认音效包~~（P0 已完成：`audio/*.ogg` + `audio_path_test.gd`）；第四幕（16 层）**暂缓**，不在近期计划内。
-3. 可选 Monte Carlo 平衡工具（P2 候选）。
+2. ~~Monte Carlo 平衡工具~~（P2 已完成：`tools/monte_carlo_balance.gd`；发现预言家对 Boss 偏弱，待平衡调整）。
+3. **预言家（prophet）Boss 平衡调整**（P3 候选，依据 P2 报告）。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
 

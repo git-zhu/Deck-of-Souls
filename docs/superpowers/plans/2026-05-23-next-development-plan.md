@@ -85,7 +85,9 @@
 
 > 依据 CLAUDE.md "Recommended Next" 与本日评估。第四幕（16 层）**暂缓**，不在近期计划。
 
-### P0 — 默认音效包（audio/*.ogg + 路径测试）
+> **执行状态（2026-05-23）：P0 / P1 / P2 均已落实并推送（commit 942d032 / 5e11087 / 1dd623d）。**
+
+### P0 — 默认音效包（audio/*.ogg + 路径测试） ✅ 已完成
 
 **目标：** 让 `GameAudio` 三个钩子（`ui_click` / `victory` / `defeat`）真正发声。
 **内容：**
@@ -93,7 +95,7 @@
 2. 新增 `tools/audio_path_test.gd`：断言三个 `res://audio/*.ogg` 存在且可 `load` 为 `AudioStream`，且 `GameAudio.play` 在资源存在/缺失两种情况下均不报错。
 3. 更新 `audio/README.md` 与 `CLAUDE.md` 测试清单。
 
-### P1 — UI 验证与完善（1280×720 全屏冒烟）
+### P1 — UI 验证与完善（1280×720 全屏冒烟） ✅ 已完成
 
 **目标：** 把所有核心屏幕纳入自动化 UI 校验。
 **内容：**
@@ -101,7 +103,9 @@
 2. 修正发现的布局问题（若有）。
 3. 可选：补 1–2 处高价值 UI 打磨（如地图卡片 hover 高亮、牌组弹窗滚动条样式）。
 
-### P2 — Monte Carlo 平衡工具（可选）
+### P2 — Monte Carlo 平衡工具（可选） ✅ 已完成
+
+**发现：** 预言家（prophet）裸卡组对 Boss 胜率仅 ~20%（其余出身 ≥57%）；普通/精英战对裸卡组全 100% 偏易。详见 `.gstack/qa-reports/monte-carlo-balance-analysis-2026-05-23.md`。
 
 **目标：** 提供快速自动战斗模拟，评估卡组/敌人数值健康度。
 **内容：**
