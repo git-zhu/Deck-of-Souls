@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "finger_seal_w"
+name = "指头圣印记"
+kind = "印记"
+desc = "祷告触媒：祷告伤害提升，回复增强。"
+attack_bonus = 1
+stance_bonus = 0
+block_bonus = 0
+draw_bonus = 0
+effect_hook = "seal_bless"
+origins = Array[String]([])

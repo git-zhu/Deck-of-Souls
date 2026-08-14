@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heater_shield_w"
+name = "熨斗形盾"
+kind = "盾牌"
+desc = "稳固防御：护甲获得加成。"
+attack_bonus = 0
+stance_bonus = 0
+block_bonus = 2
+draw_bonus = 0
+effect_hook = ""
+origins = Array[String]([])

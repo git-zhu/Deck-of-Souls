@@ -28,6 +28,7 @@ var player_vulnerable: int = 0
 var player_strength: int = 0
 var relics: Array[String] = []
 var memory_stones: int = 0
+var weapons: Array[String] = []
 
 
 func act_index() -> int:
@@ -57,6 +58,7 @@ func reset_for_origin(origin: OriginData, seed: int) -> void:
 	player_strength = 0
 	relics.clear()
 	memory_stones = 0
+	weapons.assign(origin.weapons)
 	deck.assign(origin.deck)
 
 

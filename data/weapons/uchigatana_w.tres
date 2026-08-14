@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "uchigatana_w"
+name = "打刀"
+kind = "武器"
+desc = "居合之刃：攻击与姿态兼顾。"
+attack_bonus = 2
+stance_bonus = 1
+block_bonus = 0
+draw_bonus = 0
+effect_hook = "katana_shear"
+origins = Array[String]([])

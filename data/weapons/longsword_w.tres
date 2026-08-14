@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "longsword_w"
+name = "长剑"
+kind = "武器"
+desc = "直剑的平衡设计：稳定加成攻击与姿态削减。"
+attack_bonus = 1
+stance_bonus = 1
+block_bonus = 0
+draw_bonus = 0
+effect_hook = ""
+origins = Array[String]([])

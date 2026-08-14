@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "halberd_w"
+name = "戟"
+kind = "武器"
+desc = "长柄横扫，姿态破坏力出色。"
+attack_bonus = 2
+stance_bonus = 2
+block_bonus = 0
+draw_bonus = 0
+effect_hook = "halberd_sweep"
+origins = Array[String]([])

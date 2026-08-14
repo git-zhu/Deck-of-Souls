@@ -15,3 +15,4 @@ extends Resource
 
 @export_group("Gameplay")
 @export var deck: Array[String] = []
+@export var weapons: Array[String] = []
