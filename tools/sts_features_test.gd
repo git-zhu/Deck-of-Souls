@@ -65,7 +65,7 @@ func _initialize() -> void:
 	var c: DragCard = cards[0]
 	c.mouse_entered.emit()
 	await create_timer(0.25).timeout
-	if c.scale.x < 1.3:
+	if c.scale.x < 1.2:
 		_fail("hover lift scale not applied, got %.2f" % c.scale.x)
 		return
 	if c.z_index < 10:

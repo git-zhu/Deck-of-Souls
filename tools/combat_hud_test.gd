@@ -72,9 +72,12 @@ func _initialize() -> void:
 			_fail("hand card missing cost badge: %s" % btn.name)
 			return
 
-	# 收尾优化校验：自绘意图图标 + 稀有度标签 + 可折叠日志开关
+	# 收尾优化校验：意图横幅（图标 TextureRect + 标签）+ 稀有度标签 + 可折叠日志开关
+	if not _tree_has_label_text(refs.root, "敌方意图"):
+		_fail("combat HUD missing intent banner")
+		return
 	if not _tree_has_intent_icon(refs.root):
-		_fail("combat HUD missing IntentIcon node")
+		_fail("combat HUD missing intent icon")
 		return
 	for btn in card_buttons:
 		if not _button_has_rarity_label(btn):
@@ -144,8 +147,11 @@ const RARITY_LABELS: Array[String] = ["起始", "普通", "罕见", "稀有", "�
 
 
 func _tree_has_intent_icon(node: Node) -> bool:
-	if node.get_script() == IntentIcon:
-		return true
+	# 意图图标：横幅内带贴图的 TextureRect（Kenney PNG 图标）
+	if node is TextureRect:
+		var tr := node as TextureRect
+		if tr.texture != null:
+			return true
 	for child in node.get_children():
 		if _tree_has_intent_icon(child):
 			return true
