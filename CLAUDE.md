@@ -30,6 +30,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - AOE cards + elite groups: `godot4.6 --headless --script tools/aoe_elite_test.gd`
 - Hand card hitbox (mouse_filter consistency): `godot4.6 --headless --script tools/hitbox_test.gd`
 - Drag targeting line (StS-style aim): `godot4.6 --headless --script tools/targeting_line_test.gd`
+- Attribute leveling (ER rune curve): `godot4.6 --headless --script tools/leveling_service_test.gd`
+- ER-style damage formula: `godot4.6 --headless --script tools/damage_formula_test.gd`
+- Smithing stone weapon upgrade: `godot4.6 --headless --script tools/smithing_test.gd`
 - Regenerate 2D art assets: `python tools/generate_assets.py`（自产 PNG：卡牌边框/意图图标/背景/图标）
 
 ## Architecture
@@ -140,6 +143,9 @@ godot4.6 --headless --path . --script tools/multi_enemy_test.gd
 godot4.6 --headless --path . --script tools/multi_enemy_ui_test.gd
 godot4.6 --headless --path . --script tools/aoe_elite_test.gd
 godot4.6 --headless --path . --script tools/targeting_line_test.gd
+godot4.6 --headless --path . --script tools/leveling_service_test.gd
+godot4.6 --headless --path . --script tools/damage_formula_test.gd
+godot4.6 --headless --path . --script tools/smithing_test.gd
 ```
 
 Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_enemies.py`, `build_events.py`.

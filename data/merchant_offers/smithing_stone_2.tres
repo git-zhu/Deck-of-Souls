@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="MerchantOfferData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/MerchantOfferData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "smithing_stone_2"
+title = "2级锻造石×1"
+body = "更纯净的锻造石，强化中等武器。"
+effect = "smithing_stone"
+effect_value = 2
+soul_cost = 50
+min_deck_size = 0
+card_rarity_filter = ""

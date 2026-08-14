@@ -247,6 +247,71 @@ static func build_attr_upgrade_screen(
 	return wrap
 
 
+static func build_weapon_upgrade_screen(
+	run: RunState,
+	weapons_info: Array,
+	on_upgrade: Callable,
+	on_continue: Callable
+) -> Control:
+	# 武器强化：展示已装备武器 + 等级 + 升级成本（锻造石+卢恩）
+	const LevelingService = preload("res://scripts/core/LevelingService.gd")
+	var wrap := _full_vbox(14)
+	wrap.add_child(_heading_label("武器强化"))
+	wrap.add_child(_muted_label("在赐福铁砧上，以锻造石与卢恩强化武器。"))
+	wrap.add_child(_muted_label("锻造石：1级×%d  2级×%d  3级×%d" % [
+		run.smithing_stones[0], run.smithing_stones[1], run.smithing_stones[2]
+	]))
+
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
+	wrap.add_child(grid)
+
+	for info in weapons_info:
+		var wname: String = info.get("name", "")
+		var wlevel: int = int(info.get("level", 0))
+		var wkind: String = info.get("kind", "")
+		var affordable: bool = bool(info.get("affordable", false))
+		var cost_text: String = str(info.get("cost_text", "已满级"))
+		var card := UiBuilders.panel(GameTheme.PANEL)
+		card.custom_minimum_size = Vector2(0, 150)
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var v := VBoxContainer.new()
+		v.add_theme_constant_override("separation", 8)
+		card.add_child(v)
+		var name := Label.new()
+		name.text = "%s  +%d" % [wname, wlevel]
+		name.add_theme_font_size_override("font_size", 20)
+		name.add_theme_color_override("font_color", GameTheme.GOLD)
+		v.add_child(name)
+		var kind := Label.new()
+		kind.text = wkind
+		kind.add_theme_color_override("font_color", GameTheme.BODY_MUTED)
+		v.add_child(kind)
+		var cost := Label.new()
+		cost.text = cost_text
+		cost.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cost.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+		v.add_child(cost)
+		var btn := Button.new()
+		btn.text = "强化"
+		btn.custom_minimum_size = Vector2(0, 40)
+		btn.disabled = not affordable
+		if affordable:
+			btn.pressed.connect(on_upgrade.bind(info.get("id", "")))
+		v.add_child(btn)
+		grid.add_child(card)
+
+	var continue_btn := Button.new()
+	continue_btn.text = "继续上路"
+	continue_btn.custom_minimum_size = Vector2(220, 48)
+	continue_btn.pressed.connect(on_continue)
+	wrap.add_child(continue_btn)
+	return wrap
+
+
 static func build_grace_rest(options: Array, on_pick: Callable) -> Control:
 	var wrap := _full_vbox(16)
 	wrap.add_child(_heading_label("赐福点"))

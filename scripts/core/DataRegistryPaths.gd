@@ -92,6 +92,9 @@ const EVENT_RESOURCES: Array = [
 
 const MERCHANT_OFFER_RESOURCES: Array = [
 	preload("res://data/merchant_offers/ash_replace.tres"),
+	preload("res://data/merchant_offers/smithing_stone_1.tres"),
+	preload("res://data/merchant_offers/smithing_stone_2.tres"),
+	preload("res://data/merchant_offers/smithing_stone_3.tres"),
 	preload("res://data/merchant_offers/blood_vial.tres"),
 	preload("res://data/merchant_offers/curio_card.tres"),
 	preload("res://data/merchant_offers/kindling_sale.tres"),

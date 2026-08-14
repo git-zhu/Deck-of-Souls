@@ -36,6 +36,8 @@ func is_eligible(option: GraceOptionData, run: RunState) -> bool:
 			return run.deck.size() > 5
 		"level_up":
 			return true
+		"weapon_upgrade":
+			return not run.weapons.is_empty()
 		_:
 			return true
 
@@ -100,6 +102,8 @@ func apply(option: GraceOptionData, run: RunState) -> String:
 			]
 		"level_up":
 			return "__level_up__"
+		"weapon_upgrade":
+			return "__weapon_upgrade__"
 		_:
 			return "赐福回响，却无事发生。"
 

@@ -144,6 +144,16 @@ func purchase(
 				"pick_card": false,
 				"paid_cost": paid,
 			}
+		"smithing_stone":
+			# 锻造石商品：effect_value = 等级（1/2/3），获得 1 颗
+			var tier: int = clampi(offer.effect_value, 1, 3) - 1
+			run.smithing_stones[tier] += 1
+			return {
+				"ok": true,
+				"message": "花费 %d 卢恩，获得 %d 级锻造石。" % [paid, offer.effect_value],
+				"pick_card": false,
+				"paid_cost": paid,
+			}
 		_:
 			run.souls += paid
 			return {"ok": false, "message": "咖列耸耸肩，交易失败。", "pick_card": false, "paid_cost": paid}

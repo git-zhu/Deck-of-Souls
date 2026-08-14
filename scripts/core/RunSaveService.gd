@@ -118,6 +118,10 @@ static func run_to_dict(run: RunState) -> Dictionary:
 		"player_strength": run.player_strength,
 		"relics": run.relics.duplicate(),
 		"memory_stones": run.memory_stones,
+		"weapons": run.weapons.duplicate(),
+		"attrs": run.attrs.duplicate(),
+		"attr_levels": run.attr_levels.duplicate(),
+		"smithing_stones": run.smithing_stones.duplicate(),
 	}
 
 
@@ -144,6 +148,21 @@ static func run_from_dict(run: RunState, data: Variant) -> void:
 	run.player_strength = int(d.get("player_strength", 0))
 	run.relics = _string_array_from(d.get("relics", []))
 	run.memory_stones = int(d.get("memory_stones", 0))
+	run.weapons = _string_array_from(d.get("weapons", run.weapons))
+	var attrs_data: Variant = d.get("attrs", {})
+	if typeof(attrs_data) == TYPE_DICTIONARY:
+		for k in run.attrs:
+			if (attrs_data as Dictionary).has(k):
+				run.attrs[k] = int((attrs_data as Dictionary)[k])
+	var levels_data: Variant = d.get("attr_levels", {})
+	if typeof(levels_data) == TYPE_DICTIONARY:
+		for k in run.attr_levels:
+			if (levels_data as Dictionary).has(k):
+				run.attr_levels[k] = int((levels_data as Dictionary)[k])
+	var stones_data: Variant = d.get("smithing_stones", [])
+	if typeof(stones_data) == TYPE_ARRAY:
+		for i in range(mini(3, (stones_data as Array).size())):
+			run.smithing_stones[i] = int((stones_data as Array)[i])
 
 
 static func combat_to_dict(combat: CombatController) -> Dictionary:

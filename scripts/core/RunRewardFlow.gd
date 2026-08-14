@@ -239,6 +239,9 @@ func on_grace_option_picked(option: GraceOptionData) -> void:
 	if summary == "__level_up__":
 		show_attr_upgrade()
 		return
+	if summary == "__weapon_upgrade__":
+		show_weapon_upgrade()
+		return
 	if summary == GraceService.PICK_CARD:
 		show_remove_card_picker(
 			"遗忘仪式",
@@ -274,6 +277,50 @@ func show_attr_upgrade() -> void:
 			func() -> void: show_grace_result("属性升级", "潜能已被唤醒。")
 		)
 	)
+
+
+func show_weapon_upgrade() -> void:
+	# 武器强化界面
+	host.call(
+		"_present_reward_layer",
+		RewardLayerViews.build_weapon_upgrade_screen(
+			host.get("run_state"),
+			_weapon_upgrade_infos(),
+			_on_weapon_upgrade_pressed,
+			func() -> void: show_grace_result("武器强化", "武器在铁砧上微微发亮。")
+		)
+	)
+
+
+func _weapon_upgrade_infos() -> Array:
+	var run_state = host.get("run_state")
+	var registry = host.get("registry")
+	var infos: Array = []
+	for wid in run_state.weapons:
+		var weapon = registry.get_weapon(str(wid))
+		if weapon == null:
+			continue
+		infos.append({
+			"id": weapon.id,
+			"name": weapon.name,
+			"kind": weapon.kind,
+			"level": weapon.level,
+			"affordable": LevelingService.weapon_can_afford(run_state, weapon.level),
+			"cost_text": LevelingService.weapon_upgrade_cost_text(weapon.level),
+		})
+	return infos
+
+
+func _on_weapon_upgrade_pressed(weapon_id: String) -> void:
+	var run_state = host.get("run_state")
+	var registry = host.get("registry")
+	var weapon = registry.get_weapon(weapon_id)
+	if weapon == null:
+		return
+	var result: Dictionary = LevelingService.apply_weapon_upgrade(run_state, weapon.level)
+	if bool(result.get("ok", false)):
+		weapon.level += 1
+		show_weapon_upgrade()
 
 
 func _on_attr_upgrade_pressed(key: String) -> void:

@@ -428,6 +428,8 @@ func check_enemy_death(target_idx: int = -1) -> void:
 		var soul_gain: int = int(e.souls) + relic_service.combat_souls_bonus(run, registry)
 		run.souls += soul_gain
 		combat_log("%s 倒下。你获得 %d 卢恩。" % [e.name, soul_gain])
+		# 锻造石掉落：普通战低概率 1 级石；精英/幕 Boss 更高等级
+		_roll_smithing_stone(e)
 
 
 func check_combat_end() -> void:
@@ -447,6 +449,28 @@ func check_combat_end() -> void:
 		combat_ended.emit("elite_reward")
 	else:
 		combat_ended.emit("reward")
+
+
+# 锻造石掉落（法环式）：普通战 1 级石，精英 2 级石，幕 Boss 3 级石
+func _roll_smithing_stone(e: Dictionary) -> void:
+	var is_boss: bool = bool(e.get("is_act_boss", false)) or bool(e.get("is_run_boss", false))
+	var is_elite: bool = bool(e.get("elite", false))
+	var roll: int = rng.randi_range(1, 100)
+	if is_boss:
+		if roll <= 70:
+			run.smithing_stones[2] += 1
+			combat_log("你获得 3 级锻造石。")
+	elif is_elite:
+		if roll <= 50:
+			run.smithing_stones[1] += 1
+			combat_log("你获得 2 级锻造石。")
+		elif roll <= 65:
+			run.smithing_stones[2] += 1
+			combat_log("你获得 3 级锻造石。")
+	else:
+		if roll <= 35:
+			run.smithing_stones[0] += 1
+			combat_log("你获得 1 级锻造石。")
 
 
 func roll_rewards(act: ActData = null) -> Array[String]:
