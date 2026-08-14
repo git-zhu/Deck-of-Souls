@@ -93,8 +93,9 @@ static func build(
 				pulse.kill()
 		)
 
-	# ── 中央战斗区域：玩家 ←→ 敌人（镀金框 + 主体） ──
+	# ── 中央战斗区域：玩家 ←→ 敌人（镀金框 + 主体；有最小高度防止折叠） ──
 	var stage_wrap := Control.new()
+	stage_wrap.custom_minimum_size = Vector2(0, 150)
 	stage_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main.add_child(stage_wrap)
 	var stage_frame := GildedFrame.new()
@@ -128,7 +129,7 @@ static func build(
 	bottom_row.add_child(refs.flask_button)
 
 	var hand_scroll := ScrollContainer.new()
-	hand_scroll.custom_minimum_size = Vector2(0, card_h + 16)
+	hand_scroll.custom_minimum_size = Vector2(0, card_h + 12)
 	hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hand_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -188,7 +189,7 @@ static func build(
 	refs.log_box.fit_content = false
 	refs.log_box.scroll_following = true
 	refs.log_box.scroll_active = false
-	refs.log_box.custom_minimum_size = Vector2(0, 44)
+	refs.log_box.custom_minimum_size = Vector2(0, 36)
 	refs.log_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	refs.log_box.add_theme_font_size_override("normal_font_size", 13)
 	refs.log_box.add_theme_color_override("default_color", Color(0.72, 0.68, 0.6, 0.8))

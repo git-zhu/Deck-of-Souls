@@ -233,10 +233,19 @@ static func card_button(
 	disabled_style.bg_color = Color("#1c1a16")
 	button.add_theme_stylebox_override("disabled", disabled_style)
 
+	var v_margin := MarginContainer.new()
+	v_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	v_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v_margin.add_theme_constant_override("margin_left", 8)
+	v_margin.add_theme_constant_override("margin_right", 8)
+	v_margin.add_theme_constant_override("margin_top", 6)
+	v_margin.add_theme_constant_override("margin_bottom", 6)
+	v_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(v_margin)
 	var v := VBoxContainer.new()
-	v.set_anchors_preset(Control.PRESET_FULL_RECT)
 	v.add_theme_constant_override("separation", 2)
-	button.add_child(v)
+	v_margin.add_child(v)
 
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 5)
@@ -309,14 +318,14 @@ static func card_button(
 	# 金色符文边框：9-slice StyleBoxTexture（角部固定、边缘拉伸，无变形）
 	var frame_style := StyleBoxTexture.new()
 	frame_style.texture = load("res://assets/card_frame_9slice.png") as Texture2D
-	frame_style.texture_margin_left = 40
-	frame_style.texture_margin_right = 40
-	frame_style.texture_margin_top = 40
-	frame_style.texture_margin_bottom = 40
-	frame_style.content_margin_left = 12
-	frame_style.content_margin_right = 12
-	frame_style.content_margin_top = 12
-	frame_style.content_margin_bottom = 12
+	frame_style.texture_margin_left = 24
+	frame_style.texture_margin_right = 24
+	frame_style.texture_margin_top = 24
+	frame_style.texture_margin_bottom = 24
+	frame_style.content_margin_left = 8
+	frame_style.content_margin_right = 8
+	frame_style.content_margin_top = 6
+	frame_style.content_margin_bottom = 6
 	button.add_theme_stylebox_override("frame", frame_style)
 
 	button.pressed.connect(on_play)
@@ -371,7 +380,21 @@ static func compact_fighter_hud(
 		border = GameTheme.GOLD
 		border_width = 2
 
-	var panel_node := panel(bg, border, border_width)
+	# 紧凑 9-slice 面板：content margin 6px（默认 14px 会导致 HUD 过高）
+	var panel_node := PanelContainer.new()
+	var pstyle := StyleBoxTexture.new()
+	pstyle.texture = load("res://assets/panel_9slice.png") as Texture2D
+	pstyle.texture_margin_left = 24
+	pstyle.texture_margin_right = 24
+	pstyle.texture_margin_top = 24
+	pstyle.texture_margin_bottom = 24
+	pstyle.content_margin_left = 10
+	pstyle.content_margin_right = 10
+	pstyle.content_margin_top = 6
+	pstyle.content_margin_bottom = 6
+	if border_width >= 2:
+		pstyle.modulate_color = border
+	panel_node.add_theme_stylebox_override("panel", pstyle)
 	panel_node.custom_minimum_size = Vector2(228, 0)
 	panel_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
@@ -447,20 +470,32 @@ static func status_chip(text: String, color: Color) -> PanelContainer:
 
 
 static func intent_banner(intent_kind: String, intent_text: String) -> PanelContainer:
-	# 敌人意图：高优先级视觉元素（图标 + 大字号 + 语义色描边）
+	# 敌人意图：高优先级视觉元素（图标 + 大字号 + 语义色描边；紧凑高度）
 	var accent := GameTheme.intent_color(intent_kind)
-	var panel_node := panel(Color("#1d1812"), accent.lightened(0.15), 2)
-	panel_node.custom_minimum_size = Vector2(0, 58)
+	# 紧凑面板：不用默认 14px content margin，改用 8px
+	var panel_node := PanelContainer.new()
+	var pstyle := StyleBoxTexture.new()
+	pstyle.texture = load("res://assets/panel_9slice.png") as Texture2D
+	pstyle.texture_margin_left = 24
+	pstyle.texture_margin_right = 24
+	pstyle.texture_margin_top = 24
+	pstyle.texture_margin_bottom = 24
+	pstyle.content_margin_left = 8
+	pstyle.content_margin_right = 8
+	pstyle.content_margin_top = 6
+	pstyle.content_margin_bottom = 6
+	panel_node.add_theme_stylebox_override("panel", pstyle)
+	panel_node.custom_minimum_size = Vector2(0, 56)
 	panel_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", 10)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	panel_node.add_child(row)
 
 	var tag := Label.new()
 	tag.text = "敌方意图"
-	tag.add_theme_font_size_override("font_size", 14)
+	tag.add_theme_font_size_override("font_size", 13)
 	tag.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
 	row.add_child(tag)
 
@@ -468,14 +503,14 @@ static func intent_banner(intent_kind: String, intent_text: String) -> PanelCont
 	var icon_path := _intent_icon_path(intent_kind)
 	var icon := IntentIcon.new()
 	icon.setup(intent_kind)
-	icon.custom_minimum_size = Vector2(38, 38)
+	icon.custom_minimum_size = Vector2(30, 30)
 	row.add_child(icon)
 	if icon_path != "":
 		var tex := load(icon_path) as Texture2D
 		if tex != null:
 			var tex_icon := TextureRect.new()
 			tex_icon.texture = tex
-			tex_icon.custom_minimum_size = Vector2(38, 38)
+			tex_icon.custom_minimum_size = Vector2(30, 30)
 			tex_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			tex_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			tex_icon.modulate = accent
@@ -484,7 +519,7 @@ static func intent_banner(intent_kind: String, intent_text: String) -> PanelCont
 
 	var action := Label.new()
 	action.text = intent_text
-	action.add_theme_font_size_override("font_size", 28)
+	action.add_theme_font_size_override("font_size", 24)
 	action.add_theme_color_override("font_color", accent.lightened(0.25))
 	row.add_child(action)
 	return panel_node
