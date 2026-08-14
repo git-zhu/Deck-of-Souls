@@ -40,15 +40,40 @@ static func build(registry: DataRegistry, on_pick_origin: Callable) -> Control:
 
 static func origin_card(origin: OriginData, origin_id: String, on_pick: Callable) -> PanelContainer:
 	var panel := UiBuilders.panel(GameTheme.PANEL)
-	panel.custom_minimum_size = Vector2(0, 210)
+	panel.custom_minimum_size = Vector2(0, 260)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 8)
 	panel.add_child(v)
 
+	# 出身头像（免费素材）
+	var portrait_path := GameTheme.origin_portrait(origin_id)
+	if portrait_path != "":
+		var portrait := TextureRect.new()
+		portrait.texture = load(portrait_path) as Texture2D
+		portrait.custom_minimum_size = Vector2(96, 96)
+		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		# 圆形头像框（金色描边）
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0)
+		style.border_color = GameTheme.GOLD.darkened(0.2)
+		style.set_border_width_all(2)
+		style.corner_radius_top_left = 48
+		style.corner_radius_top_right = 48
+		style.corner_radius_bottom_left = 48
+		style.corner_radius_bottom_right = 48
+		var portrait_panel := PanelContainer.new()
+		portrait_panel.add_theme_stylebox_override("panel", style)
+		portrait_panel.custom_minimum_size = Vector2(100, 100)
+		portrait_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		portrait_panel.add_child(portrait)
+		v.add_child(portrait_panel)
+
 	var name := Label.new()
 	name.text = "%s  Lv.%d" % [origin.name, origin.level]
-	name.add_theme_font_size_override("font_size", 25)
+	name.add_theme_font_size_override("font_size", 22)
 	name.add_theme_color_override("font_color", GameTheme.GOLD)
 	v.add_child(name)
 

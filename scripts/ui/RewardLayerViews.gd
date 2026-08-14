@@ -111,15 +111,114 @@ static func card_reward_button(card: CardData, on_press: Callable) -> Button:
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(250, 320)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if card != null:
-		button.text = "%s\n%s  集中:%d\n稀有度:%s\n\n%s" % [
-			card.name, card.type, card.cost, card.rarity, card.text
-		]
-	else:
+	if card == null:
 		button.text = "未知卡牌"
+		button.pressed.connect(on_press)
+		UiBuilders.attach_hover_anim(button, 1.04)
+		return button
+
+	var accent := GameTheme.card_type_color(card.type)
+	var base := StyleBoxFlat.new()
+	base.bg_color = accent.darkened(0.7)
+	base.border_color = accent.lightened(0.15)
+	base.set_border_width_all(2)
+	base.corner_radius_top_left = 8
+	base.corner_radius_top_right = 8
+	base.corner_radius_bottom_left = 8
+	base.corner_radius_bottom_right = 8
+	base.content_margin_left = 10
+	base.content_margin_right = 10
+	base.content_margin_top = 8
+	base.content_margin_bottom = 8
+	button.add_theme_stylebox_override("normal", base)
+	var hover := base.duplicate() as StyleBoxFlat
+	hover.border_color = accent.lightened(0.4)
+	button.add_theme_stylebox_override("hover", hover)
 	button.pressed.connect(on_press)
 	UiBuilders.attach_hover_anim(button, 1.04)
+
+	var v := MarginContainer.new()
+	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_theme_constant_override("margin_left", 8)
+	v.add_theme_constant_override("margin_right", 8)
+	v.add_theme_constant_override("margin_top", 8)
+	v.add_theme_constant_override("margin_bottom", 8)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(v)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 6)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(col)
+
+	var art := PanelContainer.new()
+	art.custom_minimum_size = Vector2(0, 100)
+	art.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var art_style := StyleBoxFlat.new()
+	art_style.bg_color = accent.darkened(0.55)
+	art_style.border_color = accent.lightened(0.2)
+	art_style.set_border_width_all(1)
+	art_style.corner_radius_top_left = 6
+	art_style.corner_radius_top_right = 6
+	art_style.corner_radius_bottom_left = 6
+	art_style.corner_radius_bottom_right = 6
+	art.add_theme_stylebox_override("panel", art_style)
+	var art_center := CenterContainer.new()
+	art_center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	art.add_child(art_center)
+	var art_icon := Label.new()
+	art_icon.text = _card_type_glyph(card.type)
+	art_icon.add_theme_font_size_override("font_size", 56)
+	art_icon.add_theme_color_override("font_color", accent.lightened(0.35))
+	art_center.add_child(art_icon)
+	col.add_child(art)
+
+	var name := Label.new()
+	name.text = card.name
+	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name.add_theme_font_size_override("font_size", GameTheme.FONT_LG)
+	name.add_theme_color_override("font_color", Color("#f0e5cd"))
+	col.add_child(name)
+
+	var meta := Label.new()
+	meta.text = "%s  ·  集中 %d  ·  %s" % [card.type, card.cost, card.rarity]
+	meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	meta.add_theme_font_size_override("font_size", GameTheme.FONT_XS)
+	meta.add_theme_color_override("font_color", accent.lightened(0.3))
+	col.add_child(meta)
+
+	var effect := Label.new()
+	effect.text = card.text
+	effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	effect.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	effect.add_theme_font_size_override("font_size", GameTheme.FONT_SM)
+	effect.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+	col.add_child(effect)
 	return button
+
+
+static func _card_type_glyph(type_name: String) -> String:
+	# 类型字形（卡面插画带图标）
+	match type_name:
+		"武器":
+			return "⚔"
+		"魔法":
+			return "✦"
+		"祷告":
+			return "✧"
+		"战灰":
+			return "❖"
+		"盾牌":
+			return "◈"
+		"圣杯瓶":
+			return "✚"
+		"壶":
+			return "⬢"
+		"传说":
+			return "★"
+		_:
+			return "◆"
 
 
 static func build_merchant_screen(
