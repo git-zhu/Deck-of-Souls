@@ -2,8 +2,8 @@ extends Control
 
 enum GameScreen { TITLE, ORIGIN, MAP, COMBAT, REWARD, GAME_OVER, VICTORY }
 
-const CARD_W := 132.0
-const CARD_H := 178.0
+const CARD_W := 118.0
+const CARD_H := 156.0
 const STARTER_DECK := [
 	"longsword", "longsword", "longsword",
 	"heater_shield", "heater_shield", "heater_shield",

@@ -11,6 +11,7 @@ const CardData = preload("res://data/CardData.gd")
 
 const PLAYER_PANEL_BG := Color("#1d1a15")
 const ENEMY_PANEL_BG := Color("#1d1714")
+const GildedFrame = preload("res://scripts/ui/GildedFrame.gd")
 
 
 static func build(
@@ -76,17 +77,32 @@ static func build(
 	refs.enemy_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
 	top_row.add_child(refs.enemy_panel)
 
-	# ── 敌人意图：高优先级视觉元素 ──
+	# ── 敌人意图：高优先级视觉元素（攻击意图轻微脉冲强调） ──
 	var intent_panel := UiBuilders.intent_banner(
 		str(combat.enemy_intent.get("kind", "")),
 		combat.intent_text()
 	)
 	main.add_child(intent_panel)
+	var intent_kind := str(combat.enemy_intent.get("kind", ""))
+	if intent_kind in ["attack", "attack_block", "attack_rot"]:
+		var pulse := intent_panel.create_tween().set_loops()
+		pulse.tween_property(intent_panel, "modulate", Color(1, 1, 1, 0.82), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		pulse.tween_property(intent_panel, "modulate", Color(1, 1, 1, 1), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		intent_panel.tree_exiting.connect(func() -> void:
+			if pulse != null and pulse.is_valid():
+				pulse.kill()
+		)
 
-	# ── 中央战斗区域：玩家 ←→ 敌人 ──
+	# ── 中央战斗区域：玩家 ←→ 敌人（镀金框 + 主体） ──
+	var stage_wrap := Control.new()
+	stage_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main.add_child(stage_wrap)
+	var stage_frame := GildedFrame.new()
+	stage_frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	stage_wrap.add_child(stage_frame)
 	var stage := UiBuilders.combat_stage("褪色者", combat.enemy.name)
-	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main.add_child(stage)
+	stage.set_anchors_preset(Control.PRESET_FULL_RECT)
+	stage_wrap.add_child(stage)
 
 	# ── 资源 HUD：紧凑 chip 行 ──
 	var resource_row := HBoxContainer.new()
@@ -108,6 +124,7 @@ static func build(
 		run_state.flasks <= 0 or run_state.hp >= run_state.max_hp,
 		on_flask
 	)
+	refs.flask_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bottom_row.add_child(refs.flask_button)
 
 	var hand_scroll := ScrollContainer.new()
@@ -150,6 +167,7 @@ static func build(
 			)
 
 	refs.end_turn_button = UiBuilders.end_turn_button(combat.combat_over, on_end_turn)
+	refs.end_turn_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bottom_row.add_child(refs.end_turn_button)
 
 	# ── 战斗日志：低视觉权重（细条、弱化） ──
