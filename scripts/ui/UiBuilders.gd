@@ -4,6 +4,7 @@ extends RefCounted
 const GameTheme = preload("res://scripts/ui/GameTheme.gd")
 const CardData = preload("res://data/CardData.gd")
 const CombatController = preload("res://scripts/core/CombatController.gd")
+const DragCard = preload("res://scripts/ui/DragCard.gd")
 const IntentIcon = preload("res://scripts/ui/IntentIcon.gd")
 
 
@@ -188,7 +189,9 @@ static func card_button(
 	var accent := GameTheme.card_type_color(card.type)
 	var unplayable: bool = card.cost > combat.ember or combat.combat_over
 
-	var button := Button.new()
+	# 可拖拽手牌（DragCard）：拖到敌人/战斗区域打出；点击同样可打出
+	var button := DragCard.new()
+	button.setup(index, on_play)
 	button.custom_minimum_size = Vector2(card_w, card_h)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	button.text = ""

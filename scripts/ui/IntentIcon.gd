@@ -20,7 +20,8 @@ func _draw() -> void:
 	if kind.is_empty() or size.x <= 0.0 or size.y <= 0.0:
 		return
 	var center := get_rect().get_center()
-	var r := minf(size.x, size.y) * 0.46
+	# 半径取控件 35%（原 46% 导致图形顶点/描边超出控件边界）
+	var r := minf(size.x, size.y) * 0.35
 	match kind:
 		"attack", "attack_block", "attack_rot":
 			_draw_triangle(center, r, COLOR_ATTACK)

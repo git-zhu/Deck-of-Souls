@@ -23,6 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Audio assets: `godot4.6 --headless --script tools/audio_path_test.gd`
 - UI screens: `godot4.6 --headless --script tools/ui_screen_test.gd`
 - Keyboard shortcuts: `godot4.6 --headless --script tools/input_test.gd`
+- Drag-to-play hand cards: `godot4.6 --headless --script tools/drag_test.gd`
 - Regenerate 2D art assets: `python tools/generate_assets.py`（自产 PNG：卡牌边框/意图图标/背景/图标）
 
 ## Architecture
@@ -126,6 +127,7 @@ godot4.6 --headless --path . --script tools/origin_screen_test.gd
 godot4.6 --headless --path . --script tools/audio_path_test.gd
 godot4.6 --headless --path . --script tools/ui_screen_test.gd
 godot4.6 --headless --path . --script tools/input_test.gd
+godot4.6 --headless --path . --script tools/drag_test.gd
 ```
 
 Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_enemies.py`, `build_events.py`.

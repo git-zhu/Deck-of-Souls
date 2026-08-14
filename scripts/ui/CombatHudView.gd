@@ -12,6 +12,13 @@ const CardData = preload("res://data/CardData.gd")
 const PLAYER_PANEL_BG := Color("#1d1a15")
 const ENEMY_PANEL_BG := Color("#1d1714")
 const GildedFrame = preload("res://scripts/ui/GildedFrame.gd")
+const DropZone = preload("res://scripts/ui/DropZone.gd")
+
+
+# 拖拽投放回调：把拖来的卡打到目标敌人（target_id 预留多敌人；当前单敌人恒为 ""）
+static func _make_drop_handler(on_play_card: Callable) -> Callable:
+	return func(card_index: int, target_id: String) -> void:
+		on_play_card.call(card_index)
 
 
 static func build(
@@ -77,6 +84,13 @@ static func build(
 	refs.enemy_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
 	top_row.add_child(refs.enemy_panel)
 
+	# 敌人投放目标区（接收手牌拖拽；target_id 预留多敌人）
+	var enemy_zone := DropZone.new()
+	enemy_zone.setup("", _make_drop_handler(on_play_card))
+	enemy_zone.set_anchors_preset(Control.PRESET_FULL_RECT)
+	refs.enemy_panel.add_child(enemy_zone)
+	enemy_zone.move_to_front()
+
 	# ── 敌人意图：高优先级视觉元素（攻击意图轻微脉冲强调） ──
 	var intent_panel := UiBuilders.intent_banner(
 		str(combat.enemy_intent.get("kind", "")),
@@ -104,6 +118,13 @@ static func build(
 	var stage := UiBuilders.combat_stage("褪色者", combat.enemy.name)
 	stage.set_anchors_preset(Control.PRESET_FULL_RECT)
 	stage_wrap.add_child(stage)
+
+	# 战斗区域投放目标（拖到舞台中央也可出牌）
+	var stage_zone := DropZone.new()
+	stage_zone.setup("", _make_drop_handler(on_play_card))
+	stage_zone.set_anchors_preset(Control.PRESET_FULL_RECT)
+	stage_wrap.add_child(stage_zone)
+	stage_zone.move_to_front()
 
 	# ── 资源 HUD：紧凑 chip 行 ──
 	var resource_row := HBoxContainer.new()
