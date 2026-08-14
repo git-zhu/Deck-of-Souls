@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#171310"/>
+      <stop offset="50%" stop-color="#201a14"/>
+      <stop offset="100%" stop-color="#0c0907"/>
+    </linearGradient>
+    <radialGradient id="fire" cx="0.5" cy="0.85" r="0.5">
+      <stop offset="0%" stop-color="#ff9a3c" stop-opacity="0.18"/>
+      <stop offset="50%" stop-color="#c96a1e" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="torch" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#ffd28a" stop-opacity="0.9"/>
+      <stop offset="35%" stop-color="#e8791e" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#e8791e" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#sky)"/>
+
+  <!-- Stone floor lines -->
+  <g stroke="#2e271d" stroke-width="1.2" opacity="0.5">
+    <path d="M0,560 L1280,520"/>
+    <path d="M0,610 L1280,575"/>
+    <path d="M0,660 L1280,630"/>
+    <path d="M0,700 L1280,690"/>
+    <line x1="320" y1="500" x2="300" y2="720"/>
+    <line x1="640" y1="470" x2="620" y2="720"/>
+    <line x1="960" y1="500" x2="980" y2="720"/>
+  </g>
+
+  <!-- Broken pillars -->
+  <g fill="#14100c" opacity="0.9">
+    <rect x="90" y="330" width="46" height="300"/>
+    <rect x="70" y="300" width="86" height="36"/>
+    <rect x="1140" y="360" width="40" height="270"/>
+    <rect x="1122" y="332" width="76" height="32"/>
+  </g>
+
+  <!-- Campfire glow -->
+  <circle cx="640" cy="640" r="200" fill="url(#fire)"/>
+
+  <!-- Campfire embers -->
+  <g filter="url(#blur)">
+    <ellipse cx="640" cy="650" rx="26" ry="10" fill="#ff8a2a" opacity="0.5"/>
+    <ellipse cx="632" cy="630" rx="10" ry="18" fill="#ffb35c" opacity="0.35"/>
+  </g>
+
+  <!-- Torch on left pillar -->
+  <g transform="translate(113, 300)">
+    <circle r="30" fill="url(#torch)"/>
+    <path d="M0,0 q6,-18 0,-30 q-6,12 -10,8 z" fill="#ffd28a" opacity="0.8"/>
+    <rect x="-3" y="0" width="6" height="20" fill="#4a3a24"/>
+  </g>
+
+  <!-- Torch on right pillar -->
+  <g transform="translate(1160, 362)">
+    <circle r="26" fill="url(#torch)"/>
+    <path d="M0,0 q5,-16 0,-26 q-5,10 -8,7 z" fill="#ffd28a" opacity="0.8"/>
+    <rect x="-3" y="0" width="6" height="18" fill="#4a3a24"/>
+  </g>
+
+  <!-- Ground fade -->
+  <rect y="600" width="1280" height="120" fill="#0a0806" opacity="0.85"/>
+</svg>

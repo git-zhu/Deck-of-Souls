@@ -1,6 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect width="128" height="128" fill="#15120f"/>
-  <circle cx="64" cy="64" r="43" fill="none" stroke="#c9a45d" stroke-width="7"/>
-  <path d="M64 18 L70 55 L108 64 L70 73 L64 110 L58 73 L20 64 L58 55 Z" fill="#e7d08d"/>
-  <circle cx="64" cy="64" r="9" fill="#472f1e"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#241d16"/>
+      <stop offset="100%" stop-color="#0d0a08"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0%" stop-color="#e8c66a" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" fill="url(#bg)"/>
+  <rect width="128" height="128" fill="url(#glow)"/>
+
+  <!-- Golden ring (Elden Ring motif) -->
+  <g transform="translate(64, 58)">
+    <circle r="40" fill="none" stroke="#e8c66a" stroke-width="4"/>
+    <circle r="48" fill="none" stroke="#c9a227" stroke-width="1.6" opacity="0.6"/>
+    <circle r="32" fill="none" stroke="#e8c66a" stroke-width="1.6" stroke-dasharray="9 7" opacity="0.5"/>
+
+    <!-- Runes -->
+    <g stroke="#e8c66a" stroke-width="2.4" fill="none">
+      <path d="M-12,-24 L0,-33 L12,-24"/>
+      <path d="M24,-12 L33,0 L24,12"/>
+      <path d="M12,24 L0,33 L-12,24"/>
+      <path d="M-24,12 L-33,0 L-24,-12"/>
+      <path d="M0,-12 L9,8 L-9,8 Z"/>
+    </g>
+  </g>
+
+  <!-- Sword crossing below -->
+  <g stroke="#b9ac94" stroke-width="3" stroke-linecap="round" opacity="0.75">
+    <line x1="34" y1="108" x2="64" y2="84"/>
+    <line x1="94" y1="108" x2="64" y2="84"/>
+  </g>
+  <g fill="#b9ac94" opacity="0.75">
+    <rect x="56" y="108" width="16" height="4"/>
+  </g>
 </svg>

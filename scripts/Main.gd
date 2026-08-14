@@ -106,11 +106,18 @@ func _on_combat_ended(kind: String) -> void:
 	run_flow.on_combat_ended(kind)
 
 
+var bg_rect: TextureRect
+var _bg_current: String = ""
+
+
 func _build_ui() -> void:
-	var bg := ColorRect.new()
-	bg.color = GameTheme.BG
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	bg_rect = TextureRect.new()
+	bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	bg_rect.texture = _load_bg("bg_elden")
+	bg_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bg_rect)
 
 	root = MarginContainer.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -149,9 +156,46 @@ func _new_layer(parent: Control) -> Control:
 	return layer
 
 
+func _load_bg(kind: String) -> Texture2D:
+	match kind:
+		"combat":
+			return load("res://assets/bg_combat.svg") as Texture2D
+		_:
+			return load("res://assets/bg_elden.svg") as Texture2D
+
+
+func _show_bg(kind: String) -> void:
+	if bg_rect == null or kind == _bg_current:
+		return
+	bg_rect.texture = _load_bg(kind)
+	_bg_current = kind
+
+
 func _clear(node: Node) -> void:
 	for child in node.get_children():
 		child.queue_free()
+
+
+var _active_tween: Tween
+
+
+func _animate_layer(layer: Control) -> void:
+	# 屏幕切换：淡入 + 轻微上浮（120ms），贴近法环"雾门"过渡感
+	var prev: Tween = layer.get_meta("_anim_tween", null)
+	if prev != null and prev.is_valid():
+		prev.kill()
+	layer.modulate = Color(1, 1, 1, 0)
+	layer.position = Vector2(0, 14)
+	var tw := layer.create_tween()
+	layer.set_meta("_anim_tween", tw)
+	tw.set_parallel(true)
+	tw.tween_property(layer, "modulate", Color(1, 1, 1, 1), 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(layer, "position", Vector2(0, 0), 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# 层被释放时自动终止动画，避免 headless 快速切换下 CanvasItem 泄漏
+	layer.tree_exiting.connect(func() -> void:
+		if tw != null and tw.is_valid():
+			tw.kill()
+	)
 
 
 func _hide_layers() -> void:
@@ -164,11 +208,13 @@ func _hide_layers() -> void:
 func _present_reward_layer(root: Control) -> void:
 	screen = GameScreen.REWARD
 	_hide_layers()
+	_show_bg("bg_elden")
 	reward_layer.visible = true
 	_clear(reward_layer)
 	_build_header()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	reward_layer.add_child(root)
+	_animate_layer(reward_layer)
 	_maybe_autosave()
 
 
@@ -181,12 +227,14 @@ func _show_title() -> void:
 	_hide_pause_menu()
 	screen = GameScreen.TITLE
 	_hide_layers()
+	_show_bg("bg_elden")
 	title_layer.visible = true
 	_clear(title_layer)
 	var has_save := RunSaveService.has_save()
 	title_layer.add_child(
 		TitleScreenView.build(has_save, _on_title_new_game, _on_title_continue, _on_title_quit)
 	)
+	_animate_layer(title_layer)
 
 
 func _on_title_new_game() -> void:
@@ -218,10 +266,12 @@ func _on_title_quit() -> void:
 func _show_origin() -> void:
 	screen = GameScreen.ORIGIN
 	_hide_layers()
+	_show_bg("bg_elden")
 	title_layer.visible = true
 	_clear(title_layer)
 	_build_header()
 	title_layer.add_child(OriginScreenView.build(registry, _start_run))
+	_animate_layer(title_layer)
 
 
 func _start_run(origin_id: String = "vagabond") -> void:
@@ -244,10 +294,12 @@ func _show_map() -> void:
 func _enter_map_layer(content: Control) -> void:
 	screen = GameScreen.MAP
 	_hide_layers()
+	_show_bg("bg_elden")
 	map_layer.visible = true
 	_clear(map_layer)
 	_build_header()
 	map_layer.add_child(content)
+	_animate_layer(map_layer)
 	_maybe_autosave()
 
 
@@ -290,6 +342,7 @@ func _end_player_turn() -> void:
 
 func _render_combat() -> void:
 	_hide_layers()
+	_show_bg("combat")
 	combat_layer.visible = true
 	_clear(combat_layer)
 	_build_header()
@@ -311,6 +364,7 @@ func _render_combat() -> void:
 	hand_row = refs.hand_row
 	flask_button = refs.flask_button
 	end_turn_button = refs.end_turn_button
+	_animate_layer(combat_layer)
 
 
 func _build_header() -> void:
@@ -378,9 +432,11 @@ func _show_game_over() -> void:
 	GameAudio.play(self, "defeat")
 	screen = GameScreen.GAME_OVER
 	_hide_layers()
+	_show_bg("bg_elden")
 	end_layer.visible = true
 	_clear(end_layer)
 	end_layer.add_child(EndScreenView.build_game_over(_show_origin))
+	_animate_layer(end_layer)
 
 
 func _show_victory() -> void:
@@ -388,11 +444,13 @@ func _show_victory() -> void:
 	GameAudio.play(self, "victory")
 	screen = GameScreen.VICTORY
 	_hide_layers()
+	_show_bg("bg_elden")
 	end_layer.visible = true
 	_clear(end_layer)
 	end_layer.add_child(
 		EndScreenView.build_victory(run_state.souls, run_state.deck.size(), _start_run)
 	)
+	_animate_layer(end_layer)
 
 
 var log_lines: Array[String] = []
