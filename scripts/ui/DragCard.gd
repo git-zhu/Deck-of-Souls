@@ -12,6 +12,36 @@ var on_drag_start: Callable
 func setup(p_index: int, p_on_play: Callable) -> void:
 	card_index = p_index
 	on_play = p_on_play
+	_setup_hover_lift()
+
+
+# StS 式悬停：拿起牌（放大 1.5x + 上浮 + z 提升），离开放下
+func _setup_hover_lift() -> void:
+	mouse_entered.connect(func() -> void:
+		if disabled:
+			return
+		_kill_hover()
+		z_index = 50
+		var tw := create_tween().set_parallel(true)
+		set_meta("_lift_tween", tw)
+		tw.tween_property(self, "scale", Vector2(1.45, 1.45), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(self, "position", Vector2(position.x, position.y - 18.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	)
+	mouse_exited.connect(func() -> void:
+		_kill_hover()
+		z_index = 0
+		var tw := create_tween().set_parallel(true)
+		set_meta("_lift_tween", tw)
+		tw.tween_property(self, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(self, "position", Vector2(position.x, position.y + 18.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	)
+
+
+func _kill_hover() -> void:
+	if has_meta("_lift_tween"):
+		var t: Tween = get_meta("_lift_tween") as Tween
+		if t != null and t.is_valid():
+			t.kill()
 
 
 func is_drag_data_supported() -> bool:

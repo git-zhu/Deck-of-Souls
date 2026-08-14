@@ -337,7 +337,7 @@ static func card_button(
 	frame.move_to_front()
 
 	button.pressed.connect(on_play)
-	attach_hover_anim(button, 1.06)
+	# 注意：悬停放大由 DragCard 自带的 StS lift 处理（此处不再 attach_hover_anim 避免冲突）
 	return button
 
 
@@ -435,26 +435,27 @@ static func compact_fighter_hud(
 	chips.add_theme_constant_override("separation", 4)
 	v.add_child(chips)
 	if cur_block > 0:
-		chips.add_child(status_chip("护甲 %d" % cur_block, GameTheme.CARD_DEFENSE))
+		chips.add_child(status_chip("护甲 %d" % cur_block, GameTheme.CARD_DEFENSE, "res://assets/external/kenney_icons/shield.png"))
 	for key in statuses:
 		var val: int = int(statuses[key])
 		if val <= 0:
 			continue
 		match str(key):
 			"rot":
-				chips.add_child(status_chip("腐败 %d" % val, GameTheme.status_color("rot")))
+				chips.add_child(status_chip("腐败 %d" % val, GameTheme.status_color("rot"), "res://assets/external/kenney_icons/fire.png"))
 			"bleed":
-				chips.add_child(status_chip("出血 %d" % val, GameTheme.status_color("bleed")))
+				chips.add_child(status_chip("出血 %d" % val, GameTheme.status_color("bleed"), "res://assets/external/kenney_icons/sword.png"))
 			"vulnerable":
-				chips.add_child(status_chip("易伤 %d" % val, GameTheme.status_color("vulnerable")))
+				chips.add_child(status_chip("易伤 %d" % val, GameTheme.status_color("vulnerable"), "res://assets/external/kenney_icons/skull.png"))
 			"strength":
-				chips.add_child(status_chip("力量 %d" % val, GameTheme.status_color("strength")))
+				chips.add_child(status_chip("力量 %d" % val, GameTheme.status_color("strength"), "res://assets/external/kenney_icons/arrow_right.png"))
 			"stance":
-				chips.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance")))
+				chips.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance"), "res://assets/external/kenney_icons/suit_diamonds.png"))
 	return panel_node
 
 
-static func status_chip(text: String, color: Color) -> PanelContainer:
+static func status_chip(text: String, color: Color, icon_path: String = "") -> PanelContainer:
+	# 状态 chip：图标（若有）+ 数值，StS 式 buff/debuff 视觉
 	var chip := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = color.darkened(0.55)
@@ -464,16 +465,32 @@ static func status_chip(text: String, color: Color) -> PanelContainer:
 	style.corner_radius_top_right = 4
 	style.corner_radius_bottom_left = 4
 	style.corner_radius_bottom_right = 4
-	style.content_margin_left = 6
-	style.content_margin_right = 6
+	style.content_margin_left = 5
+	style.content_margin_right = 5
 	style.content_margin_top = 1
 	style.content_margin_bottom = 1
 	chip.add_theme_stylebox_override("panel", style)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 3)
+	chip.add_child(row)
+
+	if icon_path != "":
+		var icon_tex := load(icon_path) as Texture2D
+		if icon_tex != null:
+			var icon := TextureRect.new()
+			icon.texture = icon_tex
+			icon.custom_minimum_size = Vector2(14, 14)
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.modulate = color.lightened(0.4)
+			row.add_child(icon)
+
 	var label := Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", 12)
 	label.add_theme_color_override("font_color", color.lightened(0.35))
-	chip.add_child(label)
+	row.add_child(label)
 	return chip
 
 
@@ -597,6 +614,50 @@ static func _fighter_token(name_text: String, color: Color, initial: String) -> 
 	name.add_theme_color_override("font_color", GameTheme.TEXT)
 	col.add_child(name)
 	return col
+
+
+static func energy_orb(ember: int, max_ember: int) -> PanelContainer:
+	# StS 式能量球：金色圆环 + 大号能量数值，强调核心资源
+	var orb := PanelContainer.new()
+	orb.custom_minimum_size = Vector2(52, 52)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#3a2d10")
+	style.border_color = GameTheme.GOLD
+	style.set_border_width_all(3)
+	style.corner_radius_top_left = 26
+	style.corner_radius_top_right = 26
+	style.corner_radius_bottom_left = 26
+	style.corner_radius_bottom_right = 26
+	style.shadow_color = Color(0.88, 0.75, 0.4, 0.3)
+	style.shadow_size = 6
+	orb.add_theme_stylebox_override("panel", style)
+
+	var v := VBoxContainer.new()
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	orb.add_child(v)
+	var num := Label.new()
+	num.text = str(ember)
+	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	num.add_theme_font_size_override("font_size", 26)
+	num.add_theme_color_override("font_color", GameTheme.GOLD.lightened(0.2))
+	v.add_child(num)
+	var cap := Label.new()
+	cap.text = "/ %d" % max_ember
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cap.add_theme_font_size_override("font_size", 11)
+	cap.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+	v.add_child(cap)
+	return orb
+
+
+static func turn_label(turn: int) -> Label:
+	# StS 式回合数标签（顶部）
+	var label := Label.new()
+	label.text = "回合 %d" % turn
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return label
 
 
 static func resource_chip(label_text: String, value_text: String) -> PanelContainer:

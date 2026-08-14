@@ -126,15 +126,23 @@ static func build(
 	stage_wrap.add_child(stage_zone)
 	stage_zone.move_to_front()
 
-	# ── 资源 HUD：紧凑 chip 行 ──
+	# ── 资源 HUD：回合数 + 能量球 + 抽/弃/耗 chip 行 ──
 	var resource_row := HBoxContainer.new()
-	resource_row.add_theme_constant_override("separation", 8)
+	resource_row.add_theme_constant_override("separation", 10)
 	resource_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	main.add_child(resource_row)
+
+	# StS 式回合数（展示层计数：当前回合 = 从 1 起的计数）
+	var turn: int = main.get_meta("combat_turn", 0) + 1
+	resource_row.add_child(UiBuilders.turn_label(turn))
+	main.set_meta("combat_turn", turn)
+
+	# StS 式能量球（核心资源强调）
+	resource_row.add_child(UiBuilders.energy_orb(combat.ember, combat.max_ember))
+
 	resource_row.add_child(UiBuilders.resource_chip("抽牌", str(run_state.draw_pile.size())))
 	resource_row.add_child(UiBuilders.resource_chip("弃牌", str(run_state.discard_pile.size())))
 	resource_row.add_child(UiBuilders.resource_chip("消耗", str(run_state.exhaust_pile.size())))
-	resource_row.add_child(UiBuilders.resource_chip("集中", "%d/%d" % [combat.ember, combat.max_ember]))
 
 	# ── 底部操作行：圣杯瓶 + 手牌 + 结束回合（主 CTA） ──
 	var bottom_row := HBoxContainer.new()
