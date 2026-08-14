@@ -152,28 +152,6 @@ static func card_reward_button(card: CardData, on_press: Callable) -> Button:
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(col)
 
-	var art := PanelContainer.new()
-	art.custom_minimum_size = Vector2(0, 100)
-	art.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var art_style := StyleBoxFlat.new()
-	art_style.bg_color = accent.darkened(0.55)
-	art_style.border_color = accent.lightened(0.2)
-	art_style.set_border_width_all(1)
-	art_style.corner_radius_top_left = 6
-	art_style.corner_radius_top_right = 6
-	art_style.corner_radius_bottom_left = 6
-	art_style.corner_radius_bottom_right = 6
-	art.add_theme_stylebox_override("panel", art_style)
-	var art_center := CenterContainer.new()
-	art_center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	art.add_child(art_center)
-	var art_icon := Label.new()
-	art_icon.text = _card_type_glyph(card.type)
-	art_icon.add_theme_font_size_override("font_size", 56)
-	art_icon.add_theme_color_override("font_color", accent.lightened(0.35))
-	art_center.add_child(art_icon)
-	col.add_child(art)
-
 	var name := Label.new()
 	name.text = card.name
 	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -198,27 +176,6 @@ static func card_reward_button(card: CardData, on_press: Callable) -> Button:
 	return button
 
 
-static func _card_type_glyph(type_name: String) -> String:
-	# 类型字形（卡面插画带图标）
-	match type_name:
-		"武器":
-			return "⚔"
-		"魔法":
-			return "✦"
-		"祷告":
-			return "✧"
-		"战灰":
-			return "❖"
-		"盾牌":
-			return "◈"
-		"圣杯瓶":
-			return "✚"
-		"壶":
-			return "⬢"
-		"传说":
-			return "★"
-		_:
-			return "◆"
 
 
 static func build_merchant_screen(

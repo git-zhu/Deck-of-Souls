@@ -45,16 +45,6 @@ static func panel(bg: Color, border: Color = GameTheme.BORDER, border_width: int
 	tex_style.content_margin_bottom = 14
 	tex_style.draw_center = true
 	panel_node.add_theme_stylebox_override("panel", tex_style)
-	# 金色符文饰条（顶部居中，装饰性叠加）
-	var ornament := TextureRect.new()
-	ornament.texture = load("res://assets/panel_ornament.png") as Texture2D
-	ornament.custom_minimum_size = Vector2(120, 14)
-	ornament.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	ornament.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ornament.modulate = Color(1, 1, 1, 0.85)
-	ornament.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	ornament.position = Vector2(-60, -6)
-	panel_node.add_child(ornament)
 	return panel_node
 
 
