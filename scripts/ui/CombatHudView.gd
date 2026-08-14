@@ -170,16 +170,42 @@ static func build(
 	refs.end_turn_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bottom_row.add_child(refs.end_turn_button)
 
-	# ── 战斗日志：低视觉权重（细条、弱化） ──
+	# ── 战斗日志：低视觉权重（细条、弱化），带折叠/展开开关 ──
+	var log_row := HBoxContainer.new()
+	log_row.add_theme_constant_override("separation", 8)
+	main.add_child(log_row)
+
+	var log_toggle := Button.new()
+	log_toggle.text = "日志 ▸"
+	log_toggle.flat = true
+	log_toggle.custom_minimum_size = Vector2(64, 0)
+	log_toggle.tooltip_text = "展开 / 折叠战斗日志"
+	log_toggle.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	log_row.add_child(log_toggle)
+
 	refs.log_box = RichTextLabel.new()
 	refs.log_box.bbcode_enabled = true
 	refs.log_box.fit_content = false
 	refs.log_box.scroll_following = true
 	refs.log_box.scroll_active = false
 	refs.log_box.custom_minimum_size = Vector2(0, 44)
+	refs.log_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	refs.log_box.add_theme_font_size_override("normal_font_size", 13)
 	refs.log_box.add_theme_color_override("default_color", Color(0.72, 0.68, 0.6, 0.8))
 	refs.log_box.text = log_bbcode
-	main.add_child(refs.log_box)
+	log_row.add_child(refs.log_box)
+
+	# 折叠开关：44px（收拢，隐藏滚动）↔ 140px（展开，启用滚动）
+	refs.log_box.set_meta("log_expanded", false)
+	log_toggle.pressed.connect(func() -> void:
+		var expanded: bool = refs.log_box.get_meta("log_expanded", false)
+		expanded = not expanded
+		refs.log_box.set_meta("log_expanded", expanded)
+		log_toggle.text = "日志 ▾" if expanded else "日志 ▸"
+		refs.log_box.scroll_active = expanded
+		var target_h := 140.0 if expanded else 44.0
+		var tw := refs.log_box.create_tween()
+		tw.tween_property(refs.log_box, "custom_minimum_size", Vector2(0, target_h), 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	)
 
 	return refs

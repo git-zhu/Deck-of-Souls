@@ -6,6 +6,7 @@ const RunState = preload("res://scripts/core/RunState.gd")
 const CombatController = preload("res://scripts/core/CombatController.gd")
 const RelicService = preload("res://scripts/core/RelicService.gd")
 const GameAudio = preload("res://scripts/ui/GameAudio.gd")
+const IntentIcon = preload("res://scripts/ui/IntentIcon.gd")
 
 
 func _initialize() -> void:
@@ -71,6 +72,18 @@ func _initialize() -> void:
 			_fail("hand card missing cost badge: %s" % btn.name)
 			return
 
+	# 收尾优化校验：自绘意图图标 + 稀有度标签 + 可折叠日志开关
+	if not _tree_has_intent_icon(refs.root):
+		_fail("combat HUD missing IntentIcon node")
+		return
+	for btn in card_buttons:
+		if not _button_has_rarity_label(btn):
+			_fail("hand card missing rarity label: %s" % btn.name)
+			return
+	if not _tree_has_button_prefix(refs.root, "日志"):
+		_fail("combat HUD missing log toggle button")
+		return
+
 	refs.root.queue_free()
 
 	GameAudio.play(get_root(), "ui_click")
@@ -123,6 +136,34 @@ func _tree_has_nested_panel_label(node: Node) -> bool:
 		return true
 	for child in node.get_children():
 		if _tree_has_nested_panel_label(child):
+			return true
+	return false
+
+
+const RARITY_LABELS: Array[String] = ["起始", "普通", "罕见", "稀有", "传说"]
+
+
+func _tree_has_intent_icon(node: Node) -> bool:
+	if node.get_script() == IntentIcon:
+		return true
+	for child in node.get_children():
+		if _tree_has_intent_icon(child):
+			return true
+	return false
+
+
+func _button_has_rarity_label(btn: Button) -> bool:
+	for child in btn.get_children():
+		if _tree_has_rarity_label(child):
+			return true
+	return false
+
+
+func _tree_has_rarity_label(node: Node) -> bool:
+	if node is Label and (node as Label).text in RARITY_LABELS:
+		return true
+	for child in node.get_children():
+		if _tree_has_rarity_label(child):
 			return true
 	return false
 

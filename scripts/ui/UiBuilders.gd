@@ -4,6 +4,7 @@ extends RefCounted
 const GameTheme = preload("res://scripts/ui/GameTheme.gd")
 const CardData = preload("res://data/CardData.gd")
 const CombatController = preload("res://scripts/core/CombatController.gd")
+const IntentIcon = preload("res://scripts/ui/IntentIcon.gd")
 
 
 static func attach_hover_anim(ctrl: Control, scale: float = 1.03) -> void:
@@ -46,6 +47,16 @@ static func panel(bg: Color, border: Color = GameTheme.BORDER, border_width: int
 	style.content_margin_top = 14
 	style.content_margin_bottom = 14
 	panel_node.add_theme_stylebox_override("panel", style)
+	# 金色符文饰条（顶部居中，装饰性叠加）
+	var ornament := TextureRect.new()
+	ornament.texture = load("res://assets/panel_ornament.png") as Texture2D
+	ornament.custom_minimum_size = Vector2(120, 14)
+	ornament.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	ornament.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ornament.modulate = Color(1, 1, 1, 0.85)
+	ornament.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	ornament.position = Vector2(-60, -6)
+	panel_node.add_child(ornament)
 	return panel_node
 
 
@@ -153,6 +164,22 @@ static func fighter_panel(
 	return panel_node
 
 
+static func rarity_meta(rarity: String) -> Dictionary:
+	# 卡牌稀有度语义：starter/common 不叠加额外边框（保持类型色常规边框），
+	# uncommon/rare/legendary 用稀有度语义色强调边框（border_only=true）。
+	match rarity:
+		"uncommon":
+			return {"label": "罕见", "color": Color("#5ab86a"), "border_only": true, "border_width": 3}
+		"rare":
+			return {"label": "稀有", "color": Color("#5b9bd5"), "border_only": true, "border_width": 3}
+		"legendary":
+			return {"label": "传说", "color": Color("#c0392b"), "border_only": true, "border_width": 3}
+		"starter":
+			return {"label": "起始", "color": Color("#9a8f7a"), "border_only": false, "border_width": 2}
+		_:
+			return {"label": "普通", "color": Color("#b9a37b"), "border_only": false, "border_width": 2}
+
+
 static func card_button(
 	card: CardData,
 	index: int,
@@ -173,10 +200,18 @@ static func card_button(
 	if unplayable:
 		button.modulate = GameTheme.card_disabled_modulate()
 
+	# 稀有度边框：uncommon/rare/legendary 以稀有度语义色强调，starter/common 保持类型色常规边框
+	var rarity_meta_dict := rarity_meta(card.rarity)
+	var border_color := accent.lightened(0.15)
+	var border_width := 2
+	if rarity_meta_dict.get("border_only", false):
+		border_color = rarity_meta_dict.color
+		border_width = int(rarity_meta_dict.border_width)
+
 	var style := StyleBoxFlat.new()
 	style.bg_color = accent.darkened(0.6)
-	style.border_color = accent.lightened(0.15)
-	style.set_border_width_all(2)
+	style.border_color = border_color
+	style.set_border_width_all(border_width)
 	style.corner_radius_top_left = 8
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_left = 8
@@ -190,7 +225,7 @@ static func card_button(
 	style.content_margin_bottom = 8
 	button.add_theme_stylebox_override("normal", style)
 	var hover_style := style.duplicate() as StyleBoxFlat
-	hover_style.border_color = accent.lightened(0.4)
+	hover_style.border_color = border_color.lightened(0.4)
 	hover_style.shadow_size = 9
 	button.add_theme_stylebox_override("hover", hover_style)
 	var pressed_style := style.duplicate() as StyleBoxFlat
@@ -245,11 +280,22 @@ static func card_button(
 		hotkey.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
 		top.add_child(hotkey)
 
+	var type_row := HBoxContainer.new()
+	type_row.add_theme_constant_override("separation", 6)
+	v.add_child(type_row)
+
 	var type_label := Label.new()
 	type_label.text = "%s  ·  集中 %d" % [card.type, card.cost]
 	type_label.add_theme_font_size_override("font_size", 11)
 	type_label.add_theme_color_override("font_color", accent.lightened(0.3))
-	v.add_child(type_label)
+	type_row.add_child(type_label)
+
+	# 稀有度标签：卡面小标签（起始/普通/罕见/稀有/传说）
+	var rarity_tag := Label.new()
+	rarity_tag.text = str(rarity_meta_dict.label)
+	rarity_tag.add_theme_font_size_override("font_size", 11)
+	rarity_tag.add_theme_color_override("font_color", rarity_meta_dict.color)
+	type_row.add_child(rarity_tag)
 
 	var sep := HSeparator.new()
 	sep.add_theme_constant_override("separation", 4)
@@ -263,6 +309,17 @@ static func card_button(
 	effect.text = "[font_size=12]%s[/font_size]" % emphasize_numbers(card.text)
 	v.add_child(effect)
 
+	# 金色符文边框叠加（自产 PNG，艾尔登法环风角饰；跟随按钮尺寸）
+	var frame := TextureRect.new()
+	frame.texture = load("res://assets/card_frame_edge.png") as Texture2D
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	button.add_child(frame)
+
 	button.pressed.connect(on_play)
 	attach_hover_anim(button, 1.06)
 	return button
@@ -274,6 +331,20 @@ static func _num_regex() -> RegEx:
 	var r := RegEx.new()
 	r.compile("\\d+")
 	return r
+
+
+static func _intent_icon_path(kind: String) -> String:
+	match kind:
+		"attack", "attack_block", "attack_rot":
+			return "res://assets/intent_attack.png"
+		"block":
+			return "res://assets/intent_block.png"
+		"buff", "strength":
+			return "res://assets/intent_buff.png"
+		"debuff", "rot":
+			return "res://assets/intent_debuff.png"
+		_:
+			return "res://assets/intent_block.png"
 
 
 static func emphasize_numbers(text: String) -> String:
@@ -394,11 +465,22 @@ static func intent_banner(intent_kind: String, intent_text: String) -> PanelCont
 	tag.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
 	row.add_child(tag)
 
-	var icon := Label.new()
-	icon.text = GameTheme.intent_icon(intent_kind)
-	icon.add_theme_font_size_override("font_size", 34)
-	icon.add_theme_color_override("font_color", accent)
+	# 意图图标：优先 PNG 自产图标，缺失时回退自绘几何图形（IntentIcon）
+	var icon_path := _intent_icon_path(intent_kind)
+	var icon := IntentIcon.new()
+	icon.setup(intent_kind)
+	icon.custom_minimum_size = Vector2(38, 38)
 	row.add_child(icon)
+	if icon_path != "":
+		var tex := load(icon_path) as Texture2D
+		if tex != null:
+			var tex_icon := TextureRect.new()
+			tex_icon.texture = tex
+			tex_icon.custom_minimum_size = Vector2(38, 38)
+			tex_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			tex_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			icon.add_child(tex_icon)
+			tex_icon.set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	var action := Label.new()
 	action.text = intent_text
@@ -504,10 +586,11 @@ static func resource_chip(label_text: String, value_text: String) -> PanelContai
 
 
 static func flask_button(flasks: int, disabled: bool, on_press: Callable) -> Button:
-	# 圣杯瓶：独立治疗按钮（绿调）
+	# 圣杯瓶：独立治疗按钮（绿调 + 图标）
 	var btn := Button.new()
 	btn.text = "圣杯瓶 ×%d" % flasks
-	btn.custom_minimum_size = Vector2(120, 54)
+	btn.custom_minimum_size = Vector2(132, 54)
+	btn.add_theme_icon_override("icon", load("res://assets/icon_flask.png"))
 	btn.disabled = disabled
 	btn.tooltip_text = "回复 18 生命（F）"
 	btn.pressed.connect(on_press)

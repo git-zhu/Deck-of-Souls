@@ -110,6 +110,7 @@ func _on_combat_ended(kind: String) -> void:
 
 
 var bg_rect: TextureRect
+var vignette_rect: TextureRect
 var _bg_current: String = ""
 
 
@@ -121,6 +122,16 @@ func _build_ui() -> void:
 	bg_rect.texture = _load_bg("bg_elden")
 	bg_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg_rect)
+
+	# 暗角微光叠加层（标题/地图/结算屏氛围）
+	vignette_rect = TextureRect.new()
+	vignette_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vignette_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	vignette_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	vignette_rect.texture = load("res://assets/bg_title_vignette.png") as Texture2D
+	vignette_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vignette_rect.visible = true
+	add_child(vignette_rect)
 
 	root = MarginContainer.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -167,11 +178,27 @@ func _load_bg(kind: String) -> Texture2D:
 			return load("res://assets/bg_elden.svg") as Texture2D
 
 
+func _show_ai_overlay(kind: String) -> void:
+	# AI 生成背景（tiny-sd）作为氛围叠加层：战斗用城堡废墟图，其余用暗角微光
+	if vignette_rect == null:
+		return
+	match kind:
+		"combat":
+			vignette_rect.texture = load("res://assets/bg_ai_castle.png") as Texture2D
+			vignette_rect.modulate = Color(1, 1, 1, 0.5)
+		_:
+			vignette_rect.texture = load("res://assets/bg_title_vignette.png") as Texture2D
+			vignette_rect.modulate = Color(1, 1, 1, 1)
+
+
 func _show_bg(kind: String) -> void:
 	if bg_rect == null or kind == _bg_current:
 		return
 	bg_rect.texture = _load_bg(kind)
 	_bg_current = kind
+	if kind != "combat" and vignette_rect != null:
+		vignette_rect.texture = load("res://assets/bg_title_vignette.png") as Texture2D
+		vignette_rect.modulate = Color(1, 1, 1, 1)
 
 
 func _clear(node: Node) -> void:
@@ -365,6 +392,7 @@ func _end_player_turn() -> void:
 func _render_combat() -> void:
 	_hide_layers()
 	_show_bg("combat")
+	_show_ai_overlay("combat")
 	combat_layer.visible = true
 	_clear(combat_layer)
 	_build_header()

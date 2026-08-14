@@ -23,6 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Audio assets: `godot4.6 --headless --script tools/audio_path_test.gd`
 - UI screens: `godot4.6 --headless --script tools/ui_screen_test.gd`
 - Keyboard shortcuts: `godot4.6 --headless --script tools/input_test.gd`
+- Regenerate 2D art assets: `python tools/generate_assets.py`（自产 PNG：卡牌边框/意图图标/背景/图标）
 
 ## Architecture
 
@@ -68,6 +69,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `ActData` merchant pools / `merchant_cost_percent` / `map_weight_*` — per-act shop and map sampling
 - `data/events/*.tres` — 15 map events (`MapEventData`); `MapEventChoiceData.follow_event_id` for multi-step chains
 - `data/enemies/*.tres` — 18 enemies (incl. 大树守卫, 狮子混种, 坠星兽)
+- `assets/*.png` — 自产 2D 美术（`tools/generate_assets.py` 生成）：卡牌符文边框、敌人意图图标、标题暗角、面板饰条、圣杯瓶/卢恩图标；AI 生成示例 `assets/ai_test_bg.png`（tiny-sd CPU，见 `docs/superpowers/specs/2026-05-23-ai-asset-generation-record.md`）
 
 ### Game State Machine
 

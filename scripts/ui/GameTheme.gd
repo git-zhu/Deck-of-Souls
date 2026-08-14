@@ -96,23 +96,10 @@ static func card_type_color(type_name: String) -> Color:
 		_:
 			return CARD_WEAPON
 
-# 意图图标（无字体依赖的几何符号）
-static func intent_icon(kind: String) -> String:
-	match kind:
-		"attack":
-			return "◆"
-		"attack_block":
-			return "◈"
-		"attack_rot":
-			return "▲"
-		"block":
-			return "◈"
-		"buff", "strength":
-			return "▲"
-		"debuff", "rot":
-			return "▼"
-		_:
-			return "◆"
+# 意图图标：已改为 UiBuilders.intent_banner 中的自绘几何图形（IntentIcon），
+# 本函数保留签名并返回空字符串，避免旧调用方依赖 unicode 字符。
+static func intent_icon(_kind: String) -> String:
+	return ""
 
 
 # 状态 chip 语义色
