@@ -237,10 +237,10 @@ static func card_button(
 	v_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	v_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v_margin.add_theme_constant_override("margin_left", 8)
-	v_margin.add_theme_constant_override("margin_right", 8)
-	v_margin.add_theme_constant_override("margin_top", 6)
-	v_margin.add_theme_constant_override("margin_bottom", 6)
+	v_margin.add_theme_constant_override("margin_left", 6)
+	v_margin.add_theme_constant_override("margin_right", 6)
+	v_margin.add_theme_constant_override("margin_top", 5)
+	v_margin.add_theme_constant_override("margin_bottom", 5)
 	v_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(v_margin)
 	var v := VBoxContainer.new()
@@ -274,8 +274,10 @@ static func card_button(
 	var name_label := Label.new()
 	name_label.text = card.name
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_label.add_theme_font_size_override("font_size", 15)
+	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.add_theme_font_size_override("font_size", 14)
 	name_label.add_theme_color_override("font_color", Color("#f0e5cd"))
 	top.add_child(name_label)
 
@@ -315,18 +317,21 @@ static func card_button(
 	effect.text = "[font_size=12]%s[/font_size]" % emphasize_numbers(card.text)
 	v.add_child(effect)
 
-	# 金色符文边框：9-slice StyleBoxTexture（角部固定、边缘拉伸，无变形）
-	var frame_style := StyleBoxTexture.new()
-	frame_style.texture = load("res://assets/card_frame_9slice.png") as Texture2D
-	frame_style.texture_margin_left = 24
-	frame_style.texture_margin_right = 24
-	frame_style.texture_margin_top = 24
-	frame_style.texture_margin_bottom = 24
-	frame_style.content_margin_left = 8
-	frame_style.content_margin_right = 8
-	frame_style.content_margin_top = 6
-	frame_style.content_margin_bottom = 6
-	button.add_theme_stylebox_override("frame", frame_style)
+	# 金色符文边框：9-slice TextureRect 覆盖层（Button 的 frame 样式不渲染，须用子节点）
+	var frame := TextureRect.new()
+	frame.texture = load("res://assets/card_frame_9slice.png") as Texture2D
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.offset_left = 0
+	frame.offset_right = 0
+	frame.offset_top = 0
+	frame.offset_bottom = 0
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	button.add_child(frame)
+	frame.move_to_front()
 
 	button.pressed.connect(on_play)
 	attach_hover_anim(button, 1.06)
@@ -470,32 +475,35 @@ static func status_chip(text: String, color: Color) -> PanelContainer:
 
 
 static func intent_banner(intent_kind: String, intent_text: String) -> PanelContainer:
-	# 敌人意图：高优先级视觉元素（图标 + 大字号 + 语义色描边；紧凑高度）
+	# 敌人意图：高优先级视觉元素（语义色描边 + 图标 + 大字号，紧凑高度）
 	var accent := GameTheme.intent_color(intent_kind)
-	# 紧凑面板：不用默认 14px content margin，改用 8px
 	var panel_node := PanelContainer.new()
-	var pstyle := StyleBoxTexture.new()
-	pstyle.texture = load("res://assets/panel_9slice.png") as Texture2D
-	pstyle.texture_margin_left = 24
-	pstyle.texture_margin_right = 24
-	pstyle.texture_margin_top = 24
-	pstyle.texture_margin_bottom = 24
-	pstyle.content_margin_left = 8
-	pstyle.content_margin_right = 8
-	pstyle.content_margin_top = 6
-	pstyle.content_margin_bottom = 6
+	var pstyle := StyleBoxFlat.new()
+	pstyle.bg_color = Color("#1d1812")
+	pstyle.border_color = accent.lightened(0.2)
+	pstyle.set_border_width_all(2)
+	pstyle.corner_radius_top_left = 8
+	pstyle.corner_radius_top_right = 8
+	pstyle.corner_radius_bottom_left = 8
+	pstyle.corner_radius_bottom_right = 8
+	pstyle.shadow_color = accent.darkened(0.3)
+	pstyle.shadow_size = 8
+	pstyle.content_margin_left = 16
+	pstyle.content_margin_right = 16
+	pstyle.content_margin_top = 8
+	pstyle.content_margin_bottom = 8
 	panel_node.add_theme_stylebox_override("panel", pstyle)
-	panel_node.custom_minimum_size = Vector2(0, 56)
+	panel_node.custom_minimum_size = Vector2(0, 52)
 	panel_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 12)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	panel_node.add_child(row)
 
 	var tag := Label.new()
 	tag.text = "敌方意图"
-	tag.add_theme_font_size_override("font_size", 13)
+	tag.add_theme_font_size_override("font_size", 14)
 	tag.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
 	row.add_child(tag)
 
@@ -503,14 +511,14 @@ static func intent_banner(intent_kind: String, intent_text: String) -> PanelCont
 	var icon_path := _intent_icon_path(intent_kind)
 	var icon := IntentIcon.new()
 	icon.setup(intent_kind)
-	icon.custom_minimum_size = Vector2(30, 30)
+	icon.custom_minimum_size = Vector2(32, 32)
 	row.add_child(icon)
 	if icon_path != "":
 		var tex := load(icon_path) as Texture2D
 		if tex != null:
 			var tex_icon := TextureRect.new()
 			tex_icon.texture = tex
-			tex_icon.custom_minimum_size = Vector2(30, 30)
+			tex_icon.custom_minimum_size = Vector2(32, 32)
 			tex_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			tex_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			tex_icon.modulate = accent
