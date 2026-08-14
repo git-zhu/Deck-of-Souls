@@ -96,8 +96,24 @@ static func small_stat(text: String) -> Label:
 
 static func map_choice_card(option: Dictionary, on_press: Callable) -> PanelContainer:
 	var kind := str(option.get("kind", ""))
-	var meta := GameTheme.map_kind_meta(kind)
-	var panel_node := panel(GameTheme.PANEL, meta.accent, 2)
+	var card_type := str(option.get("cardType", kind))
+	var meta := GameTheme.card_type_meta(card_type)
+	# 主边框按 cardType 高亮（替代原暗金 9-slice 描边）：
+	# 圆角 / 黑色底图 / 内边距与旧面板保持一致，仅边框与左上角标签变色
+	var panel_node := PanelContainer.new()
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = GameTheme.PANEL
+	card_style.border_color = meta.color
+	card_style.set_border_width_all(2)
+	card_style.corner_radius_top_left = 10
+	card_style.corner_radius_top_right = 10
+	card_style.corner_radius_bottom_left = 10
+	card_style.corner_radius_bottom_right = 10
+	card_style.content_margin_left = 14
+	card_style.content_margin_right = 14
+	card_style.content_margin_top = 14
+	card_style.content_margin_bottom = 14
+	panel_node.add_theme_stylebox_override("panel", card_style)
 	panel_node.custom_minimum_size = Vector2(0, 330)
 	panel_node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
@@ -112,11 +128,12 @@ static func map_choice_card(option: Dictionary, on_press: Callable) -> PanelCont
 	var badge := Label.new()
 	badge.text = meta.label
 	badge.add_theme_font_size_override("font_size", 16)
-	badge.add_theme_color_override("font_color", meta.accent)
+	badge.add_theme_color_override("font_color", meta.color)
 	badge_row.add_child(badge)
 
 	var name := Label.new()
 	name.text = str(option.get("title", ""))
+	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name.add_theme_font_size_override("font_size", 28)
 	name.add_theme_color_override("font_color", GameTheme.GOLD)
 	v.add_child(name)

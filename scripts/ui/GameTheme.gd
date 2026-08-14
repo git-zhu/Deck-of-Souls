@@ -96,6 +96,21 @@ static func map_kind_meta(kind: String) -> Dictionary:
 			return {"label": "路标", "accent": BORDER}
 
 
+# 卡牌四类语义（cardType）：主边框高亮色 + 左上角小标签
+static func card_type_meta(card_type: String) -> Dictionary:
+	match card_type:
+		"combat":
+			return {"label": "战斗", "color": Color("#d64545")}
+		"explore":
+			return {"label": "探索", "color": Color("#5ab86a")}
+		"event":
+			return {"label": "事件", "color": Color("#4a7eb0")}
+		"shop":
+			return {"label": "商店", "color": Color("#c9a227")}
+		_:
+			return {"label": "路标", "color": BORDER}
+
+
 static func intent_color(kind: String) -> Color:
 	match kind:
 		"attack", "attack_block", "attack_rot":

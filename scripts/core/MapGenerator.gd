@@ -16,6 +16,7 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 			return []
 		return [{
 			"kind": "boss",
+			"cardType": "combat",
 			"enemy": act.act_boss_name,
 			"title": act.act_boss_title,
 			"body": act.act_boss_body,
@@ -41,6 +42,7 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 		weighted.append({
 			"option": {
 				"kind": "combat",
+				"cardType": "combat",
 				"enemy": gid,
 				"title": str(registry.get_group(gid).title),
 				"body": str(registry.get_group(gid).body),
@@ -63,6 +65,7 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 		weighted.append({
 			"option": {
 				"kind": "elite",
+				"cardType": "combat",
 				"enemy": gid,
 				"title": "精英 · " + str(g.title),
 				"body": str(g.body),
@@ -76,6 +79,7 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 			weighted.append({
 				"option": {
 					"kind": "event",
+					"cardType": "event",
 					"event_id": event.id,
 					"title": event.title,
 					"body": event.body,
@@ -158,6 +162,7 @@ func _pick_weighted(entries: Array, count: int, rng: RandomNumberGenerator) -> A
 func _node_to_dict(node: MapNodeData) -> Dictionary:
 	return {
 		"kind": node.kind,
+		"cardType": _card_type_for_kind(str(node.kind)),
 		"title": node.title,
 		"body": node.body,
 		"enemy": node.enemy_name,
@@ -167,7 +172,21 @@ func _node_to_dict(node: MapNodeData) -> Dictionary:
 func _encounter_to_dict(enc: MapEncounterData, kind: String) -> Dictionary:
 	return {
 		"kind": kind,
+		"cardType": _card_type_for_kind(kind),
 		"enemy": enc.enemy_name,
 		"title": enc.title,
 		"body": enc.body,
 	}
+
+
+# kind（节点/遭遇细分）→ cardType（卡面四类语义）
+func _card_type_for_kind(kind: String) -> String:
+	match kind:
+		"grace":
+			return "explore"
+		"merchant":
+			return "shop"
+		"event":
+			return "event"
+		_:
+			return "combat"
