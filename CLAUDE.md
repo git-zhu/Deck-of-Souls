@@ -20,6 +20,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Export data manifest: `python tools/build_data_manifest.py` (after adding `data/**/*.tres`)
 - Export data load: `godot4.6 --headless --script tools/export_data_load_test.gd`
 - Origin screen UI: `godot4.6 --headless --script tools/origin_screen_test.gd`
+- Audio assets: `godot4.6 --headless --script tools/audio_path_test.gd`
+- UI screens: `godot4.6 --headless --script tools/ui_screen_test.gd`
 
 ## Architecture
 
@@ -80,8 +82,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Recommended Next (see `docs/superpowers/plans/`)
 
-1. 默认音效包（`audio/*.ogg` + 路径测试）；第四幕（16 层）**暂缓**，不在近期计划内。
-3. 可选 Monte Carlo 平衡工具。
+1. ~~默认音效包~~（P0 已完成：`audio/*.ogg` + `audio_path_test.gd`）；第四幕（16 层）**暂缓**，不在近期计划内。
+3. 可选 Monte Carlo 平衡工具（P2 候选）。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
 
@@ -110,6 +112,14 @@ godot4.6 --headless --path . --script tools/flow_screen_test.gd
 godot4.6 --headless --path . --script tools/event_chain_test.gd
 godot4.6 --headless --path . --script tools/content_pack_test.gd
 godot4.6 --headless --path . --script tools/run_flow_test.gd
+godot4.6 --headless --path . --script tools/save_load_test.gd
+godot4.6 --headless --path . --script tools/save_roundtrip_test.gd
+godot4.6 --headless --path . --script tools/title_menu_test.gd
+godot4.6 --headless --path . --script tools/pause_menu_test.gd
+godot4.6 --headless --path . --script tools/export_data_load_test.gd
+godot4.6 --headless --path . --script tools/origin_screen_test.gd
+godot4.6 --headless --path . --script tools/audio_path_test.gd
+godot4.6 --headless --path . --script tools/ui_screen_test.gd
 ```
 
 Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_enemies.py`, `build_events.py`.
