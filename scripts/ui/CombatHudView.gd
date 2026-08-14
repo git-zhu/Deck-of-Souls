@@ -13,6 +13,8 @@ const PLAYER_PANEL_BG := Color("#1d1a15")
 const ENEMY_PANEL_BG := Color("#1d1714")
 const GildedFrame = preload("res://scripts/ui/GildedFrame.gd")
 const DropZone = preload("res://scripts/ui/DropZone.gd")
+const TargetingLine = preload("res://scripts/ui/TargetingLine.gd")
+const DragCard = preload("res://scripts/ui/DragCard.gd")
 
 
 # 拖拽投放回调：把拖来的卡打到目标敌人（target_id = "enemy_0/enemy_1..."；"" = 默认选中目标）
@@ -48,7 +50,14 @@ static func build(
 	main.add_theme_constant_override("separation", 8)
 	refs.root = main
 
-	# ── 顶行：玩家 HUD（左） + 敌人 HUD（右） ──
+	# 拖拽瞄准线覆盖层（全屏，z 最高）
+	var aim_line := TargetingLine.new()
+	aim_line.set_anchors_preset(Control.PRESET_FULL_RECT)
+	aim_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	main.add_child(aim_line)
+	aim_line.move_to_front()
+
+	# ── 顶行（StS 布局）：玩家 HUD（左） + 敌人 HUD（右） ──
 	var top_row := HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 12)
 	main.add_child(top_row)
@@ -73,7 +82,7 @@ static func build(
 	top_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_row.add_child(top_spacer)
 
-	# ── 敌人区：多敌人紧凑 HUD（每个含 DropZone 目标投放） ──
+	# 敌人区：多敌人紧凑 HUD（每个含 DropZone 目标投放 + 瞄准线锚点）
 	var enemy_area := HBoxContainer.new()
 	enemy_area.add_theme_constant_override("separation", 10)
 	enemy_area.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -111,6 +120,8 @@ static func build(
 		zone.move_to_front()
 		if ei == 0:
 			refs.enemy_panel = e_panel
+		# 注册瞄准线锚点（敌人 HUD 中心，布局后刷新坐标）
+		aim_line.zone_centers["enemy_%d" % ei] = {"center": Vector2.ZERO, "radius": 70.0}
 
 	# ── 敌人意图：显示当前选中目标的意图（高优先级视觉元素） ──
 	var intent_panel := UiBuilders.intent_banner(
@@ -153,12 +164,10 @@ static func build(
 	resource_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	main.add_child(resource_row)
 
-	# StS 式回合数（展示层计数：当前回合 = 从 1 起的计数）
 	var turn: int = main.get_meta("combat_turn", 0) + 1
 	resource_row.add_child(UiBuilders.turn_label(turn))
 	main.set_meta("combat_turn", turn)
 
-	# StS 式能量球（核心资源强调）
 	resource_row.add_child(UiBuilders.energy_orb(combat.ember, combat.max_ember))
 
 	resource_row.add_child(UiBuilders.resource_chip("抽牌", str(run_state.draw_pile.size())))
@@ -184,14 +193,12 @@ static func build(
 	hand_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	bottom_row.add_child(hand_scroll)
-	# 鼠标滚轮横向滚动手牌（PC 便捷操作）
 	hand_scroll.gui_input.connect(func(ev: InputEvent) -> void:
 		if ev is InputEventMouseButton:
 			var mb := ev as InputEventMouseButton
 			if mb.pressed and (mb.button_index == MOUSE_BUTTON_WHEEL_UP or mb.button_index == MOUSE_BUTTON_WHEEL_DOWN):
 				hand_scroll.scroll_horizontal += int(mb.factor * 90.0) * (1 if mb.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1)
 				hand_scroll.accept_event()
-		# 触屏滑动：拖动手牌横向滚动（手机端便捷操作）
 		elif ev is InputEventScreenDrag:
 			hand_scroll.scroll_horizontal -= int((ev as InputEventScreenDrag).relative.x)
 			hand_scroll.accept_event()
@@ -202,20 +209,28 @@ static func build(
 	refs.hand_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	hand_scroll.add_child(refs.hand_row)
 
+	# 手牌卡：连接拖拽信号到瞄准线
 	for i in range(run_state.hand.size()):
 		var card_id: String = run_state.hand[i]
 		var card_data: CardData = registry.get_card(card_id)
 		if card_data != null:
-			refs.hand_row.add_child(
-				UiBuilders.card_button(
-					card_data,
-					i,
-					combat,
-					card_w,
-					card_h,
-					on_play_card.bind(i)
-				)
+			var card_btn := UiBuilders.card_button(
+				card_data,
+				i,
+				combat,
+				card_w,
+				card_h,
+				on_play_card.bind(i)
 			)
+			refs.hand_row.add_child(card_btn)
+			if card_btn is DragCard:
+				var dc := card_btn as DragCard
+				dc.drag_started.connect(func(_idx: int, from_g: Vector2) -> void:
+					aim_line.begin(from_g)
+				)
+				dc.drag_ended.connect(func() -> void:
+					aim_line.end()
+				)
 
 	refs.end_turn_button = UiBuilders.end_turn_button(combat.combat_over, on_end_turn)
 	refs.end_turn_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -246,7 +261,6 @@ static func build(
 	refs.log_box.text = log_bbcode
 	log_row.add_child(refs.log_box)
 
-	# 折叠开关：44px（收拢，隐藏滚动）↔ 140px（展开，启用滚动）
 	refs.log_box.set_meta("log_expanded", false)
 	log_toggle.pressed.connect(func() -> void:
 		var expanded: bool = refs.log_box.get_meta("log_expanded", false)
@@ -259,4 +273,22 @@ static func build(
 		tw.tween_property(refs.log_box, "custom_minimum_size", Vector2(0, target_h), 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	)
 
+	# 布局完成后刷新瞄准线锚点（敌人 HUD 实际全局坐标）
+	_refresh_aim_anchors(aim_line, enemy_area)
+
 	return refs
+
+
+static func _refresh_aim_anchors(aim_line: TargetingLine, enemy_area: HBoxContainer) -> void:
+	# 布局后敌人面板有实际坐标；此处立即读取（build 返回前 children 已在树中）
+	for child in enemy_area.get_children():
+		var zone := child as PanelContainer
+		if zone == null:
+			continue
+		for sub in zone.get_children():
+			if sub is DropZone:
+				var dz := sub as DropZone
+				if aim_line.zone_centers.has(dz.target_id):
+					var center := zone.get_global_rect().get_center()
+					(aim_line.zone_centers[dz.target_id] as Dictionary)["center"] = center
+				break

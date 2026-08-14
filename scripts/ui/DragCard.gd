@@ -4,6 +4,9 @@ extends Button
 ## 数据结构：drag payload = {"card_index": int, "target_id": String}
 ##   target_id 预留多敌人目标：当前单敌人为 ""（自动打到唯一敌人）；未来可传 enemy_0/enemy_1。
 
+signal drag_started(card_index: int, from_global: Vector2)
+signal drag_ended
+
 var card_index := 0
 var on_play: Callable
 var on_drag_start: Callable
@@ -59,6 +62,7 @@ func _notification(what: int) -> void:
 	# 拖拽结束（无论是否投放成功）复位拖拽标记，恢复后续悬停/点击
 	if what == NOTIFICATION_DRAG_END:
 		_dragging = false
+		drag_ended.emit()
 
 
 func is_drag_data_supported() -> bool:
@@ -80,6 +84,7 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 	_kill_hover()
 	z_index = 0
 	scale = Vector2.ONE
+	drag_started.emit(card_index, get_global_mouse_position())
 	# 拖拽预览（半透明卡样）
 	var preview := Control.new()
 	preview.custom_minimum_size = Vector2(96, 124)
