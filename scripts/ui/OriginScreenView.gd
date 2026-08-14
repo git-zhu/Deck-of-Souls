@@ -39,7 +39,21 @@ static func build(registry: DataRegistry, on_pick_origin: Callable) -> Control:
 
 
 static func origin_card(origin: OriginData, origin_id: String, on_pick: Callable) -> PanelContainer:
-	var panel := UiBuilders.panel(GameTheme.PANEL)
+	# 统一琥珀金边框（替代暗金 9-slice 描边）：圆角 / 黑底 / 内边距与原面板一致
+	var panel := PanelContainer.new()
+	var origin_style := StyleBoxFlat.new()
+	origin_style.bg_color = GameTheme.PANEL
+	origin_style.border_color = GameTheme.ORIGIN_ACCENT
+	origin_style.set_border_width_all(2)
+	origin_style.corner_radius_top_left = 10
+	origin_style.corner_radius_top_right = 10
+	origin_style.corner_radius_bottom_left = 10
+	origin_style.corner_radius_bottom_right = 10
+	origin_style.content_margin_left = 14
+	origin_style.content_margin_right = 14
+	origin_style.content_margin_top = 14
+	origin_style.content_margin_bottom = 14
+	panel.add_theme_stylebox_override("panel", origin_style)
 	panel.custom_minimum_size = Vector2(0, 210)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := VBoxContainer.new()

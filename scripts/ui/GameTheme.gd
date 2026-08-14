@@ -5,6 +5,7 @@ const BG := Color("#16130f")
 const PANEL := Color("#242018")
 const BORDER := Color("#4f4535")
 const GOLD := Color("#e0c06c")
+const ORIGIN_ACCENT := Color("#c9a227")  # 出生卡统一琥珀金边框
 const TITLE_GOLD := Color("#e2bd65")
 const BODY_MUTED := Color("#c8bca5")
 const RELIC_HOOK := Color("#9ec9e8")
