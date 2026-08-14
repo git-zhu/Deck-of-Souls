@@ -58,6 +58,44 @@ static func panel(bg: Color, border: Color = GameTheme.BORDER, border_width: int
 	return panel_node
 
 
+static func header_chip(icon_path: String, value_text: String, tooltip: String = "") -> PanelContainer:
+	# 顶栏统计 chip：图标 + 数值，面板包裹（与战斗页风格统一）
+	var chip := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.09, 0.07, 0.75)
+	style.border_color = GameTheme.BTN_BORDER
+	style.set_border_width_all(1)
+	style.corner_radius_top_left = 5
+	style.corner_radius_top_right = 5
+	style.corner_radius_bottom_left = 5
+	style.corner_radius_bottom_right = 5
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 3
+	style.content_margin_bottom = 3
+	chip.add_theme_stylebox_override("panel", style)
+	if tooltip != "":
+		chip.tooltip_text = tooltip
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 5)
+	chip.add_child(row)
+	if icon_path != "":
+		var icon_tex := load(icon_path) as Texture2D
+		if icon_tex != null:
+			var icon := TextureRect.new()
+			icon.texture = icon_tex
+			icon.custom_minimum_size = Vector2(16, 16)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			row.add_child(icon)
+	var value := Label.new()
+	value.text = value_text
+	value.add_theme_font_size_override("font_size", GameTheme.FONT_SM)
+	value.add_theme_color_override("font_color", GameTheme.TEXT)
+	row.add_child(value)
+	return chip
+
+
 static func small_stat(text: String) -> Label:
 	var label := Label.new()
 	label.text = text

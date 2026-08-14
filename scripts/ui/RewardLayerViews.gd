@@ -527,6 +527,7 @@ static func build_deck_picker(
 					run_state.deck.remove_at(idx)
 			on_removed.call(cid)
 		)
+		UiBuilders.attach_hover_anim(btn, 1.02)
 		list.add_child(btn)
 	return wrap
 

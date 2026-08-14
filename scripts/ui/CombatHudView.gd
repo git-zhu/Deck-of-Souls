@@ -196,7 +196,17 @@ static func build(
 	resource_row.add_child(UiBuilders.turn_label(turn))
 	main.set_meta("combat_turn", turn)
 
-	resource_row.add_child(UiBuilders.energy_orb(combat.ember, combat.max_ember))
+	var orb := UiBuilders.energy_orb(combat.ember, combat.max_ember)
+	resource_row.add_child(orb)
+	# 能量不足时脉动提示（弱，不影响操作）
+	if combat.ember < combat.max_ember:
+		var orb_pulse := orb.create_tween().set_loops()
+		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 0.75), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		orb.tree_exiting.connect(func() -> void:
+			if orb_pulse != null and orb_pulse.is_valid():
+				orb_pulse.kill()
+		)
 
 	resource_row.add_child(UiBuilders.resource_chip("抽牌", str(run_state.draw_pile.size())))
 	resource_row.add_child(UiBuilders.resource_chip("弃牌", str(run_state.discard_pile.size())))

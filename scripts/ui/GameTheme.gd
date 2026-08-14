@@ -15,15 +15,66 @@ const LOG_TEXT := Color("#d9ccb3")
 const MAX_LOG_LINES := 12
 
 
+const FONT_XL := 40      # 大标题
+const FONT_LG := 26      # 标题
+const FONT_MD := 17      # 正文/按钮
+const FONT_SM := 14      # 辅助
+const FONT_XS := 12      # 卡面/小标签
+
+const BTN_BG := Color("#2a2418")
+const BTN_BG_HOVER := Color("#3a2f1c")
+const BTN_BG_PRESSED := Color("#201a10")
+const BTN_BORDER := Color("#6b5a33")
+const BTN_BORDER_HOVER := Color("#e0c06c")
+
+
 static func apply_theme(root: Control) -> void:
 	var theme := Theme.new()
-	theme.set_font_size("font_size", "Label", 18)
-	theme.set_font_size("font_size", "Button", 17)
-	theme.set_font_size("font_size", "RichTextLabel", 16)
+	theme.set_font_size("font_size", "Label", FONT_MD)
+	theme.set_font_size("font_size", "Button", FONT_MD)
+	theme.set_font_size("font_size", "RichTextLabel", FONT_MD)
 	theme.set_color("font_color", "Label", TEXT)
 	theme.set_color("font_color", "Button", Color("#f0e5cd"))
 	theme.set_color("font_hover_color", "Button", Color("#ffffff"))
-	theme.set_color("font_pressed_color", "Button", Color("#d8b15d"))
+	theme.set_color("font_pressed_color", "Button", Color("#e0c06c"))
+
+	# 全局按钮四态：暗金描边 + 阴影 + 圆角（法环石碑质感）
+	var btn_normal := StyleBoxFlat.new()
+	btn_normal.bg_color = BTN_BG
+	btn_normal.border_color = BTN_BORDER
+	btn_normal.set_border_width_all(1)
+	btn_normal.corner_radius_top_left = 6
+	btn_normal.corner_radius_top_right = 6
+	btn_normal.corner_radius_bottom_left = 6
+	btn_normal.corner_radius_bottom_right = 6
+	btn_normal.shadow_color = Color(0, 0, 0, 0.35)
+	btn_normal.shadow_size = 3
+	btn_normal.shadow_offset = Vector2(0, 2)
+	btn_normal.content_margin_left = 14
+	btn_normal.content_margin_right = 14
+	btn_normal.content_margin_top = 6
+	btn_normal.content_margin_bottom = 6
+	theme.set_stylebox("normal", "Button", btn_normal)
+
+	var btn_hover := btn_normal.duplicate() as StyleBoxFlat
+	btn_hover.bg_color = BTN_BG_HOVER
+	btn_hover.border_color = BTN_BORDER_HOVER
+	btn_hover.set_border_width_all(2)
+	btn_hover.shadow_size = 5
+	theme.set_stylebox("hover", "Button", btn_hover)
+
+	var btn_pressed := btn_normal.duplicate() as StyleBoxFlat
+	btn_pressed.bg_color = BTN_BG_PRESSED
+	btn_pressed.border_color = GOLD.darkened(0.2)
+	btn_pressed.shadow_size = 1
+	btn_pressed.shadow_offset = Vector2(0, 0)
+	theme.set_stylebox("pressed", "Button", btn_pressed)
+
+	var btn_disabled := btn_normal.duplicate() as StyleBoxFlat
+	btn_disabled.bg_color = Color("#1a1712")
+	btn_disabled.border_color = Color("#3a342a")
+	theme.set_stylebox("disabled", "Button", btn_disabled)
+
 	root.theme = theme
 
 

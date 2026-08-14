@@ -14,10 +14,14 @@ static func spawn(parent: Control, text: String, at_global: Vector2, color: Colo
 	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	label.add_theme_constant_override("outline_size", 4)
 	label.z_index = 100
+	label.pivot_offset = Vector2(label.size.x * 0.5, label.size.y * 0.5)
+	label.scale = Vector2(0.6, 0.6)
 	parent.add_child(label)
 	label.global_position = at_global - label.size * 0.5
 	var tw := label.create_tween()
 	tw.set_parallel(true)
+	# 弹入（overshoot 缩放）+ 上浮 + 淡出
+	tw.tween_property(label, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(label, "global_position", at_global + Vector2(0, -46), 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(label, "modulate:a", 0.0, 0.55).set_delay(0.25)
+	tw.tween_property(label, "modulate:a", 0.0, 0.55).set_delay(0.3)
 	tw.chain().tween_callback(label.queue_free)

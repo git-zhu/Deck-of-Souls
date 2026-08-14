@@ -16,35 +16,54 @@ static func build(
 	for child in header.get_children():
 		child.queue_free()
 
-	header.add_child(UiBuilders.small_stat("生命 %d/%d" % [run_state.hp, run_state.max_hp]))
-	header.add_child(UiBuilders.small_stat("圣杯瓶 %d/%d" % [run_state.flasks, run_state.max_flasks]))
-	header.add_child(UiBuilders.small_stat("卢恩 %d" % run_state.souls))
+	# 图标化顶栏统计（与战斗页风格统一）
+	header.add_child(UiBuilders.header_chip(
+		"res://assets/external/kenney_icons/suit_hearts.png",
+		"生命 %d/%d" % [run_state.hp, run_state.max_hp], "生命"
+	))
+	header.add_child(UiBuilders.header_chip(
+		"res://assets/icon_flask.png",
+		"圣杯瓶 %d/%d" % [run_state.flasks, run_state.max_flasks], "圣杯瓶"
+	))
+	header.add_child(UiBuilders.header_chip(
+		"res://assets/icon_soul.png",
+		"卢恩 %d" % run_state.souls, "卢恩"
+	))
 	if run_state.relics.size() > 0:
-		header.add_child(UiBuilders.small_stat("护符 %d" % run_state.relics.size()))
+		header.add_child(UiBuilders.header_chip(
+			"res://assets/external/kenney_icons/suit_diamonds.png",
+			"护符 %d" % run_state.relics.size(), "护符"
+		))
 	if run_state.memory_stones > 0:
-		header.add_child(
-			UiBuilders.small_stat("记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES])
-		)
-	header.add_child(UiBuilders.small_stat("牌组 %d" % run_state.deck.size()))
+		header.add_child(UiBuilders.header_chip(
+			"res://assets/external/kenney_icons/dice_skull.png",
+			"记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES], "记忆石"
+		))
+	header.add_child(UiBuilders.header_chip(
+		"res://assets/external/kenney_icons/cards_stack.png",
+		"牌组 %d" % run_state.deck.size(), "牌组"
+	))
 
 	var act := registry.get_act(run_state.act_index())
 	var local_step: int = (run_state.floor_index % RunState.FLOORS_PER_ACT) + 1
 	if act != null:
-		header.add_child(
-			UiBuilders.small_stat(
-				"%s · %d/%d · 层 %d/%d" % [
-					act.title,
-					local_step,
-					RunState.FLOORS_PER_ACT,
-					run_state.floor_index + 1,
-					RunState.TOTAL_FLOORS,
-				]
-			)
-		)
+		header.add_child(UiBuilders.header_chip(
+			"",
+			"%s · %d/%d · 层 %d/%d" % [
+				act.title,
+				local_step,
+				RunState.FLOORS_PER_ACT,
+				run_state.floor_index + 1,
+				RunState.TOTAL_FLOORS,
+			],
+			"进度"
+		))
 	else:
-		header.add_child(
-			UiBuilders.small_stat("层数 %d/%d" % [run_state.floor_index + 1, RunState.TOTAL_FLOORS])
-		)
+		header.add_child(UiBuilders.header_chip(
+			"",
+			"层数 %d/%d" % [run_state.floor_index + 1, RunState.TOTAL_FLOORS],
+			"进度"
+		))
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
