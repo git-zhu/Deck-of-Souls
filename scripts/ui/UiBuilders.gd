@@ -336,15 +336,15 @@ static func _num_regex() -> RegEx:
 static func _intent_icon_path(kind: String) -> String:
 	match kind:
 		"attack", "attack_block", "attack_rot":
-			return "res://assets/intent_attack.png"
+			return "res://assets/external/kenney_icons/sword.png"
 		"block":
-			return "res://assets/intent_block.png"
+			return "res://assets/external/kenney_icons/shield.png"
 		"buff", "strength":
-			return "res://assets/intent_buff.png"
+			return "res://assets/external/kenney_icons/arrow_right.png"
 		"debuff", "rot":
-			return "res://assets/intent_debuff.png"
+			return "res://assets/external/kenney_icons/skull.png"
 		_:
-			return "res://assets/intent_block.png"
+			return "res://assets/external/kenney_icons/shield.png"
 
 
 static func emphasize_numbers(text: String) -> String:
@@ -479,6 +479,7 @@ static func intent_banner(intent_kind: String, intent_text: String) -> PanelCont
 			tex_icon.custom_minimum_size = Vector2(38, 38)
 			tex_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			tex_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			tex_icon.modulate = accent
 			icon.add_child(tex_icon)
 			tex_icon.set_anchors_preset(Control.PRESET_FULL_RECT)
 
