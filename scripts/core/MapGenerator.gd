@@ -54,6 +54,21 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 				"option": _encounter_to_dict(enc as MapEncounterData, "elite"),
 				"weight": ew,
 			})
+	# 精英群怪：强力群组作为精英遭遇（获胜走 elite_reward 护符奖励）
+	var elite_group_ids := _act_elite_group_pool(act, registry)
+	for gid in elite_group_ids:
+		var g := registry.get_group(gid)
+		if g == null:
+			continue
+		weighted.append({
+			"option": {
+				"kind": "elite",
+				"enemy": gid,
+				"title": "精英 · " + str(g.title),
+				"body": str(g.body),
+			},
+			"weight": 1,
+		})
 	for event_id in act.event_ids:
 		var event: MapEventData = registry.get_event(str(event_id)) as MapEventData
 		var event_w: int = act.map_weight_event
@@ -68,6 +83,24 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 				"weight": event_w,
 			})
 	return _pick_weighted(weighted, 3, rng)
+
+
+func _act_elite_group_pool(act: ActData, registry: DataRegistry) -> Array:
+	# 精英群怪：每幕 2-3 组强力组合
+	var act_idx := 0
+	for i in range(3):
+		var a := registry.get_act(i)
+		if a != null and a.id == act.id:
+			act_idx = i
+			break
+	match act_idx:
+		0:
+			return ["kaguth_raiders", "elite_soldier_swarm"]
+		1:
+			return ["gargoyle_watch", "gravekeeper_party", "rot_incursion"]
+		_:
+			return ["rot_incursion", "elite_soldier_swarm"]
+	return []
 
 
 func _act_group_pool(act: ActData, registry: DataRegistry) -> Array:

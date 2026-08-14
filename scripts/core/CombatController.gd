@@ -96,6 +96,11 @@ func start_combat(template: Dictionary) -> void:
 		raw_list = [template]
 	var act := registry.get_act(run.act_index())
 	var hp_percent: int = act.enemy_hp_percent if act != null else 100
+	# 模板级标记（精英群/群怪）：传播到成员，供战斗结束判定
+	var group_elite: bool = bool(template.get("elite", false))
+	var group_boss: bool = bool(template.get("boss", false))
+	var group_act_boss: bool = bool(template.get("is_act_boss", false))
+	var group_run_boss: bool = bool(template.get("is_run_boss", false))
 	for raw in raw_list:
 		var e: Dictionary = (raw as Dictionary).duplicate(true)
 		if act != null and hp_percent != 100:
@@ -109,6 +114,15 @@ func start_combat(template: Dictionary) -> void:
 		e.strength = 0
 		e.stance_max = e.stance
 		e.stance_now = e.stance
+		# 群怪标记传播（单个敌人模板本身带标记时保留）
+		if group_elite:
+			e["elite"] = true
+		if group_boss:
+			e["boss"] = true
+		if group_act_boss:
+			e["is_act_boss"] = true
+		if group_run_boss:
+			e["is_run_boss"] = true
 		e["_intent"] = {}
 		enemies.append(e)
 	target_index = 0

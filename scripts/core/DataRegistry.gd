@@ -124,8 +124,8 @@ func pick_named_enemy(rng: RandomNumberGenerator, enemy_name: String, elite: boo
 	var found := template_by_name(enemy_name)
 	if not found.is_empty():
 		return found
-	# 群怪：按组名解析为多敌人模板（enemies 数组）
-	var group := resolve_group(enemy_name)
+	# 群怪：按组名解析为多敌人模板（enemies 数组）；精英遭遇时整组标记 elite
+	var group := resolve_group(enemy_name, elite)
 	if not group.is_empty():
 		return group
 	return pick_enemy(rng, elite, boss)
@@ -149,7 +149,7 @@ func get_group(id: String) -> EnemyGroupData:
 
 
 # 解析群怪模板：返回含 enemies 数组的模板（供 CombatController.start_combat 使用）
-func resolve_group(group_id: String) -> Dictionary:
+func resolve_group(group_id: String, as_elite: bool = false) -> Dictionary:
 	var g := get_group(group_id)
 	if g == null or g.enemy_names.is_empty():
 		return {}
@@ -164,6 +164,7 @@ func resolve_group(group_id: String) -> Dictionary:
 		"group_id": g.id,
 		"title": g.title,
 		"body": g.body,
+		"elite": as_elite,
 		"enemies": templates,
 	}
 

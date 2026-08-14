@@ -29,6 +29,29 @@ func _apply_step(step: CardEffectStep) -> void:
 		CardEffectStep.Kind.DAMAGE:
 			for _i in range(step.hits):
 				combat.deal_enemy_damage(step.value + strength, step.stance)
+		CardEffectStep.Kind.DAMAGE_ALL:
+			# AOE：对全体存活敌人造成伤害
+			for i in range(combat.enemies.size()):
+				var e: Dictionary = combat.enemies[i]
+				if int(e.get("hp", 0)) > 0:
+					combat.deal_enemy_damage(step.value + strength, step.stance, i)
+		CardEffectStep.Kind.APPLY_ALL_VULN:
+			for i in range(combat.enemies.size()):
+				var e: Dictionary = combat.enemies[i]
+				if int(e.get("hp", 0)) > 0:
+					e.vulnerable = int(e.get("vulnerable", 0)) + step.value
+					combat.combat_log("%s 获得 %d 易伤。" % [e.name, step.value])
+		CardEffectStep.Kind.APPLY_ALL_ROT:
+			for i in range(combat.enemies.size()):
+				var e: Dictionary = combat.enemies[i]
+				if int(e.get("hp", 0)) > 0:
+					e.rot = int(e.get("rot", 0)) + step.value
+					combat.combat_log("%s 被腐败侵染。" % e.name)
+		CardEffectStep.Kind.APPLY_ALL_BLEED:
+			for i in range(combat.enemies.size()):
+				var e: Dictionary = combat.enemies[i]
+				if int(e.get("hp", 0)) > 0:
+					combat.apply_enemy_bleed(step.value, i)
 		CardEffectStep.Kind.GAIN_BLOCK:
 			combat.gain_block(step.value)
 		CardEffectStep.Kind.HEAL:
@@ -129,18 +152,18 @@ func _catalog_steps(card_id: String) -> Array:
 			steps.append(draw)
 		"volcano_pot":
 			var pot := CardEffectStep.new()
-			pot.kind = CardEffectStep.Kind.DAMAGE
-			pot.value = 6
+			pot.kind = CardEffectStep.Kind.DAMAGE_ALL
+			pot.value = 5
 			pot.stance = 2
 			steps.append(pot)
 			var vuln := CardEffectStep.new()
-			vuln.kind = CardEffectStep.Kind.APPLY_VULN_ON_ENEMY
-			vuln.value = 2
+			vuln.kind = CardEffectStep.Kind.APPLY_ALL_VULN
+			vuln.value = 1
 			steps.append(vuln)
 		"rotten_breath":
 			var rot := CardEffectStep.new()
-			rot.kind = CardEffectStep.Kind.APPLY_ROT_ON_ENEMY
-			rot.value = 6
+			rot.kind = CardEffectStep.Kind.APPLY_ALL_ROT
+			rot.value = 5
 			steps.append(rot)
 		"black_flame":
 			var bf := CardEffectStep.new()
@@ -167,9 +190,9 @@ func _catalog_steps(card_id: String) -> Array:
 			flask.value = 12
 			steps.append(flask)
 		"rock_sling":
-			s.kind = CardEffectStep.Kind.DAMAGE
-			s.value = 6
-			s.stance = 2
+			s.kind = CardEffectStep.Kind.DAMAGE_ALL
+			s.value = 5
+			s.stance = 1
 			steps.append(s)
 		"flame_grant_me_strength":
 			var str_step := CardEffectStep.new()
@@ -179,13 +202,13 @@ func _catalog_steps(card_id: String) -> Array:
 		"glintstone_stars":
 			for _i in 2:
 				var star := CardEffectStep.new()
-				star.kind = CardEffectStep.Kind.DAMAGE
-				star.value = 4
+				star.kind = CardEffectStep.Kind.DAMAGE_ALL
+				star.value = 3
 				star.stance = 1
 				steps.append(star)
 		"hoarfrost_stomp":
 			var stomp := CardEffectStep.new()
-			stomp.kind = CardEffectStep.Kind.DAMAGE
+			stomp.kind = CardEffectStep.Kind.DAMAGE_ALL
 			stomp.value = 5
 			stomp.stance = 3
 			steps.append(stomp)

@@ -3,6 +3,10 @@ extends Resource
 
 enum Kind {
 	DAMAGE,
+	DAMAGE_ALL,          # AOE：对全体存活敌人造成伤害
+	APPLY_ALL_VULN,      # AOE：对全体敌人施加易伤
+	APPLY_ALL_ROT,       # AOE：对全体敌人施加腐败
+	APPLY_ALL_BLEED,     # AOE：对全体敌人施加出血
 	GAIN_BLOCK,
 	HEAL,
 	DRAW,
