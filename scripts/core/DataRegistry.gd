@@ -11,6 +11,7 @@ const MerchantOfferData = preload("res://data/MerchantOfferData.gd")
 const RelicData = preload("res://data/RelicData.gd")
 const MapEventData = preload("res://data/MapEventData.gd")
 const EnemyGroupData = preload("res://data/EnemyGroupData.gd")
+const WeaponData = preload("res://data/WeaponData.gd")
 const DataRegistryPaths = preload("res://scripts/core/DataRegistryPaths.gd")
 
 const ACT_ORDER: Array[String] = ["limgrave", "stormveil", "liurnia"]
@@ -19,6 +20,7 @@ var cards: Dictionary = {}
 var origins: Dictionary = {}
 var _enemy_templates: Array = []
 var _enemy_groups: Dictionary = {}
+var _weapons: Dictionary = {}
 var acts: Array = []
 var grace_options: Dictionary = {}
 var merchant_offers: Dictionary = {}
@@ -31,6 +33,7 @@ func load_all() -> void:
 	origins = _load_origins()
 	_enemy_templates = _load_enemies()
 	_enemy_groups = _load_enemy_groups()
+	_weapons = _load_weapons()
 	acts = _load_acts()
 	grace_options = _load_grace_options()
 	merchant_offers = _load_merchant_offers()
@@ -138,6 +141,23 @@ func _load_enemy_groups() -> Dictionary:
 		if g != null and g.id != "":
 			result[g.id] = g
 	return result
+
+
+func _load_weapons() -> Dictionary:
+	var result := {}
+	for w_res in DataRegistryPaths.WEAPON_RESOURCES:
+		var w := w_res as WeaponData
+		if w != null and w.id != "":
+			result[w.id] = w
+	return result
+
+
+func weapon_ids() -> Array:
+	return _weapons.keys()
+
+
+func get_weapon(id: String) -> WeaponData:
+	return _weapons.get(id) as WeaponData
 
 
 func group_ids() -> Array:

@@ -18,3 +18,4 @@ attr_strength = 10
 attr_dexterity = 16
 attr_mind = 11
 attr_faith = 9
+weapons = Array[String](["dual_scimitar_w"])

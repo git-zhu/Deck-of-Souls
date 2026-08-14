@@ -16,5 +16,8 @@ extends Resource
 @export var draw_bonus: int = 0          # 每回合多抽 N 张
 @export var effect_hook: String = ""     # 战技钩子（如 "giant_cleave"）
 
+@export_group("Upgrade")
+@export var level: int = 0               # 武器等级 0-10（锻造石升级）
+
 @export_group("Class")
 @export var origins: Array[String] = []  # 限制出身（空 = 无限制）

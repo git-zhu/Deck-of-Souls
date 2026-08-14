@@ -18,3 +18,4 @@ attr_strength = 11
 attr_dexterity = 10
 attr_mind = 9
 attr_faith = 16
+weapons = Array[String](["finger_seal_w"])

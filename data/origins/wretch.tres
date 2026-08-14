@@ -18,3 +18,4 @@ attr_strength = 10
 attr_dexterity = 10
 attr_mind = 10
 attr_faith = 10
+weapons = Array[String](["club_w"])

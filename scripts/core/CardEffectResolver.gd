@@ -19,22 +19,28 @@ func resolve(card: CardData) -> bool:
 	var steps: Array = card.effects if card.effects.size() > 0 else _catalog_steps(card.id)
 	for step in steps:
 		if step is CardEffectStep:
-			_apply_step(step as CardEffectStep)
+			_apply_step(step as CardEffectStep, card)
 	return card.exhaust_after_play
 
 
-func _apply_step(step: CardEffectStep) -> void:
+func _apply_step(step: CardEffectStep, card: CardData = null) -> void:
 	var strength: int = combat.run.player_strength
 	match step.kind:
 		CardEffectStep.Kind.DAMAGE:
 			for _i in range(step.hits):
-				combat.deal_enemy_damage(step.value + strength, step.stance)
+				var dmg: int = step.value + strength
+				if card != null:
+					dmg = combat.calculate_card_damage(card, step.value) + strength
+				combat.deal_enemy_damage(dmg, combat.calculate_stance_damage(step.stance))
 		CardEffectStep.Kind.DAMAGE_ALL:
 			# AOE：对全体存活敌人造成伤害
 			for i in range(combat.enemies.size()):
 				var e: Dictionary = combat.enemies[i]
 				if int(e.get("hp", 0)) > 0:
-					combat.deal_enemy_damage(step.value + strength, step.stance, i)
+					var aoe_dmg: int = step.value + strength
+					if card != null:
+						aoe_dmg = combat.calculate_card_damage(card, step.value) + strength
+					combat.deal_enemy_damage(aoe_dmg, combat.calculate_stance_damage(step.stance), i)
 		CardEffectStep.Kind.APPLY_ALL_VULN:
 			for i in range(combat.enemies.size()):
 				var e: Dictionary = combat.enemies[i]

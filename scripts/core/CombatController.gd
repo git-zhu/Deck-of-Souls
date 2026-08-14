@@ -7,6 +7,7 @@ const CardEffectResolver = preload("res://scripts/core/CardEffectResolver.gd")
 const RelicService = preload("res://scripts/core/RelicService.gd")
 const ActData = preload("res://data/ActData.gd")
 const CardData = preload("res://data/CardData.gd")
+const WeaponService = preload("res://scripts/core/WeaponService.gd")
 
 signal combat_changed
 signal combat_ended(kind: String)
@@ -24,6 +25,7 @@ var ember: int = 3
 var max_ember: int = 3
 var block: int = 0
 var relic_service := RelicService.new()
+var weapon_service := WeaponService.new()
 
 # ── 兼容 getter：enemy = 选中目标（默认第一个存活敌人）──
 var enemy: Dictionary:
@@ -76,10 +78,38 @@ func _init(p_run: RunState, p_registry: DataRegistry, p_rng: RandomNumberGenerat
 	run = p_run
 	registry = p_registry
 	rng = p_rng
+	weapon_service.load_from_registry(registry)
 
 
 func combat_log(text: String) -> void:
 	log_message.emit(text)
+
+
+# 法环式卡牌伤害：基础值 + 属性补正，再 × 武器等级倍率
+func calculate_card_damage(card: CardData, base_value: int) -> int:
+	var attr_bonus := _attr_bonus_for_card(card)
+	var raw := base_value + attr_bonus
+	raw += weapon_service.total_attack_bonus(run)
+	var mult := weapon_service.weapon_multiplier(run)
+	return maxi(0, int(round(float(raw) * mult)))
+
+
+# 属性补正：物理卡=力量(+0.5灵巧)；魔法=集中；祷告=信仰
+func _attr_bonus_for_card(card: CardData) -> int:
+	match str(card.type):
+		"魔法":
+			return run.attr("mind")
+		"祷告":
+			return run.attr("faith")
+		"武器", "战灰", "传说", "壶":
+			return run.attr("strength") + int(run.attr("dexterity") * 0.5)
+		_:
+			return 0
+
+
+# 姿态伤害：基础 + 灵巧补正 + 武器姿态加成
+func calculate_stance_damage(base_stance: int) -> int:
+	return base_stance + int(run.attr("dexterity") * 0.5) + weapon_service.total_stance_bonus(run)
 
 
 func start_combat(template: Dictionary) -> void:

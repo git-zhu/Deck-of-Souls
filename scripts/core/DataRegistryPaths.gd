@@ -122,6 +122,20 @@ const ENEMY_RESOURCES: Array = [
 	preload("res://data/enemies/wild_wolf.tres"),
 ]
 
+const WEAPON_RESOURCES: Array = [
+	preload("res://data/weapons/battle_axe_w.tres"),
+	preload("res://data/weapons/club_w.tres"),
+	preload("res://data/weapons/dual_scimitar_w.tres"),
+	preload("res://data/weapons/finger_seal_w.tres"),
+	preload("res://data/weapons/greatsword_w.tres"),
+	preload("res://data/weapons/halberd_w.tres"),
+	preload("res://data/weapons/heater_shield_w.tres"),
+	preload("res://data/weapons/longbow_w.tres"),
+	preload("res://data/weapons/longsword_w.tres"),
+	preload("res://data/weapons/staff_w.tres"),
+	preload("res://data/weapons/uchigatana_w.tres"),
+]
+
 const GROUP_RESOURCES: Array = [
 	preload("res://data/enemy_groups/academy_scholars.tres"),
 	preload("res://data/enemy_groups/elite_soldier_swarm.tres"),

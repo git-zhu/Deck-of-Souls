@@ -18,3 +18,4 @@ attr_strength = 14
 attr_dexterity = 13
 attr_mind = 9
 attr_faith = 9
+weapons = Array[String](["longsword_w", "halberd_w", "heater_shield_w"])
