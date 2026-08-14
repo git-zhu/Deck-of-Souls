@@ -232,13 +232,16 @@ static func card_button(
 	on_play: Callable
 ) -> Button:
 	var accent := GameTheme.card_type_color(card.type)
+	var style_map := GameTheme.card_type_style(card.type)
 	var unplayable: bool = card.cost > combat.ember or combat.combat_over
 
 	# 可拖拽手牌（DragCard）：拖到敌人/战斗区域打出；点击同样可打出
+	# 强制统一尺寸：宽/高/内边距绝对固定，任何文本长度都不改变牌面
 	var button := DragCard.new()
 	button.setup(index, on_play)
 	button.custom_minimum_size = Vector2(card_w, card_h)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	button.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	button.text = ""
 	button.tooltip_text = "%s（快捷键 %d）" % [card.text, index + 1] if index < 9 else card.text
 	button.disabled = unplayable
@@ -254,7 +257,7 @@ static func card_button(
 		border_width = int(rarity_meta_dict.border_width)
 
 	var style := StyleBoxFlat.new()
-	style.bg_color = accent.darkened(0.6)
+	style.bg_color = style_map.bg
 	style.border_color = border_color
 	style.set_border_width_all(border_width)
 	style.corner_radius_top_left = 8
@@ -280,6 +283,23 @@ static func card_button(
 	disabled_style.border_color = GameTheme.BORDER
 	disabled_style.bg_color = Color("#1c1a16")
 	button.add_theme_stylebox_override("disabled", disabled_style)
+
+	# 符文边框（先加 → 内容/消耗圆环/角标绘制在其之上，避免遮挡）：
+	# 随主题色调制，整卡统一为类型色（武器金 / 盾牌青 …），不再叠加金色冲突
+	var frame := TextureRect.new()
+	frame.texture = load("res://assets/card_frame_9slice.png") as Texture2D
+	frame.modulate = accent
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.offset_left = 0
+	frame.offset_right = 0
+	frame.offset_top = 0
+	frame.offset_bottom = 0
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	button.add_child(frame)
 
 	var v_margin := MarginContainer.new()
 	v_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -334,11 +354,29 @@ static func card_button(
 	top.add_child(name_label)
 
 	if index < 9:
+		# 右上角张数/快捷键角标：底色与文字随卡牌主题自动映射
+		# （金色牌 → 深褐底黄字；青色牌 → 深青底白字）
+		var hotkey_badge := PanelContainer.new()
+		hotkey_badge.custom_minimum_size = Vector2(20, 20)
+		hotkey_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var badge_style := StyleBoxFlat.new()
+		badge_style.bg_color = style_map.badge_bg
+		badge_style.border_color = style_map.badge_border
+		badge_style.set_border_width_all(1)
+		badge_style.corner_radius_top_left = 10
+		badge_style.corner_radius_top_right = 10
+		badge_style.corner_radius_bottom_left = 10
+		badge_style.corner_radius_bottom_right = 10
+		hotkey_badge.add_theme_stylebox_override("panel", badge_style)
 		var hotkey := Label.new()
 		hotkey.text = str(index + 1)
+		hotkey.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hotkey.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		hotkey.add_theme_font_size_override("font_size", 12)
-		hotkey.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
-		top.add_child(hotkey)
+		hotkey.add_theme_color_override("font_color", style_map.badge_fg)
+		hotkey.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hotkey_badge.add_child(hotkey)
+		top.add_child(hotkey_badge)
 
 	var type_row := HBoxContainer.new()
 	type_row.add_theme_constant_override("separation", 6)
@@ -371,22 +409,6 @@ static func card_button(
 	effect.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	effect.text = "[font_size=12]%s[/font_size]" % emphasize_numbers(card.text)
 	v.add_child(effect)
-
-	# 金色符文边框：9-slice TextureRect 覆盖层（Button 的 frame 样式不渲染，须用子节点）
-	var frame := TextureRect.new()
-	frame.texture = load("res://assets/card_frame_9slice.png") as Texture2D
-	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	frame.offset_left = 0
-	frame.offset_right = 0
-	frame.offset_top = 0
-	frame.offset_bottom = 0
-	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	button.add_child(frame)
-	frame.move_to_front()
 
 	button.pressed.connect(on_play)
 	# 注意：悬停放大由 DragCard 自带的 StS lift 处理（此处不再 attach_hover_anim 避免冲突）

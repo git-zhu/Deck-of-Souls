@@ -163,6 +163,20 @@ static func card_type_color(type_name: String) -> Color:
 		_:
 			return CARD_WEAPON
 
+
+# 手牌整卡样式映射：由 type 语义色推导固定配色（边框/底色/右上角标），杜绝随机变色。
+# 例：武器类始终金色（深褐底黄字角标），盾牌类始终青色（深青底白字角标）。
+static func card_type_style(type_name: String) -> Dictionary:
+	var accent := card_type_color(type_name)
+	return {
+		"accent": accent,
+		"border": accent.lightened(0.15),
+		"bg": accent.darkened(0.6),
+		"badge_bg": accent.darkened(0.75),
+		"badge_border": accent.lightened(0.2),
+		"badge_fg": accent.lightened(0.45),
+	}
+
 # 意图图标：已改为 UiBuilders.intent_banner 中的自绘几何图形（IntentIcon），
 # 本函数保留签名并返回空字符串，避免旧调用方依赖 unicode 字符。
 static func intent_icon(_kind: String) -> String:
