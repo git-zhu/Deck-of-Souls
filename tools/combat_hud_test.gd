@@ -48,6 +48,29 @@ func _initialize() -> void:
 	if refs.log_box.text.is_empty():
 		_fail("combat HUD log_box empty")
 		return
+
+	# 新布局校验：意图横幅 + 资源 chip + 游戏化卡牌结构
+	if not _tree_has_label_text(refs.root, "敌方意图"):
+		_fail("combat HUD missing intent banner tag")
+		return
+	if not _tree_has_label_text(refs.root, "抽牌"):
+		_fail("combat HUD missing resource chip 抽牌")
+		return
+	if not _tree_has_button_prefix(refs.root, "结束回合"):
+		_fail("combat HUD missing end turn CTA")
+		return
+	var flask := refs.flask_button as Button
+	if flask == null or not flask.text.begins_with("圣杯瓶"):
+		_fail("combat HUD flask button missing")
+		return
+
+	# 游戏化卡牌：每张手牌按钮应有消耗徽章（含数字 Label）
+	var card_buttons := _find_buttons(refs.hand_row)
+	for btn in card_buttons:
+		if not _button_has_cost_badge(btn):
+			_fail("hand card missing cost badge: %s" % btn.name)
+			return
+
 	refs.root.queue_free()
 
 	GameAudio.play(get_root(), "ui_click")
@@ -60,6 +83,46 @@ func _tree_has_label_prefix(node: Node, prefix: String) -> bool:
 		return true
 	for child in node.get_children():
 		if _tree_has_label_prefix(child, prefix):
+			return true
+	return false
+
+
+func _tree_has_button_prefix(node: Node, prefix: String) -> bool:
+	if node is Button and (node as Button).text.begins_with(prefix):
+		return true
+	for child in node.get_children():
+		if _tree_has_button_prefix(child, prefix):
+			return true
+	return false
+
+
+func _tree_has_label_text(node: Node, text: String) -> bool:
+	if node is Label and (node as Label).text == text:
+		return true
+	for child in node.get_children():
+		if _tree_has_label_text(child, text):
+			return true
+	return false
+
+
+func _find_buttons(node: Node) -> Array[Button]:
+	var out: Array[Button] = []
+	if node is Button:
+		out.append(node)
+	for child in node.get_children():
+		out.append_array(_find_buttons(child))
+	return out
+
+
+func _button_has_cost_badge(btn: Button) -> bool:
+	return _tree_has_nested_panel_label(btn)
+
+
+func _tree_has_nested_panel_label(node: Node) -> bool:
+	if node is PanelContainer and node.get_child_count() > 0 and node.get_child(0) is Label:
+		return true
+	for child in node.get_children():
+		if _tree_has_nested_panel_label(child):
 			return true
 	return false
 

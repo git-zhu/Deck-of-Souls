@@ -40,7 +40,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | GameTheme | `scripts/ui/GameTheme.gd` | Palette, map kind badges, intent colors |
 | UiBuilders | `scripts/ui/UiBuilders.gd` | Panel, fighter, hand card, map option builders |
 | RewardLayerViews | `scripts/ui/RewardLayerViews.gd` | Merchant, grace, event, post-combat rewards, pickers |
-| CombatHudView | `scripts/ui/CombatHudView.gd` | Combat field, hand, log, action buttons |
+| CombatHudView | `scripts/ui/CombatHudView.gd` | Reconstructed combat HUD: compact fighter HUDs, intent banner, combat stage, resource chips, game cards, flask/end-turn CTAs |
 | RunHeaderView | `scripts/ui/RunHeaderView.gd` | Run stats header + deck button |
 | GameAudio | `scripts/ui/GameAudio.gd` | Optional `res://audio/*.ogg` hooks |
 | DataRegistry | `scripts/core/DataRegistry.gd` | Load `data/**/*.tres` |
