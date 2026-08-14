@@ -129,6 +129,10 @@ static func build(
 			if mb.pressed and (mb.button_index == MOUSE_BUTTON_WHEEL_UP or mb.button_index == MOUSE_BUTTON_WHEEL_DOWN):
 				hand_scroll.scroll_horizontal += int(mb.factor * 90.0) * (1 if mb.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1)
 				hand_scroll.accept_event()
+		# 触屏滑动：拖动手牌横向滚动（手机端便捷操作）
+		elif ev is InputEventScreenDrag:
+			hand_scroll.scroll_horizontal -= int((ev as InputEventScreenDrag).relative.x)
+			hand_scroll.accept_event()
 	)
 
 	refs.hand_row = HBoxContainer.new()

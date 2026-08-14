@@ -180,6 +180,22 @@ func _clear(node: Node) -> void:
 var _active_tween: Tween
 
 
+func _focus_first_button(layer: Control) -> void:
+	var btn := _first_button(layer)
+	if btn != null:
+		btn.grab_focus()
+
+
+func _first_button(node: Node) -> Button:
+	if node is Button:
+		return node as Button
+	for child in node.get_children():
+		var found := _first_button(child)
+		if found != null:
+			return found
+	return null
+
+
 func _animate_layer(layer: Control) -> void:
 	# 屏幕切换：淡入 + 轻微上浮（120ms），贴近法环"雾门"过渡感
 	if layer.has_meta("_anim_tween"):
@@ -274,6 +290,7 @@ func _show_origin() -> void:
 	_build_header()
 	title_layer.add_child(OriginScreenView.build(registry, _start_run))
 	_animate_layer(title_layer)
+	_focus_first_button(title_layer)
 
 
 func _start_run(origin_id: String = "vagabond") -> void:
@@ -302,6 +319,7 @@ func _enter_map_layer(content: Control) -> void:
 	_build_header()
 	map_layer.add_child(content)
 	_animate_layer(map_layer)
+	_focus_first_button(map_layer)
 	_maybe_autosave()
 
 
@@ -367,6 +385,7 @@ func _render_combat() -> void:
 	flask_button = refs.flask_button
 	end_turn_button = refs.end_turn_button
 	_animate_layer(combat_layer)
+	_focus_first_button(combat_layer)
 
 
 func _build_header() -> void:

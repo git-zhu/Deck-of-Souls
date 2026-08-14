@@ -110,7 +110,16 @@ func _initialize() -> void:
 
 	# Let the defeat/victory audio players finish before freeing the scene
 	# (mirrors real playback; avoids ObjectDB leaks of OGG playback objects).
-	await create_timer(1.4).timeout
+	for _i in 30:
+		var any_playing := false
+		for child in main.get_children():
+			if child is AudioStreamPlayer and (child as AudioStreamPlayer).playing:
+				any_playing = true
+				break
+		if not any_playing:
+			break
+		await create_timer(0.1).timeout
+	await create_timer(0.15).timeout
 
 	main.queue_free()
 	await process_frame
