@@ -161,33 +161,411 @@ static func card_button(
 	card_h: float,
 	on_play: Callable
 ) -> Button:
+	var accent := GameTheme.card_type_color(card.type)
+	var unplayable: bool = card.cost > combat.ember or combat.combat_over
+
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(card_w, card_h)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	# 快捷键提示：手牌序号（1-9）显示在卡名旁，PC 上直接按数字键打牌
-	if index < 9:
-		button.text = "[%d] %s\n%s  集中:%d\n\n%s" % [index + 1, card.name, card.type, card.cost, card.text]
-	else:
-		button.text = "%s\n%s  集中:%d\n\n%s" % [card.name, card.type, card.cost, card.text]
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	button.tooltip_text = "%s\n（快捷键 %d）" % [card.text, index + 1] if index < 9 else card.text
-	var unplayable: bool = card.cost > combat.ember or combat.combat_over
+	button.text = ""
+	button.tooltip_text = "%s（快捷键 %d）" % [card.text, index + 1] if index < 9 else card.text
 	button.disabled = unplayable
 	if unplayable:
 		button.modulate = GameTheme.card_disabled_modulate()
-	button.add_theme_font_size_override("font_size", 14)
+
 	var style := StyleBoxFlat.new()
-	style.bg_color = card.tone.darkened(0.45)
-	style.border_color = card.tone.lightened(0.2)
+	style.bg_color = accent.darkened(0.6)
+	style.border_color = accent.lightened(0.15)
 	style.set_border_width_all(2)
 	style.corner_radius_top_left = 8
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_left = 8
 	style.corner_radius_bottom_right = 8
+	style.shadow_color = Color(0, 0, 0, 0.4)
+	style.shadow_size = 5
+	style.shadow_offset = Vector2(0, 2)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
 	button.add_theme_stylebox_override("normal", style)
+	var hover_style := style.duplicate() as StyleBoxFlat
+	hover_style.border_color = accent.lightened(0.4)
+	hover_style.shadow_size = 9
+	button.add_theme_stylebox_override("hover", hover_style)
+	var pressed_style := style.duplicate() as StyleBoxFlat
+	pressed_style.bg_color = accent.darkened(0.7)
+	button.add_theme_stylebox_override("pressed", pressed_style)
+	var disabled_style := style.duplicate() as StyleBoxFlat
+	disabled_style.border_color = GameTheme.BORDER
+	disabled_style.bg_color = Color("#1c1a16")
+	button.add_theme_stylebox_override("disabled", disabled_style)
+
+	var v := VBoxContainer.new()
+	v.set_anchors_preset(Control.PRESET_FULL_RECT)
+	v.add_theme_constant_override("separation", 2)
+	button.add_child(v)
+
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 5)
+	v.add_child(top)
+
+	var cost_badge := PanelContainer.new()
+	cost_badge.custom_minimum_size = Vector2(24, 24)
+	var cost_style := StyleBoxFlat.new()
+	cost_style.bg_color = Color("#16130f")
+	cost_style.border_color = GameTheme.GOLD
+	cost_style.set_border_width_all(2)
+	cost_style.corner_radius_top_left = 12
+	cost_style.corner_radius_top_right = 12
+	cost_style.corner_radius_bottom_left = 12
+	cost_style.corner_radius_bottom_right = 12
+	cost_badge.add_theme_stylebox_override("panel", cost_style)
+	var cost_label := Label.new()
+	cost_label.text = str(card.cost)
+	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cost_label.add_theme_font_size_override("font_size", 15)
+	cost_label.add_theme_color_override("font_color", GameTheme.GOLD)
+	cost_badge.add_child(cost_label)
+	top.add_child(cost_badge)
+
+	var name_label := Label.new()
+	name_label.text = card.name
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.add_theme_font_size_override("font_size", 15)
+	name_label.add_theme_color_override("font_color", Color("#f0e5cd"))
+	top.add_child(name_label)
+
+	if index < 9:
+		var hotkey := Label.new()
+		hotkey.text = str(index + 1)
+		hotkey.add_theme_font_size_override("font_size", 12)
+		hotkey.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+		top.add_child(hotkey)
+
+	var type_label := Label.new()
+	type_label.text = "%s  ·  集中 %d" % [card.type, card.cost]
+	type_label.add_theme_font_size_override("font_size", 11)
+	type_label.add_theme_color_override("font_color", accent.lightened(0.3))
+	v.add_child(type_label)
+
+	var sep := HSeparator.new()
+	sep.add_theme_constant_override("separation", 4)
+	v.add_child(sep)
+
+	var effect := RichTextLabel.new()
+	effect.bbcode_enabled = true
+	effect.fit_content = false
+	effect.scroll_active = false
+	effect.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	effect.text = "[font_size=12]%s[/font_size]" % emphasize_numbers(card.text)
+	v.add_child(effect)
+
 	button.pressed.connect(on_play)
 	attach_hover_anim(button, 1.06)
 	return button
+
+
+# ---------- 战斗 UI 重构（游戏化） ----------
+
+static func _num_regex() -> RegEx:
+	var r := RegEx.new()
+	r.compile("\\d+")
+	return r
+
+
+static func emphasize_numbers(text: String) -> String:
+	# 卡牌效果文本中高亮数字（数值优先原则）
+	var r := _num_regex()
+	var replaced := r.sub(text, "[color=#f0cf6a]$0[/color]", true)
+	return replaced
+
+
+static func compact_fighter_hud(
+	name_text: String,
+	cur_hp: int,
+	full_hp: int,
+	cur_block: int,
+	statuses: Dictionary,
+	bg: Color,
+	is_enemy: bool = false,
+	stance_now: int = -1,
+	stance_max: int = -1
+) -> PanelContainer:
+	# 紧凑 HUD：名字 + 大号 HP + 细血条 + 状态 chip，取代大型面板
+	var border := GameTheme.BORDER
+	var border_width := 1
+	if stance_max > 0 and float(stance_now) / float(stance_max) <= 0.25:
+		border = GameTheme.GOLD
+		border_width = 2
+
+	var panel_node := panel(bg, border, border_width)
+	panel_node.custom_minimum_size = Vector2(228, 0)
+	panel_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 3)
+	panel_node.add_child(v)
+
+	var name_row := HBoxContainer.new()
+	v.add_child(name_row)
+	var name := Label.new()
+	name.text = name_text
+	name.add_theme_font_size_override("font_size", 15)
+	name.add_theme_color_override("font_color", Color("#e4c06d"))
+	name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_row.add_child(name)
+	var hp_label := Label.new()
+	hp_label.text = "%d / %d" % [cur_hp, full_hp]
+	hp_label.add_theme_font_size_override("font_size", 19)
+	hp_label.add_theme_color_override("font_color", Color("#ffffff"))
+	name_row.add_child(hp_label)
+
+	var bar := ProgressBar.new()
+	bar.max_value = full_hp
+	bar.value = cur_hp
+	bar.custom_minimum_size = Vector2(0, 9)
+	bar.show_percentage = false
+	v.add_child(bar)
+
+	var chips := HBoxContainer.new()
+	chips.add_theme_constant_override("separation", 4)
+	v.add_child(chips)
+	if cur_block > 0:
+		chips.add_child(status_chip("护甲 %d" % cur_block, GameTheme.CARD_DEFENSE))
+	for key in statuses:
+		var val: int = int(statuses[key])
+		if val <= 0:
+			continue
+		match str(key):
+			"rot":
+				chips.add_child(status_chip("腐败 %d" % val, GameTheme.status_color("rot")))
+			"bleed":
+				chips.add_child(status_chip("出血 %d" % val, GameTheme.status_color("bleed")))
+			"vulnerable":
+				chips.add_child(status_chip("易伤 %d" % val, GameTheme.status_color("vulnerable")))
+			"strength":
+				chips.add_child(status_chip("力量 %d" % val, GameTheme.status_color("strength")))
+			"stance":
+				chips.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance")))
+	return panel_node
+
+
+static func status_chip(text: String, color: Color) -> PanelContainer:
+	var chip := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = color.darkened(0.55)
+	style.border_color = color
+	style.set_border_width_all(1)
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	style.content_margin_left = 6
+	style.content_margin_right = 6
+	style.content_margin_top = 1
+	style.content_margin_bottom = 1
+	chip.add_theme_stylebox_override("panel", style)
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_color_override("font_color", color.lightened(0.35))
+	chip.add_child(label)
+	return chip
+
+
+static func intent_banner(intent_kind: String, intent_text: String) -> PanelContainer:
+	# 敌人意图：高优先级视觉元素（图标 + 大字号 + 语义色描边）
+	var accent := GameTheme.intent_color(intent_kind)
+	var panel_node := panel(Color("#1d1812"), accent.lightened(0.15), 2)
+	panel_node.custom_minimum_size = Vector2(0, 58)
+	panel_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	panel_node.add_child(row)
+
+	var tag := Label.new()
+	tag.text = "敌方意图"
+	tag.add_theme_font_size_override("font_size", 14)
+	tag.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+	row.add_child(tag)
+
+	var icon := Label.new()
+	icon.text = GameTheme.intent_icon(intent_kind)
+	icon.add_theme_font_size_override("font_size", 34)
+	icon.add_theme_color_override("font_color", accent)
+	row.add_child(icon)
+
+	var action := Label.new()
+	action.text = intent_text
+	action.add_theme_font_size_override("font_size", 28)
+	action.add_theme_color_override("font_color", accent.lightened(0.25))
+	row.add_child(action)
+	return panel_node
+
+
+static func combat_stage(player_name: String, enemy_name: String) -> Control:
+	# 中央战斗区域视觉主体：玩家 ←→ 敌人，镀金框内
+	var stage := Control.new()
+	stage.custom_minimum_size = Vector2(0, 0)
+	stage.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	stage.add_child(center)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 36)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.add_child(row)
+
+	row.add_child(_fighter_token(player_name, Color("#3d6e9e"), "P"))
+	var vs := Label.new()
+	vs.text = "⚔"
+	vs.add_theme_font_size_override("font_size", 44)
+	vs.add_theme_color_override("font_color", GameTheme.GOLD)
+	vs.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(vs)
+	row.add_child(_fighter_token(enemy_name, Color("#9e3d3d"), "E"))
+	return stage
+
+
+static func _fighter_token(name_text: String, color: Color, initial: String) -> VBoxContainer:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 8)
+	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.custom_minimum_size = Vector2(150, 0)
+
+	var circle := PanelContainer.new()
+	circle.custom_minimum_size = Vector2(96, 96)
+	circle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	style.bg_color = color.darkened(0.6)
+	style.border_color = color.lightened(0.2)
+	style.set_border_width_all(3)
+	style.corner_radius_top_left = 48
+	style.corner_radius_top_right = 48
+	style.corner_radius_bottom_left = 48
+	style.corner_radius_bottom_right = 48
+	circle.add_theme_stylebox_override("panel", style)
+	var initial_label := Label.new()
+	initial_label.text = initial
+	initial_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	initial_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	initial_label.add_theme_font_size_override("font_size", 44)
+	initial_label.add_theme_color_override("font_color", Color("#ffffff"))
+	circle.add_child(initial_label)
+	col.add_child(circle)
+
+	var name := Label.new()
+	name.text = name_text
+	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name.add_theme_font_size_override("font_size", 16)
+	name.add_theme_color_override("font_color", GameTheme.TEXT)
+	col.add_child(name)
+	return col
+
+
+static func resource_chip(label_text: String, value_text: String) -> PanelContainer:
+	# 资源 HUD：紧凑图标 + 数值 chip
+	var chip := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#1c1812")
+	style.border_color = GameTheme.BORDER
+	style.set_border_width_all(1)
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 3
+	style.content_margin_bottom = 3
+	chip.add_theme_stylebox_override("panel", style)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	chip.add_child(row)
+	var label := Label.new()
+	label.text = label_text
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+	row.add_child(label)
+	var value := Label.new()
+	value.text = value_text
+	value.add_theme_font_size_override("font_size", 15)
+	value.add_theme_color_override("font_color", GameTheme.GOLD)
+	row.add_child(value)
+	return chip
+
+
+static func flask_button(flasks: int, disabled: bool, on_press: Callable) -> Button:
+	# 圣杯瓶：独立治疗按钮（绿调）
+	var btn := Button.new()
+	btn.text = "圣杯瓶 ×%d" % flasks
+	btn.custom_minimum_size = Vector2(120, 54)
+	btn.disabled = disabled
+	btn.tooltip_text = "回复 18 生命（F）"
+	btn.pressed.connect(on_press)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#1f3a24")
+	style.border_color = GameTheme.CARD_HEAL.darkened(0.2)
+	style.set_border_width_all(2)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	btn.add_theme_stylebox_override("normal", style)
+	var hover := style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color("#2a4a2e")
+	hover.border_color = GameTheme.CARD_HEAL
+	btn.add_theme_stylebox_override("hover", hover)
+	var pressed := style.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color("#16301c")
+	btn.add_theme_stylebox_override("pressed", pressed)
+	var disabled_style := style.duplicate() as StyleBoxFlat
+	disabled_style.bg_color = Color("#241f1a")
+	disabled_style.border_color = GameTheme.BORDER
+	btn.add_theme_stylebox_override("disabled", disabled_style)
+	return btn
+
+
+static func end_turn_button(disabled: bool, on_press: Callable) -> Button:
+	# 结束回合：主 CTA（金色，右下固定，hover/disabled/快捷键提示）
+	var btn := Button.new()
+	btn.text = "结束回合  [E]"
+	btn.custom_minimum_size = Vector2(170, 54)
+	btn.disabled = disabled
+	btn.tooltip_text = "结束当前回合（空格 / E）"
+	btn.pressed.connect(on_press)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#3a2d10")
+	style.border_color = GameTheme.GOLD
+	style.set_border_width_all(3)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	style.shadow_color = Color(0.88, 0.75, 0.4, 0.25)
+	style.shadow_size = 8
+	btn.add_theme_stylebox_override("normal", style)
+	var hover := style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color("#4a3a15")
+	hover.border_color = Color("#f5d877")
+	btn.add_theme_stylebox_override("hover", hover)
+	var pressed := style.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color("#2e240d")
+	btn.add_theme_stylebox_override("pressed", pressed)
+	var disabled_style := style.duplicate() as StyleBoxFlat
+	disabled_style.bg_color = Color("#241f1a")
+	disabled_style.border_color = GameTheme.BORDER
+	disabled_style.shadow_size = 0
+	btn.add_theme_stylebox_override("disabled", disabled_style)
+	return btn
 
 
 static func deck_summary_row(card: CardData, count: int, text_width: float = 520.0) -> PanelContainer:

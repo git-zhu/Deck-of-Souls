@@ -61,3 +61,72 @@ static func intent_color(kind: String) -> Color:
 
 static func card_disabled_modulate() -> Color:
 	return Color(0.55, 0.55, 0.55, 1.0)
+
+
+# ---- 卡牌语义配色体系（稳定语义，避免随机区分） ----
+
+# 攻击 / 防御 / 技能 / 武器 / 治疗 / 道具
+const CARD_ATTACK := Color("#d64545")      # 红色：攻击
+const CARD_DEFENSE := Color("#4fc3c9")     # 青色：防御/护甲
+const CARD_SKILL := Color("#b06ad4")       # 紫色：战技/技能
+const CARD_WEAPON := Color("#d4a13c")      # 金色：武器
+const CARD_HEAL := Color("#5ab86a")        # 绿色：治疗/圣杯瓶
+const CARD_ITEM := Color("#d47a3c")        # 橙色：壶/道具
+const CARD_LEGEND := Color("#c0392b")      # 深红：传说
+
+# 卡牌 type → 语义色
+static func card_type_color(type_name: String) -> Color:
+	match type_name:
+		"武器":
+			return CARD_WEAPON
+		"盾牌":
+			return CARD_DEFENSE
+		"战灰":
+			return CARD_SKILL
+		"魔法":
+			return CARD_ATTACK
+		"祷告":
+			return CARD_HEAL
+		"圣杯瓶":
+			return CARD_HEAL
+		"壶":
+			return CARD_ITEM
+		"传说":
+			return CARD_LEGEND
+		_:
+			return CARD_WEAPON
+
+# 意图图标（无字体依赖的几何符号）
+static func intent_icon(kind: String) -> String:
+	match kind:
+		"attack":
+			return "◆"
+		"attack_block":
+			return "◈"
+		"attack_rot":
+			return "▲"
+		"block":
+			return "◈"
+		"buff", "strength":
+			return "▲"
+		"debuff", "rot":
+			return "▼"
+		_:
+			return "◆"
+
+
+# 状态 chip 语义色
+static func status_color(status_id: String) -> Color:
+	match status_id:
+		"rot":
+			return Color("#7ab87a")
+		"bleed":
+			return Color("#e07a6a")
+		"vulnerable":
+			return Color("#e6c56d")
+		"strength":
+			return Color("#b08ce0")
+		"stance":
+			return Color("#e6c56d")
+		_:
+			return TEXT_MUTED

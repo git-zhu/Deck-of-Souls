@@ -50,7 +50,7 @@ func _initialize() -> void:
 	if int(main.get("screen")) != 3:
 		_fail("expected COMBAT after combat option, got %s" % str(main.get("screen")))
 		return
-	if not _tree_has_button_text(main, "结束回合"):
+	if not _tree_has_button_prefix(main, "结束回合"):
 		_fail("combat screen missing end turn button")
 		return
 	var enemy_panel: Control = main.get("enemy_panel") as Control
@@ -155,6 +155,15 @@ func _tree_has_button_text(node: Node, text: String) -> bool:
 		return true
 	for child in node.get_children():
 		if _tree_has_button_text(child, text):
+			return true
+	return false
+
+
+func _tree_has_button_prefix(node: Node, prefix: String) -> bool:
+	if node is Button and (node as Button).text.begins_with(prefix):
+		return true
+	for child in node.get_children():
+		if _tree_has_button_prefix(child, prefix):
 			return true
 	return false
 
