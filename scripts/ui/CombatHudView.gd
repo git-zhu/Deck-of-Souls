@@ -57,9 +57,10 @@ static func build(
 	main.add_child(aim_line)
 	aim_line.move_to_front()
 
-	# ── 顶行（StS 布局）：玩家 HUD（左） + 敌人 HUD（右） ──
+	# ── 顶行（最优布局）：玩家 HUD（左） + 意图横幅（中） + 敌人 HUD（右），并排居中拉近操作 ──
 	var top_row := HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 12)
+	top_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	main.add_child(top_row)
 
 	refs.player_panel = UiBuilders.compact_fighter_hud(
@@ -78,9 +79,22 @@ static func build(
 	refs.player_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	top_row.add_child(refs.player_panel)
 
-	var top_spacer := Control.new()
-	top_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top_row.add_child(top_spacer)
+	# 意图横幅内联到顶行中央（不单独占行）
+	var intent_panel := UiBuilders.intent_banner(
+		str(combat.enemy_intent.get("kind", "")),
+		combat.intent_text()
+	)
+	intent_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	top_row.add_child(intent_panel)
+	var intent_kind := str(combat.enemy_intent.get("kind", ""))
+	if intent_kind in ["attack", "attack_block", "attack_rot"]:
+		var pulse := intent_panel.create_tween().set_loops()
+		pulse.tween_property(intent_panel, "modulate", Color(1, 1, 1, 0.82), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		pulse.tween_property(intent_panel, "modulate", Color(1, 1, 1, 1), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		intent_panel.tree_exiting.connect(func() -> void:
+			if pulse != null and pulse.is_valid():
+				pulse.kill()
+		)
 
 	# 敌人区：多敌人紧凑 HUD（每个含 DropZone 目标投放 + 瞄准线锚点）
 	var enemy_area := HBoxContainer.new()
@@ -123,27 +137,41 @@ static func build(
 		# 注册瞄准线锚点（敌人 HUD 中心，布局后刷新坐标）
 		aim_line.zone_centers["enemy_%d" % ei] = {"center": Vector2.ZERO, "radius": 70.0}
 
-	# ── 敌人意图：显示当前选中目标的意图（高优先级视觉元素） ──
-	var intent_panel := UiBuilders.intent_banner(
-		str(combat.enemy_intent.get("kind", "")),
-		combat.intent_text()
-	)
-	main.add_child(intent_panel)
-	var intent_kind := str(combat.enemy_intent.get("kind", ""))
-	if intent_kind in ["attack", "attack_block", "attack_rot"]:
-		var pulse := intent_panel.create_tween().set_loops()
-		pulse.tween_property(intent_panel, "modulate", Color(1, 1, 1, 0.82), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		pulse.tween_property(intent_panel, "modulate", Color(1, 1, 1, 1), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		intent_panel.tree_exiting.connect(func() -> void:
-			if pulse != null and pulse.is_valid():
-				pulse.kill()
-		)
+	# ── 中区：日志（贴左）+ 战斗舞台（占其余），玩家/敌人关系居中呈现 ──
+	var mid_area := HBoxContainer.new()
+	mid_area.add_theme_constant_override("separation", 12)
+	mid_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mid_area.custom_minimum_size = Vector2(0, 150)
+	main.add_child(mid_area)
 
-	# ── 中央战斗区域：玩家 ←→ 敌人（镀金框 + 主体；有最小高度防止折叠） ──
+	# 日志贴左（用户方案）：竖排窄条，低视觉权重
+	var log_left := VBoxContainer.new()
+	log_left.custom_minimum_size = Vector2(200, 0)
+	log_left.add_theme_constant_override("separation", 4)
+	mid_area.add_child(log_left)
+	var log_toggle := Button.new()
+	log_toggle.text = "日志 ▾"
+	log_toggle.flat = true
+	log_toggle.custom_minimum_size = Vector2(64, 24)
+	log_toggle.tooltip_text = "展开 / 折叠战斗日志"
+	log_left.add_child(log_toggle)
+	refs.log_box = RichTextLabel.new()
+	refs.log_box.bbcode_enabled = true
+	refs.log_box.fit_content = false
+	refs.log_box.scroll_following = true
+	refs.log_box.scroll_active = false
+	refs.log_box.custom_minimum_size = Vector2(200, 0)
+	refs.log_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	refs.log_box.add_theme_font_size_override("normal_font_size", 13)
+	refs.log_box.add_theme_color_override("default_color", Color(0.72, 0.68, 0.6, 0.8))
+	refs.log_box.text = log_bbcode
+	log_left.add_child(refs.log_box)
+
+	# 战斗舞台（收窄，占中区剩余）
 	var stage_wrap := Control.new()
-	stage_wrap.custom_minimum_size = Vector2(0, 150)
+	stage_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main.add_child(stage_wrap)
+	mid_area.add_child(stage_wrap)
 	var stage_frame := GildedFrame.new()
 	stage_frame.set_anchors_preset(Control.PRESET_FULL_RECT)
 	stage_wrap.add_child(stage_frame)
@@ -236,41 +264,16 @@ static func build(
 	refs.end_turn_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bottom_row.add_child(refs.end_turn_button)
 
-	# ── 战斗日志：低视觉权重（细条、弱化），带折叠/展开开关 ──
-	var log_row := HBoxContainer.new()
-	log_row.add_theme_constant_override("separation", 8)
-	main.add_child(log_row)
-
-	var log_toggle := Button.new()
-	log_toggle.text = "日志 ▸"
-	log_toggle.flat = true
-	log_toggle.custom_minimum_size = Vector2(64, 0)
-	log_toggle.tooltip_text = "展开 / 折叠战斗日志"
-	log_toggle.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	log_row.add_child(log_toggle)
-
-	refs.log_box = RichTextLabel.new()
-	refs.log_box.bbcode_enabled = true
-	refs.log_box.fit_content = false
-	refs.log_box.scroll_following = true
-	refs.log_box.scroll_active = false
-	refs.log_box.custom_minimum_size = Vector2(0, 36)
-	refs.log_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	refs.log_box.add_theme_font_size_override("normal_font_size", 13)
-	refs.log_box.add_theme_color_override("default_color", Color(0.72, 0.68, 0.6, 0.8))
-	refs.log_box.text = log_bbcode
-	log_row.add_child(refs.log_box)
-
-	refs.log_box.set_meta("log_expanded", false)
+	# 中区日志折叠开关（展开/收起日志列宽）
+	refs.log_box.set_meta("log_expanded", true)
 	log_toggle.pressed.connect(func() -> void:
 		var expanded: bool = refs.log_box.get_meta("log_expanded", false)
 		expanded = not expanded
 		refs.log_box.set_meta("log_expanded", expanded)
 		log_toggle.text = "日志 ▾" if expanded else "日志 ▸"
 		refs.log_box.scroll_active = expanded
-		var target_h := 140.0 if expanded else 44.0
-		var tw := refs.log_box.create_tween()
-		tw.tween_property(refs.log_box, "custom_minimum_size", Vector2(0, target_h), 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		log_left.custom_minimum_size.x = 200.0 if expanded else 24.0
+		refs.log_box.visible = expanded
 	)
 
 	# 布局完成后刷新瞄准线锚点（敌人 HUD 实际全局坐标）
