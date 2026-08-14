@@ -11,6 +11,7 @@ const CardData = preload("res://data/CardData.gd")
 
 const PLAYER_PANEL_BG := Color("#2a241b")
 const ENEMY_PANEL_BG := Color("#2b1d1b")
+const GildedFrame = preload("res://scripts/ui/GildedFrame.gd")
 
 
 static func build(
@@ -35,6 +36,11 @@ static func build(
 	field.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	field.add_theme_constant_override("separation", 8)
 	main.add_child(field)
+	# 镀金框装饰（艾尔登法环石碑风）
+	var frame := GildedFrame.new()
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	field.add_child(frame)
+	frame.move_to_front()
 
 	refs.player_panel = UiBuilders.fighter_panel(
 		"褪色者",

@@ -22,6 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Origin screen UI: `godot4.6 --headless --script tools/origin_screen_test.gd`
 - Audio assets: `godot4.6 --headless --script tools/audio_path_test.gd`
 - UI screens: `godot4.6 --headless --script tools/ui_screen_test.gd`
+- Keyboard shortcuts: `godot4.6 --headless --script tools/input_test.gd`
 
 ## Architecture
 
@@ -122,6 +123,7 @@ godot4.6 --headless --path . --script tools/export_data_load_test.gd
 godot4.6 --headless --path . --script tools/origin_screen_test.gd
 godot4.6 --headless --path . --script tools/audio_path_test.gd
 godot4.6 --headless --path . --script tools/ui_screen_test.gd
+godot4.6 --headless --path . --script tools/input_test.gd
 ```
 
 Data builders (UTF-8): `python tools/build_acts.py`, `build_relics.py`, `build_enemies.py`, `build_events.py`.
