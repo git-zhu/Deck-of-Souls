@@ -25,7 +25,7 @@ static func build(
 	root.add_child(top)
 
 	var title := Label.new()
-	title.text = "破碎法环：褪色者牌局"
+	title.text = "Deck of Souls"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", GameTheme.FONT_XL + 12)
 	title.add_theme_color_override("font_color", TITLE_GLOW)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-《老头牌：褪色者的牌局》—— 艾尔登法环风格 2D 美术素材程序化生成器
+《Deck of Souls》—— 艾尔登法环风格 2D 美术素材程序化生成器
 ===============================================================
 路线：程序化生成 + 传统图像处理（PIL/Pillow + numpy，超采样抗锯齿）
 用法：python tools/generate_assets.py   （可重复运行，覆盖 assets/*.png）

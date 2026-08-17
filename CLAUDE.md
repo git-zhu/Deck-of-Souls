@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Name:** 老头牌：褪色者的牌局 (Old Man's Cards: Tarnished Card Game)
+**Name:** Deck of Souls
 **Engine:** Godot 4.6 (Forward Plus renderer)
 **Genre:** Card-based Roguelike deckbuilder with turn-based combat, inspired by *Slay the Spire* and themed on *Elden Ring*.
 **Viewport:** 1280x720, canvas_items stretch (expand aspect)

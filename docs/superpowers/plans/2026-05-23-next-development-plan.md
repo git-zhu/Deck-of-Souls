@@ -1,7 +1,7 @@
 # 游戏完成度与 UI 设计梳理 + 后续开发计划
 
 > 日期：2026-05-23
-> 项目：老头牌：褪色者的牌局（Godot 4.6，1280×720，canvas_items stretch）
+> 项目：Deck of Souls（Godot 4.6，1280×720，canvas_items stretch）
 > 分支：main（origin/main 同步，33 阶段提交 + 1 个测试修复提交）
 
 ---

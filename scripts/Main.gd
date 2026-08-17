@@ -91,7 +91,7 @@ var _prev_turn: int = 0
 func _ready() -> void:
 	rng.randomize()
 	# 正式 UI：隐藏调试构建的窗口标题 (DEBUG) 后缀
-	get_window().title = "老头牌：褪色者的牌局"
+	get_window().title = "Deck of Souls"
 	registry = DataRegistry.new()
 	registry.load_all()
 	grace_service.load_from_registry(registry)
