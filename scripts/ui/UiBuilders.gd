@@ -285,22 +285,8 @@ static func card_button(
 	disabled_style.bg_color = Color("#1c1a16")
 	button.add_theme_stylebox_override("disabled", disabled_style)
 
-	# 符文边框（先加 → 内容/消耗圆环/角标绘制在其之上，避免遮挡）：
-	# 随主题色调制，整卡统一为类型色（武器金 / 盾牌青 …），不再叠加金色冲突
-	var frame := TextureRect.new()
-	frame.texture = load("res://assets/card_frame_9slice.png") as Texture2D
-	frame.modulate = accent
-	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	frame.offset_left = 0
-	frame.offset_right = 0
-	frame.offset_top = 0
-	frame.offset_bottom = 0
-	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	button.add_child(frame)
+	# 卡面保持干净：不再叠加符文边框贴图（card_frame_9slice），
+	# 外框由 StyleBoxFlat 的 2px 类型色描边承担
 
 	var v_margin := MarginContainer.new()
 	v_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -313,7 +299,7 @@ static func card_button(
 	v_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(v_margin)
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 2)
+	v.add_theme_constant_override("separation", 4)
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v_margin.add_child(v)
 
@@ -396,11 +382,6 @@ static func card_button(
 	rarity_tag.add_theme_font_size_override("font_size", 11)
 	rarity_tag.add_theme_color_override("font_color", rarity_meta_dict.color)
 	type_row.add_child(rarity_tag)
-
-	var sep := HSeparator.new()
-	sep.add_theme_constant_override("separation", 4)
-	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	v.add_child(sep)
 
 	var effect := RichTextLabel.new()
 	effect.bbcode_enabled = true

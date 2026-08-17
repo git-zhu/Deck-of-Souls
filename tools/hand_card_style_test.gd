@@ -57,17 +57,13 @@ func _initialize() -> void:
 		_fail("cards must be identical size")
 		return
 
-	# 3. 符文边框：随主题色调制 + 位于内容之下（不遮挡消耗圆环/角标）
+	# 3. 卡面干净：不得叠加符文边框贴图，也不得有 HSeparator 横线
 	var frame := _find_texture_rect(btn_short, "res://assets/card_frame_9slice.png")
-	if frame == null:
-		_fail("card frame TextureRect missing")
+	if frame != null:
+		_fail("card must not carry the rune frame overlay")
 		return
-	if frame.modulate != GameTheme.CARD_WEAPON:
-		_fail("frame should be tinted with accent")
-		return
-	var v_margin := _find_margin_container(btn_short)
-	if v_margin == null or not _is_after(frame, v_margin):
-		_fail("frame must be drawn under content (added before v_margin)")
+	if _find_hseparator(btn_short) != null or _find_hseparator(btn_long) != null:
+		_fail("card must not contain an HSeparator line")
 		return
 
 	# 4. 消耗圆环：统一外观（深底 + 金色 2px 圆环 + 金色数字），两卡一致
@@ -123,6 +119,16 @@ func _find_margin_container(node: Node) -> MarginContainer:
 		return node
 	for child in node.get_children():
 		var found := _find_margin_container(child)
+		if found != null:
+			return found
+	return null
+
+
+func _find_hseparator(node: Node) -> HSeparator:
+	if node is HSeparator:
+		return node
+	for child in node.get_children():
+		var found := _find_hseparator(child)
 		if found != null:
 			return found
 	return null
