@@ -1,6 +1,15 @@
 class_name GameTheme
 extends RefCounted
 
+# 展示字体：马善政毛笔楷书（SIL OFL，assets/fonts/OFL.txt）
+# 仅用于标题/名字/CTA/横幅等展示场景；正文与数值密集处保持默认字体可读性
+const DISPLAY_FONT_PATH := "res://assets/fonts/MaShanZheng-Regular.ttf"
+
+
+static func display_font() -> Font:
+	return load(DISPLAY_FONT_PATH) as Font
+
+
 const BG := Color("#16130f")
 const PANEL := Color("#242018")
 const BORDER := Color("#4f4535")

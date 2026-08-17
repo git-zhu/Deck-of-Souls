@@ -57,18 +57,21 @@ static func build(
 	header.add_child(center)
 	var act := registry.get_act(run_state.act_index())
 	var local_step: int = (run_state.floor_index % RunState.FLOORS_PER_ACT) + 1
+	var center_chip: PanelContainer
 	if act != null:
-		center.add_child(UiBuilders.header_chip(
+		center_chip = UiBuilders.header_chip(
 			"",
 			"%s · %d/%d" % [act.title, local_step, RunState.FLOORS_PER_ACT],
 			"进度"
-		))
+		)
 	else:
-		center.add_child(UiBuilders.header_chip(
+		center_chip = UiBuilders.header_chip(
 			"",
 			"层数 %d/%d" % [run_state.floor_index + 1, RunState.TOTAL_FLOORS],
 			"进度"
-		))
+		)
+	_center_title_font(center_chip)
+	center.add_child(center_chip)
 
 	# ── 右：【查看牌组】 + 菜单 ──
 	var right := HBoxContainer.new()
@@ -91,3 +94,20 @@ static func build(
 	right.add_child(menu_button)
 
 	return {"deck": deck_button, "menu": menu_button}
+
+
+static func _center_title_font(chip: PanelContainer) -> void:
+	# 中央进度标题用展示字体（书法体），左右信息 chip 保持默认字体
+	var title_font := GameTheme.display_font()
+	if title_font == null:
+		return
+	_apply_font_to_labels(chip, title_font)
+
+
+static func _apply_font_to_labels(node: Node, font: Font) -> void:
+	# 运行时动态树 find_children 不可靠，手动递归
+	if node is Label:
+		(node as Label).add_theme_font_override("font", font)
+		(node as Label).add_theme_font_size_override("font_size", 17)
+	for child in node.get_children():
+		_apply_font_to_labels(child, font)

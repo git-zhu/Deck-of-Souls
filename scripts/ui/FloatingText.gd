@@ -34,7 +34,10 @@ static func spawn(parent: Control, text: String, at_global: Vector2, color: Colo
 static func spawn_banner(parent: Control, text: String, color: Color = GameTheme.GOLD) -> void:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", 40)
+	label.add_theme_font_size_override("font_size", 46)
+	var banner_font := GameTheme.display_font()
+	if banner_font != null:
+		label.add_theme_font_override("font", banner_font)
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	label.add_theme_constant_override("outline_size", 8)

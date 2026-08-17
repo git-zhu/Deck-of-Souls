@@ -567,8 +567,11 @@ static func compact_fighter_hud(
 	var name := Label.new()
 	name.text = name_text
 	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name.add_theme_font_size_override("font_size", 15)
+	name.add_theme_font_size_override("font_size", 17)
 	name.add_theme_color_override("font_color", Color("#e4c06d"))
+	var name_font := GameTheme.display_font()
+	if name_font != null:
+		name.add_theme_font_override("font", name_font)
 	name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.add_child(name)
 
@@ -919,8 +922,11 @@ static func stat_capsule(value_text: String, label_text: String, accent: Color =
 	capsule.add_child(row)
 	var value := Label.new()
 	value.text = value_text
-	value.add_theme_font_size_override("font_size", 18)
+	value.add_theme_font_size_override("font_size", 20)
 	value.add_theme_color_override("font_color", accent.lightened(0.2))
+	var value_font := GameTheme.display_font()
+	if value_font != null:
+		value.add_theme_font_override("font", value_font)
 	row.add_child(value)
 	var label := Label.new()
 	label.text = label_text
@@ -935,6 +941,10 @@ static func flask_button(flasks: int, disabled: bool, on_press: Callable) -> But
 	var btn := Button.new()
 	btn.text = "圣杯瓶 ×%d" % flasks
 	btn.custom_minimum_size = Vector2(132, 54)
+	btn.add_theme_font_size_override("font_size", 18)
+	var flask_font := GameTheme.display_font()
+	if flask_font != null:
+		btn.add_theme_font_override("font", flask_font)
 	btn.add_theme_icon_override("icon", load("res://assets/icon_flask.png"))
 	btn.disabled = disabled
 	btn.tooltip_text = "回复 18 生命（F）"
@@ -967,6 +977,10 @@ static func end_turn_button(disabled: bool, on_press: Callable) -> Button:
 	var btn := Button.new()
 	btn.text = "结束回合  [E]"
 	btn.custom_minimum_size = Vector2(170, 54)
+	btn.add_theme_font_size_override("font_size", 20)
+	var end_font := GameTheme.display_font()
+	if end_font != null:
+		btn.add_theme_font_override("font", end_font)
 	btn.disabled = disabled
 	btn.tooltip_text = "结束当前回合（空格 / E）"
 	btn.pressed.connect(on_press)
