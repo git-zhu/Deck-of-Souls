@@ -218,6 +218,9 @@ func test_grace_pick(option_id: String) -> void:
 		push_error("Unknown grace option: %s" % option_id)
 		return
 	var summary: String = grace_service.apply(option, run_state)
+	if summary == GraceService.PICK_UPGRADE:
+		push_error("Grace pick %s requires upgrade card selection UI" % option_id)
+		return
 	if summary == GraceService.PICK_CARD:
 		push_error("Grace pick %s requires card selection UI" % option_id)
 		return
@@ -251,6 +254,8 @@ func on_grace_option_picked(option: GraceOptionData) -> void:
 				var card_name := c.name if c != null else card_id
 				show_grace_result("遗忘仪式", "已从牌组移除《%s》。" % card_name)
 		)
+	elif summary == GraceService.PICK_UPGRADE:
+		show_upgrade_card_picker()
 	elif summary == GraceService.PICK_ASH_REPLACE:
 		start_ash_replace_flow(
 			func(removed_id: String, new_id: String):
@@ -265,6 +270,34 @@ func on_grace_option_picked(option: GraceOptionData) -> void:
 		)
 	else:
 		show_grace_result(option.title, summary)
+
+
+func show_upgrade_card_picker() -> void:
+	# 锻造刻印：选一张非 hook 卡升级（数值 +30%）
+	var run_state = host.get("run_state")
+	var registry = host.get("registry")
+	var counts: Dictionary = DeckUtils.card_counts(run_state.deck)
+	var upgradable := {}
+	for cid in counts.keys():
+		var c: CardData = registry.get_card(str(cid))
+		if c != null and c.hook_id == "" and not run_state.upgraded_cards.has(str(cid)):
+			upgradable[cid] = counts[cid]
+	host.call(
+		"_present_reward_layer",
+		RewardLayerViews.build_deck_picker(
+			"锻造刻印",
+			"选择一张牌刻上强化铭文（数值 +30%）。",
+			upgradable,
+			registry,
+			run_state,
+			func(card_id: String):
+				run_state.upgraded_cards.append(card_id)
+				var c: CardData = registry.get_card(card_id)
+				var card_name := c.name if c != null else card_id
+				show_grace_result("锻造刻印", "《%s》被刻上铭文，变得更锋利了。" % card_name),
+			false
+		)
+	)
 
 
 func show_attr_upgrade() -> void:

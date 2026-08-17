@@ -131,11 +131,13 @@ func _attr_bonus_for_card(card: CardData) -> int:
 			return 0
 
 
-# 姿态伤害：基础 + 灵巧补正 + 武器姿态加成（重击蓄力生效时 ×2）
+# 姿态伤害：基础 + 灵巧补正 + 武器姿态加成（重击蓄力 ×2；双手剑徽章 +50%）
 func calculate_stance_damage(base_stance: int) -> int:
 	var total: int = base_stance + int(run.attr("dexterity") * 0.5) + weapon_service.total_stance_bonus(run)
 	if stance_active_buff:
 		total *= 2
+	if relic_service.has_relic(run, "twohanded_sword_badge"):
+		total = int(ceil(float(total) * 1.5))
 	return total
 
 
@@ -191,6 +193,9 @@ func start_combat(template: Dictionary) -> void:
 		e["_intent"] = {}
 		enemies.append(e)
 	target_index = 0
+	# 集中属性：每 3 点 +1 能量上限（最多 +2），并重置护符残留的加成
+	max_ember = 3 + mini(2, int(run.attr("mind") / 3))
+	ember = max_ember
 	run.draw_pile.assign(run.deck)
 	run.draw_pile.shuffle()
 	run.hand.clear()
@@ -225,13 +230,16 @@ func apply_player_start_status() -> void:
 		take_player_damage(run.player_rot, true)
 		combat_log("腐败在血管中开花：你受到 %d 点伤害。" % run.player_rot)
 		run.player_rot = max(0, run.player_rot - 1)
-	if run.player_bleed >= 10:
-		run.player_bleed -= 10
+	if run.player_bleed >= bleed_burst_threshold():
+		run.player_bleed -= bleed_burst_threshold()
 		var burst: int = max(8, int(run.max_hp * 0.16))
 		take_player_damage(burst, true)
 		combat_log("出血爆发，你受到 %d 点伤害。" % burst)
 	if run.player_vulnerable > 0:
 		run.player_vulnerable -= 1
+	if relic_service.has_relic(run, "marikas_brand"):
+		run.player_rot += 2
+		combat_log("玛莉卡的烙印渗血：腐败 +2。")
 
 
 func play_card(index: int) -> void:
@@ -252,6 +260,9 @@ func play_card(index: int) -> void:
 	combat_log("你打出《%s》。" % card.name)
 	var resolver := CardEffectResolver.new(self)
 	var exhaust: bool = resolver.resolve(card)
+	if relic_service.has_relic(run, "azurs_staff") and str(card.type) == "魔法":
+		draw_cards(1)
+		combat_log("亚兹勒的辉石奔流：抽 1 张。")
 	if exhaust:
 		run.exhaust_pile.append(card_id)
 	else:
@@ -288,7 +299,7 @@ func deal_enemy_damage(amount: int, stance_damage: int, target_idx: int = -1) ->
 		_offer_break_resolution(e, final, target_idx)
 	elif int(e.get("stance_now", 0)) <= 0:
 		broke = true
-		e.vulnerable = int(e.get("vulnerable", 0)) + 1
+		e.vulnerable = mini(3, int(e.get("vulnerable", 0)) + 1)
 		e["break_open"] = true
 		e["stance_now"] = 0
 		combat_log("%s 姿态崩解，露出巨大破绽！" % e.name)
@@ -341,14 +352,22 @@ func apply_break_choice(kind: String) -> void:
 	combat_changed.emit()
 
 
+# 出血爆发阈值：血君主之乐 → 5 层即爆（原 10）
+func bleed_burst_threshold() -> int:
+	if relic_service.has_relic(run, "blood_lord_joy"):
+		return 5
+	return 10
+
+
 func apply_enemy_bleed(value: int, target_idx: int = -1) -> void:
 	var e := _target_dict(target_idx)
 	if e.is_empty() or int(e.get("hp", 0)) <= 0:
 		return
 	e.bleed = int(e.get("bleed", 0)) + value
 	combat_log("%s 出血积累 +%d。" % [e.name, value])
-	if int(e.get("bleed", 0)) >= 10:
-		e.bleed = int(e.get("bleed", 0)) - 10
+	var threshold: int = bleed_burst_threshold()
+	if int(e.get("bleed", 0)) >= threshold:
+		e.bleed = int(e.get("bleed", 0)) - threshold
 		var burst: int = maxi(8, int(e.get("max_hp", 1) * 0.16))
 		e.hp = maxi(0, int(e.get("hp", 0)) - burst)
 		_fx("damage", _enemy_tag(e), burst)
@@ -391,9 +410,12 @@ func _target_dict(target_idx: int) -> Dictionary:
 
 
 func gain_block(value: int) -> void:
-	block += value
-	_fx("block_gain", "player", value)
-	combat_log("获得 %d 护甲。" % value)
+	var final: int = value
+	if relic_service.has_relic(run, "twohanded_sword_badge"):
+		final = maxi(0, final - 2)  # 双手握剑的人，盾也拿不稳
+	block += final
+	_fx("block_gain", "player", final)
+	combat_log("获得 %d 护甲。" % final)
 
 
 func heal_player(value: int) -> void:
@@ -410,7 +432,8 @@ func use_flask() -> void:
 	if not break_choice.is_empty():
 		return
 	run.flasks -= 1
-	heal_player(18)
+	# 法环式缩放：回复 25% 最大生命（至少 18）
+	heal_player(maxi(18, int(run.max_hp * 0.25)))
 	combat_changed.emit()
 
 
@@ -481,7 +504,7 @@ func _execute_enemy_action(e: Dictionary, intent: Dictionary) -> void:
 			combat_log("%s 获得 %d 护甲。" % [e.name, intent.block])
 			_enemy_attack(e, int(intent.value), 1)
 		"debuff":
-			run.player_vulnerable += int(intent.vulnerable)
+			run.player_vulnerable = mini(3, run.player_vulnerable + int(intent.vulnerable))
 			combat_log("%s 施加 %d 易伤。" % [e.name, intent.vulnerable])
 		"buff":
 			e.strength = int(e.get("strength", 0)) + int(intent.strength)
@@ -612,6 +635,9 @@ func check_enemy_death(target_idx: int = -1) -> void:
 		soul_gain = int(round(float(soul_gain) * (1.0 + 0.3 * float(run.ng_plus))))
 		if run.vow_level >= 3:
 			soul_gain = int(round(float(soul_gain) * 1.3))
+		if relic_service.has_relic(run, "erdtree_gift") and rng.randf() < 0.10:
+			soul_gain *= 2
+			combat_log("黄金树的落叶格外慷慨：卢恩翻倍！")
 		run.souls += soul_gain
 		combat_log("%s 倒下。你获得 %d 卢恩。" % [e.name, soul_gain])
 		# 锻造石掉落：普通战低概率 1 级石；精英/幕 Boss 更高等级
@@ -637,7 +663,7 @@ func check_combat_end() -> void:
 		combat_ended.emit("reward")
 
 
-# 锻造石掉落（法环式）：普通战 1 级石，精英 2 级石，幕 Boss 3 级石
+# 锻造石掉落（保底版）：普通战 35% 掉 1 级石；精英必掉（2 级为主）；Boss 必掉（3 级为主）
 func _roll_smithing_stone(e: Dictionary) -> void:
 	var is_boss: bool = bool(e.get("is_act_boss", false)) or bool(e.get("is_run_boss", false))
 	var is_elite: bool = bool(e.get("elite", false))
@@ -646,6 +672,9 @@ func _roll_smithing_stone(e: Dictionary) -> void:
 		if roll <= 70:
 			run.smithing_stones[2] += 1
 			combat_log("你获得 3 级锻造石。")
+		else:
+			run.smithing_stones[1] += 1
+			combat_log("你获得 2 级锻造石。")
 	elif is_elite:
 		if roll <= 50:
 			run.smithing_stones[1] += 1
@@ -653,6 +682,9 @@ func _roll_smithing_stone(e: Dictionary) -> void:
 		elif roll <= 65:
 			run.smithing_stones[2] += 1
 			combat_log("你获得 3 级锻造石。")
+		else:
+			run.smithing_stones[0] += 1
+			combat_log("你获得 1 级锻造石。")
 	else:
 		if roll <= 35:
 			run.smithing_stones[0] += 1
@@ -668,8 +700,58 @@ func roll_rewards(act: ActData = null) -> Array[String]:
 				pool.append(str(card_id))
 	if pool.size() < 3:
 		pool = _global_non_starter_card_pool()
-	pool.shuffle()
-	return pool.slice(0, mini(3, pool.size())) as Array[String]
+	# 流派化：2 张倾向卡 + 1 张异端卡（鼓励转型的意外之喜）
+	var affinity_school := _build_affinity_school()
+	var affinity_cards: Array[String] = []
+	var heretic_cards: Array[String] = []
+	for card_id in pool:
+		var card := registry.get_card(card_id)
+		if card != null and _card_school(card) == affinity_school:
+			affinity_cards.append(card_id)
+		else:
+			heretic_cards.append(card_id)
+	affinity_cards.shuffle()
+	heretic_cards.shuffle()
+	var picked: Array[String] = []
+	for card_id in affinity_cards:
+		if picked.size() >= 2:
+			break
+		picked.append(card_id)
+	for card_id in heretic_cards:
+		if picked.size() >= 3:
+			break
+		picked.append(card_id)
+	# 倾向卡不足 3 张时用全池补齐
+	if picked.size() < 3:
+		for card_id in pool:
+			if picked.size() >= 3:
+				break
+			if not picked.has(card_id):
+				picked.append(card_id)
+	picked.shuffle()
+	return picked
+
+
+# 构筑倾向：当前最高属性决定流派（力量/灵巧→物理，集中→魔法，信仰→祷告）
+func _build_affinity_school() -> String:
+	var physical: int = maxi(run.attr("strength"), run.attr("dexterity"))
+	var mind: int = run.attr("mind")
+	var faith: int = run.attr("faith")
+	if mind >= physical and mind >= faith:
+		return "magic"
+	if faith >= physical and faith >= mind:
+		return "prayer"
+	return "physical"
+
+
+func _card_school(card: CardData) -> String:
+	match str(card.type):
+		"魔法":
+			return "magic"
+		"祷告":
+			return "prayer"
+		_:
+			return "physical"
 
 
 func _global_non_starter_card_pool() -> Array[String]:

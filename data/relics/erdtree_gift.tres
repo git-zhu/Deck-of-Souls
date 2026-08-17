@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "erdtree_gift"
+name = "黄金树的馈赠"
+body = "拾取卢恩时 10% 概率翻倍。黄金树的落叶，偶尔格外慷慨。"
+hook = "souls_double_chance"
+value = 10

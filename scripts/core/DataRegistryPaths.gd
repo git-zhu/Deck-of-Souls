@@ -56,6 +56,7 @@ const GRACE_OPTION_RESOURCES: Array = [
 	preload("res://data/grace_options/ash_replace.tres"),
 	preload("res://data/grace_options/clarity.tres"),
 	preload("res://data/grace_options/destined_death.tres"),
+	preload("res://data/grace_options/forge_etch.tres"),
 	preload("res://data/grace_options/kindling.tres"),
 	preload("res://data/grace_options/level_up.tres"),
 	preload("res://data/grace_options/memory_stone.tres"),
@@ -67,13 +68,19 @@ const GRACE_OPTION_RESOURCES: Array = [
 
 const RELIC_RESOURCES: Array = [
 	preload("res://data/relics/ancestral_spirit.tres"),
+	preload("res://data/relics/azurs_staff.tres"),
+	preload("res://data/relics/blood_lord_joy.tres"),
 	preload("res://data/relics/cerulean_medallion.tres"),
 	preload("res://data/relics/crimson_amulet.tres"),
 	preload("res://data/relics/erdtree_favor.tres"),
+	preload("res://data/relics/erdtree_gift.tres"),
 	preload("res://data/relics/gold_scarab.tres"),
 	preload("res://data/relics/greatshield_talisman.tres"),
 	preload("res://data/relics/green_turtle_talisman.tres"),
+	preload("res://data/relics/marikas_brand.tres"),
 	preload("res://data/relics/serpentbone_talisman.tres"),
+	preload("res://data/relics/starscourge_prosthesis.tres"),
+	preload("res://data/relics/twohanded_sword_badge.tres"),
 ]
 
 const EVENT_RESOURCES: Array = [

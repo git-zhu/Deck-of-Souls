@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "marikas_brand"
+name = "玛莉卡的烙印"
+body = "能量上限 +1，但每回合积累 2 腐败。女王的恩赐从不免费。"
+hook = "ember_and_rot"
+value = 1

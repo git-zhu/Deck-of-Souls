@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blood_lord_joy"
+name = "血君主之乐"
+body = "出血 5 层即触发（原 10）。血焰骑士的欢愉，来自每一次迸裂。"
+hook = "bleed_threshold_5"
+value = 5

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GraceOptionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/GraceOptionData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "forge_etch"
+title = "锻造刻印"
+body = "消耗 1 颗 1 级锻造石与 30 卢恩，将一张牌刻上强化铭文（数值 +30%）。"
+effect = "upgrade_card"
+effect_value = 30
+soul_cost = 30
+card_id = ""
+min_deck_size = 1

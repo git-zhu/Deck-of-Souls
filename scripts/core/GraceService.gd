@@ -4,15 +4,19 @@ extends RefCounted
 const GraceOptionData = preload("res://data/GraceOptionData.gd")
 const RunState = preload("res://scripts/core/RunState.gd")
 const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
+const CardData = preload("res://data/CardData.gd")
 
 const PICK_CARD := "__pick_card__"
 const PICK_ASH_REPLACE := "__pick_ash_replace__"
+const PICK_UPGRADE := "__upgrade_card__"
 const MAX_FLASKS := 5
 
 var _options: Array = []
+var _registry: DataRegistry
 
 
 func load_from_registry(registry: DataRegistry) -> void:
+	_registry = registry
 	_options.clear()
 	for opt_id in registry.all_grace_option_ids():
 		var opt := registry.get_grace_option(str(opt_id)) as GraceOptionData
@@ -38,6 +42,13 @@ func is_eligible(option: GraceOptionData, run: RunState) -> bool:
 			return true
 		"weapon_upgrade":
 			return not run.weapons.is_empty()
+		"upgrade_card":
+			return (
+				run.souls >= option.soul_cost
+				and run.smithing_stones.size() > 0
+				and run.smithing_stones[0] >= 1
+				and _has_upgradable_card(run)
+			)
 		_:
 			return true
 
@@ -107,8 +118,22 @@ func apply(option: GraceOptionData, run: RunState) -> String:
 			return "__level_up__"
 		"weapon_upgrade":
 			return "__weapon_upgrade__"
+		"upgrade_card":
+			run.souls -= option.soul_cost
+			run.smithing_stones[0] -= 1
+			return PICK_UPGRADE
 		_:
 			return "赐福回响，却无事发生。"
+
+
+func _has_upgradable_card(run: RunState) -> bool:
+	if _registry == null:
+		return false
+	for card_id in run.deck:
+		var card := _registry.get_card(card_id) as CardData
+		if card != null and card.hook_id == "" and not run.upgraded_cards.has(card_id):
+			return true
+	return false
 
 
 func _find_by_id(option_id: String) -> GraceOptionData:

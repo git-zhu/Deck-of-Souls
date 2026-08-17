@@ -25,56 +25,61 @@ func resolve(card: CardData) -> bool:
 
 func _apply_step(step: CardEffectStep, card: CardData = null) -> void:
 	var strength: int = combat.run.player_strength
+	# 锻造刻印：升级卡数值 ×1.3（抽牌不放大）
+	var upgraded: bool = card != null and combat.run.upgraded_cards.has(card.id)
+	var sv: int = step.value
+	if upgraded:
+		sv = maxi(step.value + 1, int(ceil(float(step.value) * 1.3)))
 	match step.kind:
 		CardEffectStep.Kind.DAMAGE:
 			for _i in range(step.hits):
-				var dmg: int = step.value + strength
+				var dmg: int = sv + strength
 				if card != null:
-					dmg = combat.calculate_card_damage(card, step.value) + strength
+					dmg = combat.calculate_card_damage(card, sv) + strength
 				combat.deal_enemy_damage(dmg, combat.calculate_stance_damage(step.stance))
 		CardEffectStep.Kind.DAMAGE_ALL:
 			# AOE：对全体存活敌人造成伤害
 			for i in range(combat.enemies.size()):
 				var e: Dictionary = combat.enemies[i]
 				if int(e.get("hp", 0)) > 0:
-					var aoe_dmg: int = step.value + strength
+					var aoe_dmg: int = sv + strength
 					if card != null:
-						aoe_dmg = combat.calculate_card_damage(card, step.value) + strength
+						aoe_dmg = combat.calculate_card_damage(card, sv) + strength
 					combat.deal_enemy_damage(aoe_dmg, combat.calculate_stance_damage(step.stance), i)
 		CardEffectStep.Kind.APPLY_ALL_VULN:
 			for i in range(combat.enemies.size()):
 				var e: Dictionary = combat.enemies[i]
 				if int(e.get("hp", 0)) > 0:
-					e.vulnerable = int(e.get("vulnerable", 0)) + step.value
-					combat.combat_log("%s 获得 %d 易伤。" % [e.name, step.value])
+					e.vulnerable = mini(3, int(e.get("vulnerable", 0)) + sv)
+					combat.combat_log("%s 获得 %d 易伤。" % [e.name, sv])
 		CardEffectStep.Kind.APPLY_ALL_ROT:
 			for i in range(combat.enemies.size()):
 				var e: Dictionary = combat.enemies[i]
 				if int(e.get("hp", 0)) > 0:
-					e.rot = int(e.get("rot", 0)) + step.value
+					e.rot = int(e.get("rot", 0)) + sv
 					combat.combat_log("%s 被腐败侵染。" % e.name)
 		CardEffectStep.Kind.APPLY_ALL_BLEED:
 			for i in range(combat.enemies.size()):
 				var e: Dictionary = combat.enemies[i]
 				if int(e.get("hp", 0)) > 0:
-					combat.apply_enemy_bleed(step.value, i)
+					combat.apply_enemy_bleed(sv, i)
 		CardEffectStep.Kind.GAIN_BLOCK:
-			combat.gain_block(step.value)
+			combat.gain_block(sv)
 		CardEffectStep.Kind.HEAL:
-			combat.heal_player(step.value)
+			combat.heal_player(sv)
 		CardEffectStep.Kind.DRAW:
 			combat.draw_cards(step.value)
 		CardEffectStep.Kind.APPLY_BLEED:
-			combat.apply_enemy_bleed(step.value)
+			combat.apply_enemy_bleed(sv)
 		CardEffectStep.Kind.APPLY_ROT_ON_ENEMY:
-			combat.enemy.rot += step.value
+			combat.enemy.rot += sv
 			combat.combat_log("%s 被腐败吐息侵染。" % combat.enemy.name)
 		CardEffectStep.Kind.APPLY_VULN_ON_ENEMY:
-			combat.enemy.vulnerable += step.value
-			combat.combat_log("敌人获得 %d 易伤。" % step.value)
+			combat.enemy.vulnerable = mini(3, combat.enemy.vulnerable + sv)
+			combat.combat_log("敌人获得 %d 易伤。" % sv)
 		CardEffectStep.Kind.GAIN_STRENGTH:
-			combat.run.player_strength += step.value
-			combat.combat_log("力量 +%d（本回合）。" % step.value)
+			combat.run.player_strength += sv
+			combat.combat_log("力量 +%d（本场战斗）。" % sv)
 
 
 func _catalog_steps(card_id: String) -> Array:

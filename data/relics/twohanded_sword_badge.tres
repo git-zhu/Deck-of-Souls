@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "twohanded_sword_badge"
+name = "双手剑徽章"
+body = "姿态削减 +50%，但护甲获得 −2。双手握剑的人，不打算后退。"
+hook = "stance_up_block_down"
+value = 50

@@ -46,6 +46,7 @@ var attr_levels := {
 	"faith": 0,
 }
 var smithing_stones: Array[int] = [0, 0, 0]  # [1级, 2级, 3级] 锻造石
+var upgraded_cards: Array[String] = []        # 锻造刻印升级过的卡（数值 +30%）
 
 # ── 周目与誓约（魂式重玩轴）──
 var ng_plus: int = 0                    # 0=正常，1=NG+ …（敌人更强、卢恩更多）
@@ -96,6 +97,7 @@ func reset_for_origin(origin: OriginData, seed: int) -> void:
 		"faith": 0,
 	}
 	smithing_stones = [0, 0, 0]
+	upgraded_cards = []
 	ng_plus = 0
 	vow_level = 0
 	challenge_flags = []

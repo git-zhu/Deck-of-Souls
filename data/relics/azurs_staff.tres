@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "azurs_staff"
+name = "亚兹勒辉石杖"
+body = "法术卡打出后抽 1 张。彗星之源的遗产，让辉石奔流不息。"
+hook = "draw_on_magic"
+value = 1

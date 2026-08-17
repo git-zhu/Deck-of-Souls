@@ -122,6 +122,7 @@ static func run_to_dict(run: RunState) -> Dictionary:
 		"attrs": run.attrs.duplicate(),
 		"attr_levels": run.attr_levels.duplicate(),
 		"smithing_stones": run.smithing_stones.duplicate(),
+		"upgraded_cards": run.upgraded_cards.duplicate(),
 		"ng_plus": run.ng_plus,
 		"vow_level": run.vow_level,
 		"challenge_flags": run.challenge_flags.duplicate(),
@@ -169,6 +170,7 @@ static func run_from_dict(run: RunState, data: Variant) -> void:
 	run.ng_plus = int(d.get("ng_plus", 0))
 	run.vow_level = int(d.get("vow_level", 0))
 	run.challenge_flags = _string_array_from(d.get("challenge_flags", []))
+	run.upgraded_cards = _string_array_from(d.get("upgraded_cards", []))
 
 
 static func combat_to_dict(combat: CombatController) -> Dictionary:

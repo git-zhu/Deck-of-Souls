@@ -41,7 +41,7 @@ func max_weapon_level(run: RunState) -> int:
 	return max_lv
 
 
-# 法环式武器倍率：1 + 0.1 × 最高武器等级（+10 级 → +100% 基础伤害）
+# 法环式武器倍率：1 + 0.1 × 最高武器等级（+10 级 → +100% 伤害；作用于全部卡牌伤害）
 func weapon_multiplier(run: RunState) -> float:
 	return 1.0 + 0.1 * float(max_weapon_level(run))
 

@@ -59,6 +59,18 @@ func hook_summary(relic: RelicData) -> String:
 			return "战斗开始：护甲 +%d" % relic.value
 		"combat_souls_bonus":
 			return "战斗胜利：额外 +%d 卢恩" % relic.value
+		"bleed_threshold_5":
+			return "出血 %d 层即触发（原 10）" % relic.value
+		"draw_on_magic":
+			return "法术卡打出后抽 %d 张" % relic.value
+		"stance_up_block_down":
+			return "姿态削减 +%d%%，护甲获得 −2" % relic.value
+		"souls_double_chance":
+			return "拾取卢恩时 %d%% 概率翻倍" % relic.value
+		"exec_bonus":
+			return "处决伤害 +%d%%" % relic.value
+		"ember_and_rot":
+			return "能量上限 +%d，每回合积累 2 腐败" % relic.value
 		_:
 			return relic.hook
 
@@ -87,6 +99,9 @@ func apply_combat_start(run: RunState, registry: DataRegistry, combat: CombatCon
 				combat.ember += relic.value
 			"combat_start_block":
 				combat.block += relic.value
+			"ember_and_rot":
+				combat.max_ember += relic.value
+				combat.ember += relic.value
 
 
 func combat_souls_bonus(run: RunState, registry: DataRegistry) -> int:
