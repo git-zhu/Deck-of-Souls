@@ -6,13 +6,13 @@ extends RefCounted
 
 const RunState = preload("res://scripts/core/RunState.gd")
 
-# 属性元数据：显示名 / 效果描述
+# 属性元数据：显示名 / 效果描述（与 CombatController 实际公式一一对应，M6）
 const ATTR_INFO := {
 	"vigor": {"label": "生命", "desc": "每点 +2 最大生命"},
-	"strength": {"label": "力量", "desc": "物理卡伤害 +1"},
-	"dexterity": {"label": "灵巧", "desc": "姿态伤害 +1"},
-	"mind": {"label": "集中", "desc": "魔法伤害 +1"},
-	"faith": {"label": "信仰", "desc": "祷告伤害/治疗 +1"},
+	"strength": {"label": "力量", "desc": "物理卡伤害 +1/点"},
+	"dexterity": {"label": "灵巧", "desc": "物理卡伤害与姿态削减各 +0.5/点"},
+	"mind": {"label": "集中", "desc": "魔法伤害 +1/点，每 3 点能量上限 +1（至多 +2）"},
+	"faith": {"label": "信仰", "desc": "祷告伤害 +1/点（圣杯瓶治疗为固定值，不吃信仰）"},
 }
 
 const ATTR_ORDER: Array[String] = ["vigor", "strength", "dexterity", "mind", "faith"]

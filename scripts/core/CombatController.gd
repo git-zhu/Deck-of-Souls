@@ -38,6 +38,7 @@ var stance_active_buff: bool = false
 
 # FX 事件队列：伤害/治疗/护甲变化即时记录，UI 层在重建后消费（飘字/闪烁）
 var fx_events: Array = []
+var _play_dealt_damage: bool = false  # M5：本次打出是否造成了实际伤害（先手压制计数用）
 
 
 func _fx(kind: String, target: String, value: int) -> void:
@@ -138,8 +139,9 @@ func calculate_stance_damage(base_stance: int) -> int:
 	var total: int = base_stance + int(run.attr("dexterity") * 0.5) + weapon_service.total_stance_bonus(run)
 	if stance_active_buff:
 		total *= 2
-	if relic_service.has_relic(run, "twohanded_sword_badge"):
-		total = int(ceil(float(total) * 1.5))
+	var stance_pct: int = relic_service.relic_value(run, registry, "twohanded_sword_badge")
+	if stance_pct > 0:
+		total = int(ceil(float(total) * (1.0 + float(stance_pct) / 100.0)))
 	return total
 
 
@@ -247,9 +249,10 @@ func apply_player_start_status() -> void:
 		combat_log("出血爆发，你受到 %d 点伤害。" % burst)
 	if run.player_vulnerable > 0:
 		run.player_vulnerable -= 1
-	if relic_service.has_relic(run, "marikas_brand"):
-		run.player_rot += 2
-		combat_log("玛莉卡的烙印渗血：腐败 +2。")
+	var brand_rot: int = relic_service.relic_value2(run, registry, "marikas_brand")
+	if brand_rot > 0:
+		run.player_rot += brand_rot
+		combat_log("玛莉卡的烙印渗血：腐败 +%d。" % brand_rot)
 
 
 func play_card(index: int) -> void:
@@ -269,9 +272,10 @@ func play_card(index: int) -> void:
 	run.hand.remove_at(index)
 	combat_log("你打出《%s》。" % card.name)
 	var resolver := CardEffectResolver.new(self)
+	_play_dealt_damage = false
 	var exhaust: bool = resolver.resolve(card)
-	# 先手压制：第 1 回合打出的攻击型卡计数
-	if turn == 1 and str(card.type) in ["武器", "战灰", "魔法", "祷告", "传说", "壶"]:
+	# 先手压制：第 1 回合打出"实际造成伤害"的卡才计数（治疗/纯护甲不算，M5）
+	if turn == 1 and _play_dealt_damage:
 		first_turn_attacks += 1
 	if relic_service.has_relic(run, "azurs_staff") and str(card.type) == "魔法":
 		draw_cards(1)
@@ -300,6 +304,8 @@ func deal_enemy_damage(amount: int, stance_damage: int, target_idx: int = -1) ->
 	final -= blocked
 	e.hp = maxi(0, int(e.get("hp", 0)) - final)
 	e.stance_now = int(e.get("stance_now", 0)) - stance_damage
+	if final > 0:
+		_play_dealt_damage = true
 	_check_phase_transition(e)
 	if blocked > 0:
 		_fx("block_hit", _enemy_tag(e), blocked)
@@ -318,6 +324,7 @@ func deal_enemy_damage(amount: int, stance_damage: int, target_idx: int = -1) ->
 		# 魂式打断：崩解可以打断蓄力重击（S2 设计承诺）
 		if int(e.get("_charge", 0)) > 0:
 			e["_charge"] = 0
+			e["_suppress_charge"] = true  # M4：打断后的重选不许立刻再蓄力
 			_choose_one_intent(e)
 			combat_log("%s 姿态崩解，蓄力被打断了！" % e.name)
 		else:
@@ -332,8 +339,9 @@ func _offer_break_resolution(e: Dictionary, trigger_damage: int, target_idx: int
 	e["stance_now"] = int(e.get("stance_max", 1))
 	var idx: int = target_idx if target_idx >= 0 else enemies.find(e)
 	var exec_bonus: int = int(ceil(trigger_damage * 1.2)) + 8
-	if relic_service.has_relic(run, "starscourge_prosthesis"):
-		exec_bonus = int(ceil(exec_bonus * 1.5))
+	var exec_pct: int = relic_service.relic_value(run, registry, "starscourge_prosthesis")
+	if exec_pct > 0:
+		exec_bonus = int(ceil(float(exec_bonus) * (1.0 + float(exec_pct) / 100.0)))
 	var parry_block: int = int(ceil(trigger_damage * 0.5)) + 4
 	if break_choice.is_empty():
 		break_choice = {"target": idx, "exec": exec_bonus, "parry": parry_block}
@@ -623,6 +631,15 @@ func _choose_one_intent(e: Dictionary) -> void:
 	if moves.is_empty():
 		e["_intent"] = {"kind": "attack", "value": 6, "hits": 1, "text": "攻击"}
 		return
+	# M4：打断后重选，剔除蓄力招式一次（打断不被自己立刻撤销）
+	if bool(e.get("_suppress_charge", false)):
+		e["_suppress_charge"] = false
+		var filtered: Array = []
+		for m in moves:
+			if str((m as Dictionary).get("kind", "")) != "charge":
+				filtered.append(m)
+		if not filtered.is_empty():
+			moves = filtered
 	# 魂式可背板：按权重加权选取（权重即敌人个性）
 	var total: int = 0
 	for m in moves:
@@ -679,7 +696,8 @@ func check_enemy_death(target_idx: int = -1) -> void:
 		soul_gain = int(round(float(soul_gain) * (1.0 + 0.3 * float(run.ng_plus))))
 		if run.vow_level >= 3:
 			soul_gain = int(round(float(soul_gain) * 1.3))
-		if relic_service.has_relic(run, "erdtree_gift") and rng.randf() < 0.10:
+		var double_chance: int = relic_service.relic_value(run, registry, "erdtree_gift")
+		if double_chance > 0 and rng.randf() < float(double_chance) / 100.0:
 			soul_gain *= 2
 			combat_log("黄金树的落叶格外慷慨：卢恩翻倍！")
 		run.souls += soul_gain

@@ -31,13 +31,18 @@ func equipped_weapons(run: RunState) -> Array:
 	return out
 
 
+# 武器等级以 RunState.weapon_levels 为唯一事实来源（共享 Resource 只读，杜绝跨局串档）
+func weapon_level(run: RunState, weapon_id: String) -> int:
+	return int(run.weapon_levels.get(weapon_id, 0))
+
+
 # 最高等级武器：作为伤害倍率来源（法环式：武器等级放大该系伤害）
 func max_weapon_level(run: RunState) -> int:
 	var max_lv := 0
-	for w in equipped_weapons(run):
-		var wd := w as WeaponData
-		if wd != null and wd.level > max_lv:
-			max_lv = wd.level
+	for wid in run.weapons:
+		var lv: int = weapon_level(run, str(wid))
+		if lv > max_lv:
+			max_lv = lv
 	return max_lv
 
 

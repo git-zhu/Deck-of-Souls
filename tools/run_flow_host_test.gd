@@ -60,8 +60,9 @@ func _initialize() -> void:
 		_fail("卢恩足够时应出现可购买的地图碎片按钮")
 		return
 	frag_btn.pressed.emit()
-	if host.run_state.souls != 30 or not host.run_state.map_fragment_revealed:
-		_fail("购买碎片应扣 50 卢恩并标记揭示")
+	# M10：碎片定价按层递增，第 0 层 = 30 卢恩（80 − 30 = 50）
+	if host.run_state.souls != 50 or not host.run_state.map_fragment_revealed:
+		_fail("购买碎片应扣 30 卢恩（第 0 层）并标记揭示")
 		return
 	# on_fragment 回调 = show_map：地图应重建并展示预览文本
 	if not _label_contains(host.entered_map, "地图碎片（下一层）"):

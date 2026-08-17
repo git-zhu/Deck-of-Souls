@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
@@ -31,6 +31,28 @@ text = "连枷血镰"
 bleed = 5
 weight = 1
 
+[sub_resource type="Resource" id="MoveData_5"]
+script = ExtResource("2")
+kind = "attack"
+value = 20
+text = "链锤重砸"
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_6"]
+script = ExtResource("2")
+kind = "attack"
+value = 10
+text = "连枷狂舞"
+hits = 2
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_7"]
+script = ExtResource("2")
+kind = "bleed"
+text = "血镰横扫"
+bleed = 7
+weight = 1
+
 [resource]
 script = ExtResource("1")
 name = "守墓斗士"
@@ -39,3 +61,6 @@ stance = 18
 souls = 48
 is_elite = true
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]
+phase2_hp_percent = 50
+phase2_moves = Array[Resource]([SubResource("MoveData_5"), SubResource("MoveData_6"), SubResource("MoveData_7")])
+phase2_text = "守墓斗士把铁链从地里拖了出来——墓地本身在帮他行刑。"

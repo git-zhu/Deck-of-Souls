@@ -39,6 +39,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Build depth (affinity rewards/rule relics/card upgrade/numbers): `godot4.6 --headless --script tools/build_depth_test.gd`
 - Souls features (map fragment/death echo/events/ambush/challenges): `godot4.6 --headless --script tools/souls_features_test.gd`
 - Round-2 fixes (charge interrupt/parry sustain/souls_earned/NG+ pools/vows): `godot4.6 --headless --script tools/round2_fixes_test.gd`
+- Round-3 fixes (weapon-level pipeline/hook scaling/scion difficulty/interrupt reroll/ambush/relic values/fragment cost/buckler/elite phase2): `godot4.6 --headless --script tools/round3_fixes_test.gd`
 - Host-level e2e (RunFlowController echo injection + fragment flow): `godot4.6 --headless --script tools/run_flow_host_test.gd`
 - Balance gate (greedy bot winrate): `godot4.6 --headless --script tools/monte_carlo_balance.gd`
 - Regenerate 2D art assets: `python tools/generate_assets.py`（自产 PNG：卡牌边框/意图图标/背景/图标）
@@ -111,7 +112,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. ~~Monte Carlo 平衡工具~~（P2 已完成：`tools/monte_carlo_balance.gd`）。
 3. ~~预言家 Boss 平衡~~（P3 已完成：`black_flame` 入初始牌组，Boss 胜率 20%→76%）。
 4. ~~普通战难度上调~~（已重定向：S11 先手压制 + S2 敌人个性压缩普通战节奏，难度预算集中在精英/Boss 与外循环修饰 [NG+/誓约/挑战]；贪心 bot 满资源单挑仍 ≈100% 属预期，一贫如洗 vs 玛尔基特 74%。详见 `docs/superpowers/specs/2026-08-17-design-review-soulslike-direction.md` 复测补记。）
-5. 第三轮评审待实施：M1 武器等级搬进 RunState + 持久化（P0，已实证串档/丢档）、M2 钩子卡接入成长、M3 接肢贵族难度抬升。详见 `docs/superpowers/specs/2026-08-17-design-review-round3-structure-and-pipes.md`。
+5. ~~第三轮评审~~（M1–M12 全部实施：武器等级入 RunState+持久化、钩子卡吃武器倍率/攻击加成〈不吃属性补正，防 0 级 3 倍膨胀〉、接肢贵族 attack_rot+65% 二阶段、打断不重选蓄力、先手按实际伤害、属性描述/护符数值/誓约文案/祝福链重读、碎片 30+10×层、小圆盾统一结算、熔炉骑士/守墓斗士二阶段池。详见 `docs/superpowers/specs/2026-08-17-design-review-round3-structure-and-pipes.md` 第五节回执）。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
 

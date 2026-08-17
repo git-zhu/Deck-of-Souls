@@ -45,8 +45,9 @@ func _initialize() -> void:
 		_fail("卢恩足够时应可购买地图碎片")
 		return
 	frag_btn.pressed.emit()
-	if run_m.souls != 50 or not run_m.map_fragment_revealed or not frag_called[0]:
-		_fail("购买地图碎片应扣 50 卢恩并触发刷新")
+	# M10：碎片定价按层递增，第 0 层 = 30 卢恩
+	if run_m.souls != 70 or not run_m.map_fragment_revealed or not frag_called[0]:
+		_fail("购买地图碎片应扣 30 卢恩（第 0 层）并触发刷新")
 		return
 	print("C1 map fragment OK")
 

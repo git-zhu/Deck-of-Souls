@@ -25,9 +25,10 @@ block = 10
 
 [sub_resource type="Resource" id="MoveData_4"]
 script = ExtResource("2")
-kind = "rot"
-value = 6
+kind = "attack_rot"
+value = 10
 text = "蜘蛛般的近身压迫"
+rot = 3
 
 [sub_resource type="Resource" id="MoveData_5"]
 script = ExtResource("2")
@@ -61,6 +62,6 @@ is_boss = true
 is_act_boss = false
 is_run_boss = true
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]
-phase2_hp_percent = 50
+phase2_hp_percent = 65
 phase2_moves = Array[Resource]([SubResource("MoveData_5"), SubResource("MoveData_6"), SubResource("MoveData_7")])
 phase2_text = "接肢贵族身上的接肢接连鼓起——抢来的肢体一齐睁开了眼。"

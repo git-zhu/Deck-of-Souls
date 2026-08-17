@@ -6,7 +6,13 @@ const UiBuilders = preload("res://scripts/ui/UiBuilders.gd")
 const RunState = preload("res://scripts/core/RunState.gd")
 const ActData = preload("res://data/ActData.gd")
 
-const FRAGMENT_COST := 50
+const FRAGMENT_BASE_COST := 30
+const FRAGMENT_COST_PER_FLOOR := 10
+
+
+# M10：碎片随层数递增（早期便宜、后期昂贵，始终是个要掂量的决策）
+static func fragment_cost(run_state: RunState) -> int:
+	return FRAGMENT_BASE_COST + FRAGMENT_COST_PER_FLOOR * run_state.floor_index
 
 
 static func build(
@@ -67,12 +73,13 @@ static func _fragment_row(run_state: RunState, on_fragment: Callable) -> Control
 		row.add_child(hint)
 		return row
 	var btn := Button.new()
-	btn.text = "购买地图碎片（%d 卢恩）——预览下一层的路" % FRAGMENT_COST
-	btn.disabled = run_state.souls < FRAGMENT_COST
+	var cost: int = fragment_cost(run_state)
+	btn.text = "购买地图碎片（%d 卢恩）——预览下一层的路" % cost
+	btn.disabled = run_state.souls < cost
 	btn.pressed.connect(func():
-		if run_state.souls < FRAGMENT_COST:
+		if run_state.souls < cost:
 			return
-		run_state.souls -= FRAGMENT_COST
+		run_state.souls -= cost
 		run_state.map_fragment_revealed = true
 		if on_fragment.is_valid():
 			on_fragment.call()

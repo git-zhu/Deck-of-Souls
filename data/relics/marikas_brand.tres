@@ -9,3 +9,4 @@ name = "玛莉卡的烙印"
 body = "能量上限 +1，但每回合积累 2 腐败。女王的恩赐从不免费。"
 hook = "ember_and_rot"
 value = 1
+value2 = 2

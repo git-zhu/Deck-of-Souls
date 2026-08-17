@@ -40,7 +40,7 @@ func _initialize() -> void:
 	if weapon == null:
 		_fail("longsword_w missing")
 		return
-	weapon.level = 1
+	run.weapon_levels["longsword_w"] = 1
 	dmg = combat.calculate_card_damage(longsword, 7)
 	if dmg != 39:
 		_fail("weapon lv1 should give 35*1.1=39, got %d" % dmg)

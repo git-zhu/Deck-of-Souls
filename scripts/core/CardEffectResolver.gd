@@ -14,7 +14,7 @@ func _init(p_combat: CombatController) -> void:
 
 func resolve(card: CardData) -> bool:
 	if card.hook_id != "":
-		_run_hook(card.hook_id)
+		_run_hook(card)
 		return card.exhaust_after_play
 	var steps: Array = card.effects if card.effects.size() > 0 else _catalog_steps(card.id)
 	for step in steps:
@@ -262,7 +262,17 @@ func _catalog_steps(card_id: String) -> Array:
 	return steps
 
 
-func _run_hook(hook_id: String) -> void:
+# 钩子卡伤害接入成长：武器等级倍率 + 武器攻击加成（M2）。
+# 刻意不吃属性补正——钩子卡是"特殊动作"，若与步骤卡全额同级会在 0 级就把
+# 力量系出身抬到 3 倍伤害，抹平 Boss 难度锚点（见 round3 评审 M2/M3 取舍）。
+func _hook_damage(_card: CardData, base: int) -> int:
+	var raw := base + combat.weapon_service.total_attack_bonus(combat.run)
+	var scaled: int = maxi(0, int(round(float(raw) * combat.weapon_service.weapon_multiplier(combat.run))))
+	return scaled + combat.run.player_strength
+
+
+func _run_hook(card: CardData) -> void:
+	var hook_id := card.hook_id
 	match hook_id:
 		"heater_shield":
 			combat.gain_block(8)
@@ -272,32 +282,33 @@ func _run_hook(hook_id: String) -> void:
 		"buckler":
 			combat.gain_block(5)
 			if _enemy_attacking():
-				combat.enemy.stance_now -= 4
-				combat.combat_log("小圆盾架开武器，削减 4 姿态。")
+				# M11：统一走姿态结算（可正常触发崩解，不再产生负姿态黑箱）
+				combat.deal_enemy_damage(0, 4)
+				combat.combat_log("小圆盾架开武器。")
 		"longbow":
-			combat.deal_enemy_damage(5 + combat.run.player_strength, 1)
+			combat.deal_enemy_damage(_hook_damage(card, 5), 1)
 			if int(combat.enemy.block) <= 0:
 				combat.draw_cards(1)
 		"club":
-			var club_damage: int = 6 + combat.run.player_strength
+			var club_base: int = 6
 			if combat.run.hand.is_empty():
-				club_damage += 5
-			combat.deal_enemy_damage(club_damage, 2)
+				club_base += 5
+			combat.deal_enemy_damage(_hook_damage(card, club_base), 2)
 		"battle_axe":
-			var axe_broke: bool = combat.deal_enemy_damage(15 + combat.run.player_strength, 4)
+			var axe_broke: bool = combat.deal_enemy_damage(_hook_damage(card, 15), 4)
 			if axe_broke:
 				combat.ember += 1
 		"lions_claw":
-			var broke: bool = combat.deal_enemy_damage(14 + combat.run.player_strength, 5)
+			var broke: bool = combat.deal_enemy_damage(_hook_damage(card, 14), 5)
 			if broke:
 				combat.draw_cards(1)
 		"magic_glintblade":
-			combat.deal_enemy_damage(8 + combat.run.player_strength, 2)
+			combat.deal_enemy_damage(_hook_damage(card, 8), 2)
 			if combat.ember > 0:
-				combat.deal_enemy_damage(3, 1)
+				combat.deal_enemy_damage(_hook_damage(card, 3), 1)
 		"destined_death":
 			var was_alive: bool = int(combat.enemy.get("hp", 0)) > 0
-			combat.deal_enemy_damage(25 + combat.run.player_strength, 8)
+			combat.deal_enemy_damage(_hook_damage(card, 25), 8)
 			if was_alive and int(combat.enemy.hp) <= 0:
 				combat.run.max_hp += 4
 				combat.run.hp += 4

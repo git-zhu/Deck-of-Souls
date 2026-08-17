@@ -206,3 +206,28 @@ NG+×7、誓约Ⅰ–Ⅴ、誓言挑战、记忆/回响外循环，结构完整�
 - **Monte Carlo（一贫如洗，150 次，贪心满资源 bot）**：普通战 ≈100%（S11 tempo 压缩的预期结果）；玛尔基特 79.3% / 接肢贵族 88.7%（见 M3）；全程无死锁。
 - **体量**：35 卡、18 敌人、14 护符、6 出身、21 事件、10 群怪、3 幕；三幕奖励池已零重叠。
 - **已知良性**：headless GameAudio 警告、Control 测试 RID 泄漏、push 无新提交时 stderr 触发 exit 1——均不影响判定。
+
+---
+
+## 五、实施回执（P0–P3 全部落地）
+
+| 项 | 落地方式 | 验证 |
+|---|---|---|
+| **M1** | `RunState.weapon_levels: Dictionary` 为唯一事实来源；`reset_for_origin` 清零；`WeaponService.max_weapon_level` 改读 run；`RunRewardFlow` 不再改共享 Resource；`RunSaveService` 序列化往返 | `round3_fixes_test`：串档清零 + 存档往返 + 共享资源恒 0 级 |
+| **M2** | 钩子卡伤害统一走 `_hook_damage`：`（基础 + 武器攻击加成）× 武器等级倍率 + 力量`。**刻意不吃属性补正**——0 级全额属性补正会把力量系钩子卡抬到 3 倍伤害（一贫如洗 vs 玛尔基特 1.9 回合击杀、胜率 79%→100%），抹平难度锚点并使 M3 失效；武器倍率才是评审要求的 MUST | `round3_fixes_test`：club 伤害随武器等级增长（lv0 7 → lv5 10+） |
+| **M3** | 「蜘蛛般的近身压迫」rot 6 → attack_rot 10+腐败3（一阶段有稳定直伤）；二阶段触发线 50%→65% | MC：一贫如洗对接肢贵族胜率 88.7%→**56.0%**，低于玛尔基特 78.7%，倒挂纠正 |
+| **M4** | 崩解打断蓄力时置 `_suppress_charge`，`_choose_one_intent` 重选时剔除 charge 招式一次 | `round3_fixes_test`：大树守卫打断后意图非蓄力 |
+| **M5** | `play_card` 以 `_play_dealt_damage`（deal_enemy_damage 实际过甲伤害 >0）替代类型白名单 | `round3_fixes_test`：heal 不计、longsword 计 |
+| **M6** | `ATTR_INFO` 对齐真实公式：灵巧 = 物理伤害与姿态各 +0.5/点；集中补"每 3 点能量上限 +1"；信仰注明治疗不吃信仰 | 文案与 `calculate_card_damage` / `calculate_stance_damage` 逐条比对 |
+| **M7** | `RelicService.relic_value/relic_value2`；黄金树恩赐概率、星尘义肢处决加成、双手剑徽章姿态加成一律读 `value`；`RelicData` 增 `value2`，玛莉卡的烙印 rot 读 `value2=2` | `round3_fixes_test`：未持有=0、姿态 ×1.5 相对验证、value2=2 |
+| **M8** | `VOW_DESCRIPTIONS` Ⅱ–Ⅴ 全部改为"在Ⅰ（–Ⅳ）之上…"累积措辞 | 文案核对 |
+| **M9** | `_maybe_relic_blessing` 实时重读 `ProfileService.load_profile().memory`（带卡消耗 50 后按余额判定 100 门槛） | 代码走查（Main 层，无 headless 宿主） |
+| **M10** | `MapScreenView.fragment_cost = 30 + 10×层数`（0 层 30 → 11 层 140），替换常量 50 | `round3_fixes_test` + `souls_features_test` / `run_flow_host_test` 断言同步 |
+| **M11** | 小圆盾 `stance_now -= 4` → `deal_enemy_damage(0, 4)`，统一姿态结算、可独立触发崩解、不再产生负姿态 | `round3_fixes_test`：姿态 4 的野狼被小圆盾直接崩解 |
+| **M12** | 熔炉骑士（50%，巨剑22/尾翼连击12×2/初始熔炉之怒）、守墓斗士（50%，链锤重砸20/连枷狂舞10×2/血镰横扫出血7）获得二阶段池 | `round3_fixes_test` 校验模板；NG+ 混招覆盖面扩大 |
+
+**回归与复测**
+
+- 49/49 headless 全绿（新增 `round3_fixes_test`；`round2_fixes_test` 的 N9 断言随 M3 同步为 65%）。
+- Monte Carlo（150 次/格，贪心满资源 bot）：普通战 ≈100%（预期）；**一贫如洗 vs 玛尔基特 78.7%、vs 接肢贵族 56.0%**——难度曲线单调性恢复，终局有重量。
+- MC bot 的 `_estimate_damage` 仍是旧估值（决策略保守），不影响方向性结论；后续可按新公式校准。

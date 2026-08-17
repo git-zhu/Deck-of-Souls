@@ -381,8 +381,10 @@ func _start_blessings(mem: int) -> void:
 	_maybe_relic_blessing(mem)
 
 
-func _maybe_relic_blessing(mem: int) -> void:
-	if mem >= 100:
+func _maybe_relic_blessing(_mem: int) -> void:
+	# M9：实时重读记忆（携带卡消耗 50 后，按当前余额判定护符祝福门槛）
+	var mem_now: int = int(ProfileService.load_profile().get("memory", 0))
+	if mem_now >= 100:
 		var offers := relic_service.roll_relic_offers(run_state, registry, rng, 3)
 		if offers.size() > 0:
 			_log("记忆低语：选择一枚护符作为旅途的开端。")

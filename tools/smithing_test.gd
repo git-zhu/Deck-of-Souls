@@ -30,36 +30,38 @@ func _initialize() -> void:
 		return
 	print("merchant smithing stone OK:", run.smithing_stones)
 
-	# 2) 给武器升级资源（2 颗 1 级石）
+	# 2) 给武器升级资源（2 颗 1 级石）—— 等级写入 run.weapon_levels
 	run.smithing_stones[0] += 1
 	var weapon := registry.get_weapon("longsword_w")
 	if weapon == null:
 		_fail("longsword_w missing")
 		return
-	if not LevelingService.weapon_can_afford(run, weapon.level):
+	var level: int = int(run.weapon_levels.get("longsword_w", 0))
+	if not LevelingService.weapon_can_afford(run, level):
 		_fail("should afford first upgrade")
 		return
-	var up: Dictionary = LevelingService.apply_weapon_upgrade(run, weapon.level)
+	var up: Dictionary = LevelingService.apply_weapon_upgrade(run, level)
 	if not bool(up.get("ok", false)):
 		_fail("weapon upgrade failed: %s" % str(up))
 		return
-	weapon.level += 1
-	print("weapon upgrade OK: +%d, stones now %s" % [weapon.level, str(run.smithing_stones)])
+	run.weapon_levels["longsword_w"] = level + 1
+	print("weapon upgrade OK: +%d, stones now %s" % [level + 1, str(run.smithing_stones)])
 
 	# 3) 升级后伤害提升
 	var card := registry.get_card("longsword")
 	var dmg_before: int = combat.calculate_card_damage(card, 7)  # 武器 lv1
 	# 再升一级到 lv2
 	run.smithing_stones[0] += 3
-	if LevelingService.weapon_can_afford(run, weapon.level):
-		var up2: Dictionary = LevelingService.apply_weapon_upgrade(run, weapon.level)
+	var level2: int = int(run.weapon_levels.get("longsword_w", 0))
+	if LevelingService.weapon_can_afford(run, level2):
+		var up2: Dictionary = LevelingService.apply_weapon_upgrade(run, level2)
 		if bool(up2.get("ok", false)):
-			weapon.level += 1
+			run.weapon_levels["longsword_w"] = level2 + 1
 	var dmg_after: int = combat.calculate_card_damage(card, 7)
 	if dmg_after <= dmg_before:
 		_fail("weapon level should increase damage: %d -> %d" % [dmg_before, dmg_after])
 		return
-	print("weapon level damage scaling OK: %d -> %d (lv %d)" % [dmg_before, dmg_after, weapon.level])
+	print("weapon level damage scaling OK: %d -> %d (lv %d)" % [dmg_before, dmg_after, int(run.weapon_levels.get("longsword_w", 0))])
 
 	# 4) 锻造石掉落（战斗奖励）
 	var group := registry.resolve_group("wolf_pack")

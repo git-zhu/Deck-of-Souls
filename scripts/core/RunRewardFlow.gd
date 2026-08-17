@@ -329,18 +329,20 @@ func show_weapon_upgrade() -> void:
 func _weapon_upgrade_infos() -> Array:
 	var run_state = host.get("run_state")
 	var registry = host.get("registry")
+	var weapon_service = host.get("combat").weapon_service
 	var infos: Array = []
 	for wid in run_state.weapons:
 		var weapon = registry.get_weapon(str(wid))
 		if weapon == null:
 			continue
+		var level: int = weapon_service.weapon_level(run_state, str(wid))
 		infos.append({
 			"id": weapon.id,
 			"name": weapon.name,
 			"kind": weapon.kind,
-			"level": weapon.level,
-			"affordable": LevelingService.weapon_can_afford(run_state, weapon.level),
-			"cost_text": LevelingService.weapon_upgrade_cost_text(weapon.level),
+			"level": level,
+			"affordable": LevelingService.weapon_can_afford(run_state, level),
+			"cost_text": LevelingService.weapon_upgrade_cost_text(level),
 		})
 	return infos
 
@@ -348,12 +350,15 @@ func _weapon_upgrade_infos() -> Array:
 func _on_weapon_upgrade_pressed(weapon_id: String) -> void:
 	var run_state = host.get("run_state")
 	var registry = host.get("registry")
+	var weapon_service = host.get("combat").weapon_service
 	var weapon = registry.get_weapon(weapon_id)
 	if weapon == null:
 		return
-	var result: Dictionary = LevelingService.apply_weapon_upgrade(run_state, weapon.level)
+	var level: int = weapon_service.weapon_level(run_state, weapon_id)
+	var result: Dictionary = LevelingService.apply_weapon_upgrade(run_state, level)
 	if bool(result.get("ok", false)):
-		weapon.level += 1
+		# 等级写入 RunState（随局存档），不再改共享 Resource
+		run_state.weapon_levels[weapon_id] = level + 1
 		show_weapon_upgrade()
 
 

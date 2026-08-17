@@ -99,10 +99,10 @@ func _initialize() -> void:
 		return
 	print("N8 ng+ move pool OK")
 
-	# ── N9 接肢贵族二阶段 ──
+	# ── N9 接肢贵族二阶段（M3 后触发线提前至 65%）──
 	var scion: Dictionary = registry.template_by_name("接肢贵族")
-	if int(scion.get("phase2_hp_percent", 0)) != 50 or (scion.get("phase2_moves", []) as Array).size() != 3:
-		_fail("接肢贵族应有 50%% 二阶段与 3 个招式")
+	if int(scion.get("phase2_hp_percent", 0)) != 65 or (scion.get("phase2_moves", []) as Array).size() != 3:
+		_fail("接肢贵族应有 65%% 二阶段与 3 个招式")
 		return
 	print("N9 scion phase2 OK")
 

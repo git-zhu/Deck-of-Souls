@@ -11,6 +11,21 @@ func has_relic(run: RunState, relic_id: String) -> bool:
 	return run.relics.has(relic_id)
 
 
+# M7：数值一律回数据读取（未持有返回 0）
+func relic_value(run: RunState, registry: DataRegistry, relic_id: String) -> int:
+	if not has_relic(run, relic_id):
+		return 0
+	var relic := registry.get_relic(relic_id) as RelicData
+	return relic.value if relic != null else 0
+
+
+func relic_value2(run: RunState, registry: DataRegistry, relic_id: String) -> int:
+	if not has_relic(run, relic_id):
+		return 0
+	var relic := registry.get_relic(relic_id) as RelicData
+	return relic.value2 if relic != null else 0
+
+
 func add_relic(run: RunState, registry: DataRegistry, relic_id: String) -> bool:
 	if has_relic(run, relic_id):
 		return false
@@ -70,7 +85,7 @@ func hook_summary(relic: RelicData) -> String:
 		"exec_bonus":
 			return "处决伤害 +%d%%" % relic.value
 		"ember_and_rot":
-			return "能量上限 +%d，每回合积累 2 腐败" % relic.value
+			return "能量上限 +%d，每回合积累 %d 腐败" % [relic.value, relic.value2]
 		_:
 			return relic.hook
 

@@ -6,3 +6,4 @@ extends Resource
 @export var body: String = ""
 @export var hook: String = ""
 @export var value: int = 0
+@export var value2: int = 0  # 双重效果护符的次级数值（如 ember_and_rot 的腐败量）

@@ -120,6 +120,7 @@ static func run_to_dict(run: RunState) -> Dictionary:
 		"relics": run.relics.duplicate(),
 		"memory_stones": run.memory_stones,
 		"weapons": run.weapons.duplicate(),
+		"weapon_levels": run.weapon_levels.duplicate(),
 		"attrs": run.attrs.duplicate(),
 		"attr_levels": run.attr_levels.duplicate(),
 		"smithing_stones": run.smithing_stones.duplicate(),
@@ -155,6 +156,11 @@ static func run_from_dict(run: RunState, data: Variant) -> void:
 	run.relics = _string_array_from(d.get("relics", []))
 	run.memory_stones = int(d.get("memory_stones", 0))
 	run.weapons = _string_array_from(d.get("weapons", run.weapons))
+	var wlevels_data: Variant = d.get("weapon_levels", {})
+	run.weapon_levels = {}
+	if typeof(wlevels_data) == TYPE_DICTIONARY:
+		for k in (wlevels_data as Dictionary).keys():
+			run.weapon_levels[str(k)] = int((wlevels_data as Dictionary)[k])
 	var attrs_data: Variant = d.get("attrs", {})
 	if typeof(attrs_data) == TYPE_DICTIONARY:
 		for k in run.attrs:

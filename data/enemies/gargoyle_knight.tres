@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
@@ -28,6 +28,28 @@ kind = "attack"
 value = 18
 text = "熔炉百相之翼"
 
+[sub_resource type="Resource" id="MoveData_5"]
+script = ExtResource("2")
+kind = "attack"
+value = 22
+text = "熔炉百相之巨剑"
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_6"]
+script = ExtResource("2")
+kind = "attack"
+value = 12
+text = "熔炉尾翼连击"
+hits = 2
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_7"]
+script = ExtResource("2")
+kind = "buff"
+text = "初始熔炉之怒"
+strength = 3
+weight = 1
+
 [resource]
 script = ExtResource("1")
 name = "熔炉骑士"
@@ -39,3 +61,6 @@ is_boss = true
 is_act_boss = true
 is_run_boss = false
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]
+phase2_hp_percent = 50
+phase2_moves = Array[Resource]([SubResource("MoveData_5"), SubResource("MoveData_6"), SubResource("MoveData_7")])
+phase2_text = "熔炉骑士的铠甲鼓胀，羽与鳞从缝隙中生出——初始熔炉之力苏醒了。"

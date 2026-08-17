@@ -30,6 +30,7 @@ var player_strength: int = 0
 var relics: Array[String] = []
 var memory_stones: int = 0
 var weapons: Array[String] = []
+var weapon_levels: Dictionary = {}  # weapon_id -> 强化等级（随局存档，杜绝跨局串档）
 
 # ── 属性加点（法环式）：基础属性 + 升级加点 ──
 var attrs := {
@@ -91,6 +92,7 @@ func reset_for_origin(origin: OriginData, seed: int) -> void:
 	relics.clear()
 	memory_stones = 0
 	weapons.assign(origin.weapons)
+	weapon_levels = {}
 	attrs = {
 		"vigor": origin.attr_vigor,
 		"strength": origin.attr_strength,
