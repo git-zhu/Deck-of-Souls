@@ -111,6 +111,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. ~~Monte Carlo 平衡工具~~（P2 已完成：`tools/monte_carlo_balance.gd`）。
 3. ~~预言家 Boss 平衡~~（P3 已完成：`black_flame` 入初始牌组，Boss 胜率 20%→76%）。
 4. ~~普通战难度上调~~（已重定向：S11 先手压制 + S2 敌人个性压缩普通战节奏，难度预算集中在精英/Boss 与外循环修饰 [NG+/誓约/挑战]；贪心 bot 满资源单挑仍 ≈100% 属预期，一贫如洗 vs 玛尔基特 74%。详见 `docs/superpowers/specs/2026-08-17-design-review-soulslike-direction.md` 复测补记。）
+5. 第三轮评审待实施：M1 武器等级搬进 RunState + 持久化（P0，已实证串档/丢档）、M2 钩子卡接入成长、M3 接肢贵族难度抬升。详见 `docs/superpowers/specs/2026-08-17-design-review-round3-structure-and-pipes.md`。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
 
