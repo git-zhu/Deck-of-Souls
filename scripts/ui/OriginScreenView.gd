@@ -8,8 +8,20 @@ const OriginData = preload("res://data/OriginData.gd")
 
 const NOTE_MUTED := Color("#b9ac94")
 
+const VOW_DESCRIPTIONS: Array[String] = [
+	"不立誓约。",
+	"誓约Ⅰ 破损的瓶：初始圣杯瓶 −1。",
+	"誓约Ⅱ 无恩之地：赐福休憩治疗减半。",
+	"誓约Ⅲ 鲜血契约：敌人伤害再 +10%，卢恩再 +30%。",
+]
 
-static func build(registry: DataRegistry, on_pick_origin: Callable) -> Control:
+
+static func build(
+	registry: DataRegistry,
+	on_pick_origin: Callable,
+	profile: Dictionary = {},
+	on_difficulty_changed: Callable = Callable()
+) -> Control:
 	var wrap := VBoxContainer.new()
 	wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
 	wrap.add_theme_constant_override("separation", 14)
@@ -25,6 +37,12 @@ static func build(registry: DataRegistry, on_pick_origin: Callable) -> Control:
 	desc.add_theme_color_override("font_color", GameTheme.BODY_MUTED)
 	wrap.add_child(desc)
 
+	# 周目 / 誓约选择（通关后逐步解锁）
+	var max_ng: int = int(profile.get("max_ng_unlocked", 0))
+	var max_vow: int = int(profile.get("max_vow_unlocked", 0))
+	if max_ng > 0 or max_vow > 0:
+		wrap.add_child(_difficulty_row(max_ng, max_vow, on_difficulty_changed))
+
 	var grid := GridContainer.new()
 	grid.columns = 3
 	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -36,6 +54,39 @@ static func build(registry: DataRegistry, on_pick_origin: Callable) -> Control:
 		grid.add_child(origin_card(registry.get_origin(str(id)), str(id), on_pick_origin))
 
 	return wrap
+
+
+static func _difficulty_row(max_ng: int, max_vow: int, on_changed: Callable) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 18)
+
+	var ng_label := Label.new()
+	ng_label.text = "周目"
+	ng_label.add_theme_color_override("font_color", GameTheme.GOLD)
+	row.add_child(ng_label)
+	var ng_options := OptionButton.new()
+	ng_options.add_item("正常", 0)
+	for i in range(1, max_ng + 1):
+		ng_options.add_item("NG+%d（敌强 卢恩丰）" % i, i)
+	ng_options.select(0)
+	row.add_child(ng_options)
+
+	var vow_label := Label.new()
+	vow_label.text = "誓约"
+	vow_label.add_theme_color_override("font_color", GameTheme.GOLD)
+	row.add_child(vow_label)
+	var vow_options := OptionButton.new()
+	for i in range(0, max_vow + 1):
+		vow_options.add_item(VOW_DESCRIPTIONS[clampi(i, 0, VOW_DESCRIPTIONS.size() - 1)], i)
+	vow_options.select(0)
+	row.add_child(vow_options)
+
+	var emit := func() -> void:
+		if on_changed.is_valid():
+			on_changed.call(ng_options.selected, vow_options.selected)
+	ng_options.item_selected.connect(func(_idx: int) -> void: emit.call())
+	vow_options.item_selected.connect(func(_idx: int) -> void: emit.call())
+	return row
 
 
 static func origin_card(origin: OriginData, origin_id: String, on_pick: Callable) -> PanelContainer:

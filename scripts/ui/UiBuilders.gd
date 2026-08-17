@@ -627,6 +627,8 @@ static func compact_fighter_hud(
 				chips.add_child(status_chip("力量 %d" % val, GameTheme.status_color("strength"), "res://assets/external/kenney_icons/arrow_right.png"))
 			"stance":
 				chips.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance"), "res://assets/external/kenney_icons/suit_diamonds.png"))
+			"break_open":
+				chips.add_child(status_chip("破绽！", Color("#ffd24a"), "res://assets/external/kenney_icons/sword.png"))
 	return panel_node
 
 

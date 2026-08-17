@@ -47,6 +47,11 @@ var attr_levels := {
 }
 var smithing_stones: Array[int] = [0, 0, 0]  # [1级, 2级, 3级] 锻造石
 
+# ── 周目与誓约（魂式重玩轴）──
+var ng_plus: int = 0                    # 0=正常，1=NG+ …（敌人更强、卢恩更多）
+var vow_level: int = 0                  # 誓约等级（累积修饰器）
+var challenge_flags: Array[String] = []  # 本局自选誓言挑战
+
 
 func act_index() -> int:
 	return floor_index / FLOORS_PER_ACT
@@ -91,6 +96,9 @@ func reset_for_origin(origin: OriginData, seed: int) -> void:
 		"faith": 0,
 	}
 	smithing_stones = [0, 0, 0]
+	ng_plus = 0
+	vow_level = 0
+	challenge_flags = []
 	deck.assign(origin.deck)
 
 

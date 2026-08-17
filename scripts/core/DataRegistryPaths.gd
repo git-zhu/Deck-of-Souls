@@ -19,9 +19,11 @@ const CARD_RESOURCES: Array = [
 	preload("res://data/cards/glintstone_pebble.tres"),
 	preload("res://data/cards/glintstone_stars.tres"),
 	preload("res://data/cards/great_knife.tres"),
+	preload("res://data/cards/guard_counter.tres"),
 	preload("res://data/cards/halberd.tres"),
 	preload("res://data/cards/heal.tres"),
 	preload("res://data/cards/heater_shield.tres"),
+	preload("res://data/cards/heavy_charge.tres"),
 	preload("res://data/cards/hoarfrost_stomp.tres"),
 	preload("res://data/cards/lions_claw.tres"),
 	preload("res://data/cards/longbow.tres"),
@@ -55,10 +57,12 @@ const GRACE_OPTION_RESOURCES: Array = [
 	preload("res://data/grace_options/clarity.tres"),
 	preload("res://data/grace_options/destined_death.tres"),
 	preload("res://data/grace_options/kindling.tres"),
+	preload("res://data/grace_options/level_up.tres"),
 	preload("res://data/grace_options/memory_stone.tres"),
 	preload("res://data/grace_options/purge.tres"),
 	preload("res://data/grace_options/rest.tres"),
 	preload("res://data/grace_options/vitality.tres"),
+	preload("res://data/grace_options/weapon_upgrade.tres"),
 ]
 
 const RELIC_RESOURCES: Array = [
@@ -92,9 +96,6 @@ const EVENT_RESOURCES: Array = [
 
 const MERCHANT_OFFER_RESOURCES: Array = [
 	preload("res://data/merchant_offers/ash_replace.tres"),
-	preload("res://data/merchant_offers/smithing_stone_1.tres"),
-	preload("res://data/merchant_offers/smithing_stone_2.tres"),
-	preload("res://data/merchant_offers/smithing_stone_3.tres"),
 	preload("res://data/merchant_offers/blood_vial.tres"),
 	preload("res://data/merchant_offers/curio_card.tres"),
 	preload("res://data/merchant_offers/kindling_sale.tres"),
@@ -102,6 +103,9 @@ const MERCHANT_OFFER_RESOURCES: Array = [
 	preload("res://data/merchant_offers/refill_flasks.tres"),
 	preload("res://data/merchant_offers/remove_card.tres"),
 	preload("res://data/merchant_offers/scrap_paper.tres"),
+	preload("res://data/merchant_offers/smithing_stone_1.tres"),
+	preload("res://data/merchant_offers/smithing_stone_2.tres"),
+	preload("res://data/merchant_offers/smithing_stone_3.tres"),
 ]
 
 const ENEMY_RESOURCES: Array = [
@@ -125,6 +129,19 @@ const ENEMY_RESOURCES: Array = [
 	preload("res://data/enemies/wild_wolf.tres"),
 ]
 
+const GROUP_RESOURCES: Array = [
+	preload("res://data/enemy_groups/academy_scholars.tres"),
+	preload("res://data/enemy_groups/elite_soldier_swarm.tres"),
+	preload("res://data/enemy_groups/gargoyle_watch.tres"),
+	preload("res://data/enemy_groups/gravekeeper_party.tres"),
+	preload("res://data/enemy_groups/kaguth_raiders.tres"),
+	preload("res://data/enemy_groups/kindred_of_rot_pair.tres"),
+	preload("res://data/enemy_groups/mercenary_duo.tres"),
+	preload("res://data/enemy_groups/rot_incursion.tres"),
+	preload("res://data/enemy_groups/soldier_patrol.tres"),
+	preload("res://data/enemy_groups/wolf_pack.tres"),
+]
+
 const WEAPON_RESOURCES: Array = [
 	preload("res://data/weapons/battle_axe_w.tres"),
 	preload("res://data/weapons/club_w.tres"),
@@ -137,18 +154,5 @@ const WEAPON_RESOURCES: Array = [
 	preload("res://data/weapons/longsword_w.tres"),
 	preload("res://data/weapons/staff_w.tres"),
 	preload("res://data/weapons/uchigatana_w.tres"),
-]
-
-const GROUP_RESOURCES: Array = [
-	preload("res://data/enemy_groups/academy_scholars.tres"),
-	preload("res://data/enemy_groups/elite_soldier_swarm.tres"),
-	preload("res://data/enemy_groups/gargoyle_watch.tres"),
-	preload("res://data/enemy_groups/gravekeeper_party.tres"),
-	preload("res://data/enemy_groups/kaguth_raiders.tres"),
-	preload("res://data/enemy_groups/kindred_of_rot_pair.tres"),
-	preload("res://data/enemy_groups/mercenary_duo.tres"),
-	preload("res://data/enemy_groups/rot_incursion.tres"),
-	preload("res://data/enemy_groups/soldier_patrol.tres"),
-	preload("res://data/enemy_groups/wolf_pack.tres"),
 ]
 

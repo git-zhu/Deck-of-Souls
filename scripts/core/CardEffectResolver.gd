@@ -265,6 +265,14 @@ func _run_hook(hook_id: String) -> void:
 			combat.heal_player(5)
 			if combat.run.hp < combat.run.max_hp / 2:
 				combat.draw_cards(1)
+		"guard_counter":
+			combat.gain_block(8)
+			combat.deal_enemy_damage(0, 6)
+			combat.combat_log("你架开攻势，顺势压向对方架势。")
+		"heavy_charge":
+			combat.gain_block(6)
+			combat.stance_mult_next_turn = true
+			combat.combat_log("你沉腰蓄力：下回合姿态削减翻倍。")
 		_:
 			push_warning("Unknown card hook: %s" % hook_id)
 

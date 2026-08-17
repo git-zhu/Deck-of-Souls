@@ -12,6 +12,7 @@ const WeaponService = preload("res://scripts/core/WeaponService.gd")
 signal combat_changed
 signal combat_ended(kind: String)
 signal log_message(text: String)
+signal break_choice_ready   # 姿态崩解 → 等待玩家选择处决/防反
 
 var run: RunState
 var registry: DataRegistry
@@ -27,6 +28,11 @@ var max_ember: int = 3
 var block: int = 0
 var relic_service := RelicService.new()
 var weapon_service := WeaponService.new()
+
+# 姿态崩解决策：break_open 的敌人被再次命中时，弹出「处决/防反」选择
+var break_choice: Dictionary = {}     # {"target": idx, "exec": n, "parry": n}
+var stance_mult_next_turn: bool = false  # 重击蓄力：下回合姿态伤害 ×2
+var stance_active_buff: bool = false
 
 # FX 事件队列：伤害/治疗/护甲变化即时记录，UI 层在重建后消费（飘字/闪烁）
 var fx_events: Array = []
@@ -125,14 +131,20 @@ func _attr_bonus_for_card(card: CardData) -> int:
 			return 0
 
 
-# 姿态伤害：基础 + 灵巧补正 + 武器姿态加成
+# 姿态伤害：基础 + 灵巧补正 + 武器姿态加成（重击蓄力生效时 ×2）
 func calculate_stance_damage(base_stance: int) -> int:
-	return base_stance + int(run.attr("dexterity") * 0.5) + weapon_service.total_stance_bonus(run)
+	var total: int = base_stance + int(run.attr("dexterity") * 0.5) + weapon_service.total_stance_bonus(run)
+	if stance_active_buff:
+		total *= 2
+	return total
 
 
 func start_combat(template: Dictionary) -> void:
 	combat_over = false
 	block = 0
+	break_choice = {}
+	stance_mult_next_turn = false
+	stance_active_buff = false
 	run.player_rot = 0
 	run.player_bleed = 0
 	run.player_vulnerable = 0
@@ -144,6 +156,8 @@ func start_combat(template: Dictionary) -> void:
 		raw_list = [template]
 	var act := registry.get_act(run.act_index())
 	var hp_percent: int = act.enemy_hp_percent if act != null else 100
+	# NG+ 缩放：每级敌人 HP +25%（与幕缩放叠乘）
+	hp_percent = int(round(float(hp_percent) * (1.0 + 0.25 * float(run.ng_plus))))
 	# 模板级标记（精英群/群怪）：传播到成员，供战斗结束判定
 	var group_elite: bool = bool(template.get("elite", false))
 	var group_boss: bool = bool(template.get("boss", false))
@@ -162,6 +176,9 @@ func start_combat(template: Dictionary) -> void:
 		e.strength = 0
 		e.stance_max = e.stance
 		e.stance_now = e.stance
+		e["_phase2"] = false
+		e["_charge"] = 0
+		e["break_open"] = false
 		# 群怪标记传播（单个敌人模板本身带标记时保留）
 		if group_elite:
 			e["elite"] = true
@@ -195,6 +212,8 @@ func start_player_turn() -> void:
 	turn += 1
 	ember = max_ember
 	block = 0
+	stance_active_buff = stance_mult_next_turn
+	stance_mult_next_turn = false
 	apply_player_start_status()
 	var draw_count: int = run.player_hand_draw(relic_service.combat_extra_draw(run, registry))
 	draw_cards(draw_count)
@@ -218,6 +237,8 @@ func apply_player_start_status() -> void:
 func play_card(index: int) -> void:
 	if index < 0 or index >= run.hand.size() or combat_over:
 		return
+	if not break_choice.is_empty():
+		return  # 等待处决/防反选择
 	var card_id := run.hand[index]
 	var card := registry.get_card(card_id)
 	if card == null:
@@ -244,6 +265,7 @@ func deal_enemy_damage(amount: int, stance_damage: int, target_idx: int = -1) ->
 	var e := _target_dict(target_idx)
 	if e.is_empty() or int(e.get("hp", 0)) <= 0:
 		return false
+	var was_break_open: bool = bool(e.get("break_open", false))
 	var final: int = amount
 	if int(e.get("vulnerable", 0)) > 0:
 		final = int(ceil(final * 1.5))
@@ -254,19 +276,69 @@ func deal_enemy_damage(amount: int, stance_damage: int, target_idx: int = -1) ->
 	final -= blocked
 	e.hp = maxi(0, int(e.get("hp", 0)) - final)
 	e.stance_now = int(e.get("stance_now", 0)) - stance_damage
+	_check_phase_transition(e)
 	if blocked > 0:
 		_fx("block_hit", _enemy_tag(e), blocked)
 	if final > 0:
 		_fx("damage", _enemy_tag(e), final)
 	combat_log("对%s造成 %d 伤害，削减 %d 姿态。" % [e.name, final, stance_damage])
 	var broke: bool = false
-	if int(e.get("stance_now", 0)) <= 0:
+	if was_break_open:
+		# 破绽期间命中 → 触发处决/防反选择（消耗破绽）
+		_offer_break_resolution(e, final, target_idx)
+	elif int(e.get("stance_now", 0)) <= 0:
 		broke = true
 		e.vulnerable = int(e.get("vulnerable", 0)) + 1
-		e.stance_now = e.stance_max
-		combat_log("%s 姿态崩解，短暂露出破绽。" % e.name)
+		e["break_open"] = true
+		e["stance_now"] = 0
+		combat_log("%s 姿态崩解，露出巨大破绽！" % e.name)
 	check_enemy_death(target_idx)
 	return broke
+
+
+# 破绽结算：提供处决/防反二选一（并发破绽自动结算为小额处决）
+func _offer_break_resolution(e: Dictionary, trigger_damage: int, target_idx: int) -> void:
+	e["break_open"] = false
+	e["stance_now"] = int(e.get("stance_max", 1))
+	var idx: int = target_idx if target_idx >= 0 else enemies.find(e)
+	var exec_bonus: int = int(ceil(trigger_damage * 1.2)) + 8
+	if relic_service.has_relic(run, "starscourge_prosthesis"):
+		exec_bonus = int(ceil(exec_bonus * 1.5))
+	var parry_block: int = int(ceil(trigger_damage * 0.5)) + 4
+	if break_choice.is_empty():
+		break_choice = {"target": idx, "exec": exec_bonus, "parry": parry_block}
+		combat_log("破绽坐实！处决，还是防反？")
+		break_choice_ready.emit()
+	else:
+		var auto: int = 6
+		e.hp = maxi(0, int(e.get("hp", 0)) - auto)
+		_fx("damage", _enemy_tag(e), auto)
+		combat_log("破绽溢出：追加处决 %d 伤害。" % auto)
+		check_enemy_death(idx)
+
+
+# 玩家选择：execute 处决 / parry 防反
+func apply_break_choice(kind: String) -> void:
+	if break_choice.is_empty():
+		return
+	var choice: Dictionary = break_choice.duplicate()
+	break_choice = {}
+	var idx: int = int(choice.get("target", 0))
+	var e := _target_dict(idx)
+	if kind == "execute":
+		if not e.is_empty() and int(e.get("hp", 0)) > 0:
+			var dmg: int = int(choice.get("exec", 0))
+			e.hp = maxi(0, int(e.get("hp", 0)) - dmg)
+			_fx("damage", _enemy_tag(e), dmg)
+			combat_log("处决！对%s造成 %d 点要害伤害。" % [e.name, dmg])
+			_check_phase_transition(e)
+			check_enemy_death(idx)
+	else:
+		gain_block(int(choice.get("parry", 0)))
+		ember += 1
+		combat_log("防反稳住架势：护甲上架，集中 +1。")
+	check_combat_end()
+	combat_changed.emit()
 
 
 func apply_enemy_bleed(value: int, target_idx: int = -1) -> void:
@@ -281,7 +353,34 @@ func apply_enemy_bleed(value: int, target_idx: int = -1) -> void:
 		e.hp = maxi(0, int(e.get("hp", 0)) - burst)
 		_fx("damage", _enemy_tag(e), burst)
 		combat_log("%s 出血爆发，追加 %d 点伤害。" % [e.name, burst])
+		_check_phase_transition(e)
 		check_enemy_death(target_idx)
+
+# 二阶段转换：血量首次跌破 phase2_hp_percent → 换招式池 + 姿态回稳 25%
+func _check_phase_transition(e: Dictionary) -> void:
+	if bool(e.get("_phase2", false)):
+		return
+	var threshold: int = int(e.get("phase2_hp_percent", 0))
+	if threshold <= 0:
+		return
+	var hp: int = int(e.get("hp", 0))
+	if hp <= 0:
+		return
+	var max_hp: int = maxi(1, int(e.get("max_hp", 1)))
+	if hp * 100 > max_hp * threshold:
+		return
+	var p2_moves: Array = e.get("phase2_moves", [])
+	if p2_moves.is_empty():
+		return
+	e["_phase2"] = true
+	e["moves"] = p2_moves.duplicate(true)
+	var stance_max: int = int(e.get("stance_max", 0))
+	e["stance_now"] = mini(stance_max, int(e.get("stance_now", 0)) + int(ceil(stance_max * 0.25)))
+	var line: String = str(e.get("phase2_text", ""))
+	if line == "":
+		line = "%s 的气势变了。" % e.name
+	combat_log(line)
+	_fx("phase2", _enemy_tag(e), 0)
 
 
 func _target_dict(target_idx: int) -> Dictionary:
@@ -308,6 +407,8 @@ func heal_player(value: int) -> void:
 func use_flask() -> void:
 	if run.flasks <= 0 or run.hp >= run.max_hp:
 		return
+	if not break_choice.is_empty():
+		return
 	run.flasks -= 1
 	heal_player(18)
 	combat_changed.emit()
@@ -328,6 +429,8 @@ func draw_cards(count: int) -> void:
 func end_player_turn() -> void:
 	if combat_over:
 		return
+	if not break_choice.is_empty():
+		return
 	run.discard_pile.append_array(run.hand)
 	run.hand.clear()
 	enemy_turn()
@@ -345,12 +448,14 @@ func enemy_turn() -> void:
 			_fx("damage", _enemy_tag(e), rot_dmg)
 			combat_log("腐败啃食 %s：%d 点伤害。" % [e.name, rot_dmg])
 			e.rot = maxi(0, rot_dmg - 1)
+			_check_phase_transition(e)
 		if int(e.get("bleed", 0)) >= 10:
 			e.bleed = int(e.get("bleed", 0)) - 10
 			var burst: int = maxi(8, int(e.get("max_hp", 1) * 0.16))
 			e.hp = maxi(0, int(e.get("hp", 0)) - burst)
 			_fx("damage", _enemy_tag(e), burst)
 			combat_log("%s 出血爆发，受到 %d 点伤害。" % [e.name, burst])
+			_check_phase_transition(e)
 		if int(e.get("hp", 0)) <= 0:
 			continue
 		var intent: Dictionary = e.get("_intent", {})
@@ -369,6 +474,7 @@ func _execute_enemy_action(e: Dictionary, intent: Dictionary) -> void:
 	match str(intent.get("kind", "")):
 		"attack":
 			_enemy_attack(e, int(intent.value), int(intent.get("hits", 1)))
+			e["_charge"] = 0
 		"attack_block":
 			e.block = int(e.get("block", 0)) + int(intent.block)
 			_fx("block_gain", _enemy_tag(e), int(intent.block))
@@ -387,11 +493,17 @@ func _execute_enemy_action(e: Dictionary, intent: Dictionary) -> void:
 			_enemy_attack(e, int(intent.value), 1)
 			run.player_rot += int(intent.rot)
 			combat_log("你积累 %d 腐败。" % intent.rot)
+		"bleed":
+			run.player_bleed += int(intent.get("bleed", 0))
+			combat_log("%s 撕开伤口：你积累 %d 出血。" % [e.name, int(intent.get("bleed", 0))])
+		"charge":
+			e["_charge"] = int(intent.value) + int(e.get("strength", 0))
+			combat_log("%s 压低重心蓄力，下一击不会轻。" % e.name)
 
 
 func _enemy_attack(e: Dictionary, value: int, hits: int) -> void:
 	for _i in range(hits):
-		var amount: int = value + int(e.get("strength", 0))
+		var amount: int = int(ceil(float(value + int(e.get("strength", 0))) * enemy_damage_multiplier()))
 		if run.player_vulnerable > 0:
 			amount = int(ceil(amount * 1.5))
 		var absorbed: int = mini(block, amount)
@@ -401,6 +513,14 @@ func _enemy_attack(e: Dictionary, value: int, hits: int) -> void:
 			_fx("block_hit", "player", absorbed)
 		take_player_damage(amount, false)
 		combat_log("%s 造成 %d 点伤害。" % [e.name, amount])
+
+
+# NG+ 每级敌人伤害 +15%；誓约Ⅲ（鲜血契约）再 +10%
+func enemy_damage_multiplier() -> float:
+	var mult := 1.0 + 0.15 * float(run.ng_plus)
+	if run.vow_level >= 3:
+		mult += 0.10
+	return mult
 
 
 func take_player_damage(amount: int, ignores_block: bool) -> void:
@@ -428,11 +548,27 @@ func _choose_all_intents() -> void:
 
 
 func _choose_one_intent(e: Dictionary) -> void:
+	# 蓄力优先：上回合蓄力（telegraph），本回合强制释放——玩家有一整回合应对
+	if int(e.get("_charge", 0)) > 0:
+		e["_intent"] = {"kind": "attack", "value": int(e["_charge"]), "hits": 1, "text": "蓄力释放"}
+		return
 	var moves: Array = e.get("moves", [])
 	if moves.is_empty():
 		e["_intent"] = {"kind": "attack", "value": 6, "hits": 1, "text": "攻击"}
 		return
-	e["_intent"] = moves[rng.randi_range(0, moves.size() - 1)].duplicate(true)
+	# 魂式可背板：按权重加权选取（权重即敌人个性）
+	var total: int = 0
+	for m in moves:
+		total += maxi(1, int((m as Dictionary).get("weight", 1)))
+	var roll: int = rng.randi_range(0, total - 1)
+	var acc: int = 0
+	var chosen: Dictionary = moves[0]
+	for m in moves:
+		acc += maxi(1, int((m as Dictionary).get("weight", 1)))
+		if roll < acc:
+			chosen = m
+			break
+	e["_intent"] = (chosen as Dictionary).duplicate(true)
 
 
 func intent_text() -> String:
@@ -457,6 +593,10 @@ func intent_text_for(e: Dictionary) -> String:
 			return "%s，腐败 +%d" % [label, int(it.get("value", 0))]
 		"attack_rot":
 			return "%s，攻击 %d，腐败 +%d" % [label, atk, int(it.get("rot", 0))]
+		"bleed":
+			return "%s，出血 +%d" % [label, int(it.get("bleed", 0))]
+		"charge":
+			return "%s（蓄力中，下回合重击 %d）" % [label, int(it.get("value", 0)) + int(e.get("strength", 0))]
 	return label
 
 
@@ -468,6 +608,10 @@ func check_enemy_death(target_idx: int = -1) -> void:
 	if int(e.get("hp", 0)) <= 0 and not bool(e.get("_dead_awarded", false)):
 		e["_dead_awarded"] = true
 		var soul_gain: int = int(e.souls) + relic_service.combat_souls_bonus(run, registry)
+		# NG+ 卢恩 +30%/级；誓约Ⅲ（鲜血契约）再 +30%
+		soul_gain = int(round(float(soul_gain) * (1.0 + 0.3 * float(run.ng_plus))))
+		if run.vow_level >= 3:
+			soul_gain = int(round(float(soul_gain) * 1.3))
 		run.souls += soul_gain
 		combat_log("%s 倒下。你获得 %d 卢恩。" % [e.name, soul_gain])
 		# 锻造石掉落：普通战低概率 1 级石；精英/幕 Boss 更高等级

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
@@ -9,18 +9,28 @@ kind = "attack"
 value = 5
 text = "辉石魔砾连射"
 hits = 2
+weight = 3
 
 [sub_resource type="Resource" id="MoveData_2"]
 script = ExtResource("2")
 kind = "buff"
 text = "卢瑟特辉石杖"
 strength = 2
+weight = 1
 
 [sub_resource type="Resource" id="MoveData_3"]
 script = ExtResource("2")
 kind = "attack"
 value = 11
 text = "卡利亚迅剑"
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_4"]
+script = ExtResource("2")
+kind = "charge"
+value = 16
+text = "彗星蓄力"
+weight = 2
 
 [resource]
 script = ExtResource("1")
@@ -28,4 +38,4 @@ name = "学院辉石法师"
 max_hp = 44
 stance = 10
 souls = 20
-moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]

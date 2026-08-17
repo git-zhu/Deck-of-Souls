@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
@@ -9,6 +9,7 @@ kind = "attack"
 value = 13
 text = "手杖连击"
 hits = 2
+weight = 2
 
 [sub_resource type="Resource" id="MoveData_2"]
 script = ExtResource("2")
@@ -16,18 +17,43 @@ kind = "attack_block"
 value = 14
 text = "黄金短剑"
 block = 10
+weight = 2
 
 [sub_resource type="Resource" id="MoveData_3"]
 script = ExtResource("2")
 kind = "debuff"
 text = "野心之火该灭"
 vulnerable = 3
+weight = 1
 
 [sub_resource type="Resource" id="MoveData_4"]
 script = ExtResource("2")
 kind = "attack"
 value = 22
 text = "黄金锤跃击"
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_5"]
+script = ExtResource("2")
+kind = "attack"
+value = 9
+text = "手杖幻影连击"
+hits = 3
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_6"]
+script = ExtResource("2")
+kind = "attack"
+value = 24
+text = "黄金锤坠击"
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_7"]
+script = ExtResource("2")
+kind = "debuff"
+text = "野心之火，烧吧"
+vulnerable = 2
+weight = 1
 
 [resource]
 script = ExtResource("1")
@@ -39,3 +65,6 @@ is_boss = true
 is_act_boss = true
 is_run_boss = false
 moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]
+phase2_hp_percent = 50
+phase2_moves = Array[Resource]([SubResource("MoveData_5"), SubResource("MoveData_6"), SubResource("MoveData_7")])
+phase2_text = "玛尔基特的手杖分出幻影——「把野心刻进你身上。」"

@@ -122,6 +122,9 @@ static func run_to_dict(run: RunState) -> Dictionary:
 		"attrs": run.attrs.duplicate(),
 		"attr_levels": run.attr_levels.duplicate(),
 		"smithing_stones": run.smithing_stones.duplicate(),
+		"ng_plus": run.ng_plus,
+		"vow_level": run.vow_level,
+		"challenge_flags": run.challenge_flags.duplicate(),
 	}
 
 
@@ -163,6 +166,9 @@ static func run_from_dict(run: RunState, data: Variant) -> void:
 	if typeof(stones_data) == TYPE_ARRAY:
 		for i in range(mini(3, (stones_data as Array).size())):
 			run.smithing_stones[i] = int((stones_data as Array)[i])
+	run.ng_plus = int(d.get("ng_plus", 0))
+	run.vow_level = int(d.get("vow_level", 0))
+	run.challenge_flags = _string_array_from(d.get("challenge_flags", []))
 
 
 static func combat_to_dict(combat: CombatController) -> Dictionary:
@@ -199,6 +205,11 @@ static func combat_from_dict(combat: CombatController, data: Variant) -> void:
 	combat.max_ember = int(d.get("max_ember", 3))
 	combat.block = int(d.get("block", 0))
 	combat.combat_over = bool(d.get("combat_over", false))
+	combat.break_choice = {}  # 破绽选择不落存档：加载后安全侧结算（破绽关闭）
+	for e in combat.enemies:
+		if bool((e as Dictionary).get("break_open", false)):
+			(e as Dictionary)["break_open"] = false
+			(e as Dictionary)["stance_now"] = int((e as Dictionary).get("stance_max", 1))
 
 
 static func _is_restorable_screen(screen: int) -> bool:

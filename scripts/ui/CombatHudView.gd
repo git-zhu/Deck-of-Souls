@@ -122,6 +122,7 @@ static func build(
 				"vulnerable": int(e.vulnerable),
 				"strength": int(e.strength),
 				"stance": int(e.stance_now),
+				"break_open": 1 if bool(e.get("break_open", false)) else 0,
 			},
 			ENEMY_PANEL_BG,
 			true,

@@ -210,16 +210,10 @@ func _load_origins() -> Dictionary:
 func _enemy_to_dict(template: EnemyData, res_path: String = "") -> Dictionary:
 	var moves: Array = []
 	for move: MoveData in template.moves:
-		moves.append({
-			"kind": move.kind,
-			"value": move.value,
-			"text": move.text,
-			"hits": move.hits,
-			"block": move.block,
-			"vulnerable": move.vulnerable,
-			"strength": move.strength,
-			"rot": move.rot,
-		})
+		moves.append(_move_to_dict(move))
+	var phase2_moves: Array = []
+	for move: MoveData in template.phase2_moves:
+		phase2_moves.append(_move_to_dict(move))
 	# file_id 从资源路径推断（如 res://data/enemies/wild_wolf.tres -> wild_wolf）
 	var file_id := ""
 	if res_path != "":
@@ -235,6 +229,24 @@ func _enemy_to_dict(template: EnemyData, res_path: String = "") -> Dictionary:
 		"is_act_boss": template.is_act_boss,
 		"is_run_boss": template.is_run_boss,
 		"moves": moves,
+		"phase2_hp_percent": template.phase2_hp_percent,
+		"phase2_moves": phase2_moves,
+		"phase2_text": template.phase2_text,
+	}
+
+
+static func _move_to_dict(move: MoveData) -> Dictionary:
+	return {
+		"kind": move.kind,
+		"value": move.value,
+		"text": move.text,
+		"hits": move.hits,
+		"block": move.block,
+		"vulnerable": move.vulnerable,
+		"strength": move.strength,
+		"rot": move.rot,
+		"bleed": move.bleed,
+		"weight": maxi(1, move.weight),
 	}
 
 

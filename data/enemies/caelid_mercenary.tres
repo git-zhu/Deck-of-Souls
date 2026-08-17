@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
@@ -8,6 +8,7 @@ script = ExtResource("2")
 kind = "attack"
 value = 9
 text = "凯丹弯刀"
+weight = 2
 
 [sub_resource type="Resource" id="MoveData_2"]
 script = ExtResource("2")
@@ -15,12 +16,21 @@ kind = "attack"
 value = 6
 text = "骑马斩击"
 hits = 2
+weight = 2
 
 [sub_resource type="Resource" id="MoveData_3"]
 script = ExtResource("2")
 kind = "buff"
 text = "佣兵怒吼"
 strength = 2
+weight = 1
+
+[sub_resource type="Resource" id="MoveData_4"]
+script = ExtResource("2")
+kind = "bleed"
+text = "弯刀放血"
+bleed = 4
+weight = 2
 
 [resource]
 script = ExtResource("1")
@@ -28,4 +38,4 @@ name = "凯丹佣兵"
 max_hp = 48
 stance = 14
 souls = 22
-moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]

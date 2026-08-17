@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heavy_charge"
+name = "重击蓄力"
+cost = 1
+type = "战灰"
+rarity = "common"
+text = "获得 6 护甲。下回合你的姿态削减翻倍。满月般拉开的一记重击。"
+tone = Color(0.631, 0.553, 0.424, 1)
+hook_id = "heavy_charge"
+exhaust_after_play = false

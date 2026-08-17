@@ -9,18 +9,21 @@ kind = "attack"
 value = 5
 text = "狼群撕咬"
 hits = 2
+weight = 3
 
 [sub_resource type="Resource" id="MoveData_2"]
 script = ExtResource("2")
 kind = "attack"
 value = 9
 text = "扑击"
+weight = 2
 
 [sub_resource type="Resource" id="MoveData_3"]
 script = ExtResource("2")
 kind = "debuff"
 text = "包围低吼"
 vulnerable = 1
+weight = 1
 
 [resource]
 script = ExtResource("1")

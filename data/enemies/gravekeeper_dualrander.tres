@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
@@ -8,18 +8,28 @@ script = ExtResource("2")
 kind = "attack"
 value = 12
 text = "连枷旋舞"
+weight = 3
 
 [sub_resource type="Resource" id="MoveData_2"]
 script = ExtResource("2")
 kind = "debuff"
 text = "墓地压迫"
 vulnerable = 2
+weight = 1
 
 [sub_resource type="Resource" id="MoveData_3"]
 script = ExtResource("2")
 kind = "attack"
 value = 18
 text = "链锤处刑"
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_4"]
+script = ExtResource("2")
+kind = "bleed"
+text = "连枷血镰"
+bleed = 5
+weight = 1
 
 [resource]
 script = ExtResource("1")
@@ -28,4 +38,4 @@ max_hp = 72
 stance = 18
 souls = 48
 is_elite = true
-moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3")]
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]

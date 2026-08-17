@@ -14,6 +14,8 @@ FOLDERS = {
     "EVENT_RESOURCES": "events",
     "MERCHANT_OFFER_RESOURCES": "merchant_offers",
     "ENEMY_RESOURCES": "enemies",
+    "GROUP_RESOURCES": "enemy_groups",
+    "WEAPON_RESOURCES": "weapons",
 }
 
 

@@ -34,6 +34,7 @@ const RunRewardFlow = preload("res://scripts/core/RunRewardFlow.gd")
 const RunFlowController = preload("res://scripts/core/RunFlowController.gd")
 const RunSaveService = preload("res://scripts/core/RunSaveService.gd")
 const RunPauseMenuView = preload("res://scripts/ui/RunPauseMenuView.gd")
+const ProfileService = preload("res://scripts/core/ProfileService.gd")
 
 var rng := RandomNumberGenerator.new()
 var screen := GameScreen.TITLE
@@ -49,6 +50,8 @@ var event_service := EventService.new()
 var rewards: Array[String] = []
 var reward_flow: RunRewardFlow
 var run_flow: RunFlowController
+var pending_ng: int = 0    # 出身屏选择的周目
+var pending_vow: int = 0   # 出身屏选择的誓约等级
 
 var deck: Array[String]:
 	get:
@@ -315,14 +318,23 @@ func _on_title_quit() -> void:
 
 func _show_origin() -> void:
 	screen = GameScreen.ORIGIN
+	pending_ng = 0
+	pending_vow = 0
 	_hide_layers()
 	_show_bg("bg_elden")
 	title_layer.visible = true
 	_clear(title_layer)
 	_build_header()
-	title_layer.add_child(OriginScreenView.build(registry, _start_run))
+	title_layer.add_child(
+		OriginScreenView.build(registry, _start_run, ProfileService.load_profile(), _on_difficulty_changed)
+	)
 	_animate_layer(title_layer)
 	_focus_first_button(title_layer)
+
+
+func _on_difficulty_changed(ng_level: int, vow_level: int) -> void:
+	pending_ng = ng_level
+	pending_vow = vow_level
 
 
 func _start_run(origin_id: String = "vagabond") -> void:
@@ -332,9 +344,16 @@ func _start_run(origin_id: String = "vagabond") -> void:
 	if origin == null:
 		origin = registry.get_origin("vagabond")
 	run_state.reset_for_origin(origin, seed)
+	run_state.ng_plus = pending_ng
+	run_state.vow_level = pending_vow
+	ProfileService.apply_vow_start(run_state)
 	RunSaveService.delete_save()
 	log_lines.clear()
 	_log("出身：%s。装备：%s。" % [origin.name, origin.equipment])
+	if pending_ng > 0:
+		_log("第 %d 周目（NG+%d）：敌人更强，卢恩更丰。" % [pending_ng + 1, pending_ng])
+	if pending_vow > 0:
+		_log("誓约 %d 级已立。代价与荣耀同在。" % pending_vow)
 	run_flow.show_map()
 
 
@@ -415,6 +434,8 @@ func _render_combat() -> void:
 		_show_pile
 	)
 	combat_layer.add_child(refs.root)
+	if not combat.break_choice.is_empty():
+		combat_layer.add_child(_break_choice_overlay())
 	player_panel = refs.player_panel
 	enemy_panel = refs.enemy_panel
 	log_box = refs.log_box
@@ -425,6 +446,60 @@ func _render_combat() -> void:
 	_spawn_fx_next_frame(refs)
 	_animate_layer(combat_layer)
 	_focus_first_button(combat_layer)
+
+
+func _break_choice_overlay() -> Control:
+	# 姿态崩解决策浮层：处决（追加伤害）vs 防反（护甲 + 集中）
+	var overlay := Control.new()
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.55)
+	overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+	var panel := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#1d1812")
+	style.border_color = Color("#ffd24a")
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	style.set_content_margin_all(20)
+	panel.add_theme_stylebox_override("panel", style)
+	center.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 12)
+	col.custom_minimum_size = Vector2(360, 0)
+	panel.add_child(col)
+	var title := Label.new()
+	title.text = "姿态崩解——破绽就在眼前"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color("#ffd24a"))
+	col.add_child(title)
+	var exec_v: int = int(combat.break_choice.get("exec", 0))
+	var parry_v: int = int(combat.break_choice.get("parry", 0))
+	var exec_btn := Button.new()
+	exec_btn.text = "处决 · 追加 %d 点要害伤害" % exec_v
+	exec_btn.custom_minimum_size = Vector2(0, 42)
+	exec_btn.pressed.connect(func():
+		GameAudio.play(self, "ui_click")
+		combat.apply_break_choice("execute")
+		_maybe_autosave()
+	)
+	col.add_child(exec_btn)
+	var parry_btn := Button.new()
+	parry_btn.text = "防反 · 获得 %d 护甲，集中 +1" % parry_v
+	parry_btn.custom_minimum_size = Vector2(0, 42)
+	parry_btn.pressed.connect(func():
+		GameAudio.play(self, "ui_click")
+		combat.apply_break_choice("parry")
+		_maybe_autosave()
+	)
+	col.add_child(parry_btn)
+	exec_btn.grab_focus()
+	return overlay
 
 
 func _snapshot_hp() -> Dictionary:
@@ -602,6 +677,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _show_game_over() -> void:
+	ProfileService.record_death(run_state.souls, run_state.floor_index, run_state.origin_id)
 	RunSaveService.delete_save()
 	GameAudio.play(self, "defeat")
 	screen = GameScreen.GAME_OVER
@@ -614,6 +690,7 @@ func _show_game_over() -> void:
 
 
 func _show_victory() -> void:
+	ProfileService.record_victory(run_state.ng_plus, run_state.vow_level, run_state.challenge_flags)
 	RunSaveService.delete_save()
 	GameAudio.play(self, "victory")
 	screen = GameScreen.VICTORY
@@ -622,7 +699,7 @@ func _show_victory() -> void:
 	end_layer.visible = true
 	_clear(end_layer)
 	end_layer.add_child(
-		EndScreenView.build_victory(run_state.souls, run_state.deck.size(), _start_run)
+		EndScreenView.build_victory(run_state.souls, run_state.deck.size(), _show_origin)
 	)
 	_animate_layer(end_layer)
 

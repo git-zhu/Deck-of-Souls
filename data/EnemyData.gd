@@ -19,3 +19,8 @@ const MoveData = preload("res://data/MoveData.gd")
 
 @export_group("Moves")
 @export var moves: Array[MoveData] = []
+
+@export_group("Phase 2")
+@export var phase2_hp_percent: int = 0       # >0 时：血量首次跌破该百分比进入二阶段
+@export var phase2_moves: Array[MoveData] = []
+@export var phase2_text: String = ""
