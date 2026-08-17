@@ -70,13 +70,19 @@ func _simulate_origin_vs(registry: DataRegistry, origin_id: String, template: Di
 		combat.start_combat(template.duplicate(true))
 		var turns := 0
 		var defeated := false
-		while not combat.combat_over:
+		while not combat.combat_over and turns < 60:
 			turns += 1
 			_greedy_play(combat, run_state)
+			if not combat.break_choice.is_empty():
+				combat.apply_break_choice("exec")
+			if combat.combat_over:
+				break
 			combat.end_player_turn()
 			if run_state.hp <= 0:
 				defeated = true
 				break
+		if turns >= 60:
+			defeated = true
 		if not defeated and run_state.hp > 0 and int(combat.enemy.get("hp", 0)) <= 0:
 			wins += 1
 			total_hp += float(run_state.hp)
@@ -93,6 +99,13 @@ func _greedy_play(combat: CombatController, run_state: RunState) -> void:
 	var registry: DataRegistry = combat.registry
 	var enemy_hp := int(combat.enemy.get("hp", 0))
 	while true:
+		# 姿态崩解：贪心 bot 一律选择处决
+		if not combat.break_choice.is_empty():
+			combat.apply_break_choice("exec")
+			enemy_hp = int(combat.enemy.get("hp", 0))
+			if combat.combat_over:
+				break
+			continue
 		var played := false
 		var best_index := -1
 		var best_score := -INF

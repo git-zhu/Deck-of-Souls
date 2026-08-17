@@ -33,6 +33,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Attribute leveling (ER rune curve): `godot4.6 --headless --script tools/leveling_service_test.gd`
 - ER-style damage formula: `godot4.6 --headless --script tools/damage_formula_test.gd`
 - Smithing stone weapon upgrade: `godot4.6 --headless --script tools/smithing_test.gd`
+- Enemy behavior patterns (weight/charge/phase2/bleed): `godot4.6 --headless --script tools/enemy_pattern_test.gd`
+- Stance break choices (exec/parry): `godot4.6 --headless --script tools/stance_break_test.gd`
+- NG+ and vows (profile/scaling): `godot4.6 --headless --script tools/ngplus_test.gd`
+- Build depth (affinity rewards/rule relics/card upgrade/numbers): `godot4.6 --headless --script tools/build_depth_test.gd`
+- Souls features (map fragment/death echo/events/ambush/challenges): `godot4.6 --headless --script tools/souls_features_test.gd`
+- Balance gate (greedy bot winrate): `godot4.6 --headless --script tools/monte_carlo_balance.gd`
 - Regenerate 2D art assets: `python tools/generate_assets.py`（自产 PNG：卡牌边框/意图图标/背景/图标）
 
 ## Architecture
@@ -62,6 +68,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | GraceService | `scripts/core/GraceService.gd` | Grace campfire roll/apply |
 | MerchantService | `scripts/core/MerchantService.gd` | Colleen shop roll/purchase |
 | RelicService | `scripts/core/RelicService.gd` | Run relics, combat-start hooks |
+| ProfileService | `scripts/core/ProfileService.gd` | Cross-run profile (`user://profile.json`): NG/vow unlocks, memory currency, death echo |
 | AshService | `scripts/core/AshService.gd` | War-ash replace pool (type 战灰) |
 | EventService | `scripts/core/EventService.gd` | Map event choice eligibility/apply |
 
@@ -72,12 +79,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `data/origins/*.tres` — `OriginData` starting decks
 - `data/acts/*.tres` — `ActData` per act (encounters, reward_cards, grace/merchant, boss)
 - `data/MapEncounterData.gd` — map combat/elite encounter copy
-- `data/grace_options/*.tres` — `GraceOptionData` campfire upgrades
+- `data/grace_options/*.tres` — `GraceOptionData` campfire upgrades（含 `forge_etch` 锻造刻印卡牌升级）
 - `data/merchant_offers/*.tres` — `MerchantOfferData` shop stock
-- `data/relics/*.tres` — `RelicData` talismans (8；含 `combat_souls_bonus`)
+- `data/relics/*.tres` — `RelicData` talismans (14；含规则型：`bleed_threshold_5` / `draw_on_magic` / `stance_up_block_down` / `souls_double_chance` / `exec_bonus` / `ember_and_rot`)
 - `ActData.enemy_hp_percent` — per-act enemy HP scaling (100 / 110 / 125)
 - `ActData` merchant pools / `merchant_cost_percent` / `map_weight_*` — per-act shop and map sampling
-- `data/events/*.tres` — 15 map events (`MapEventData`); `MapEventChoiceData.follow_event_id` for multi-step chains
+- `data/events/*.tres` — 21 map events (`MapEventData`; 含赌博/诅咒/死亡回响；效果词汇见 `EventService`); `MapEventChoiceData.follow_event_id` for multi-step chains
 - `data/enemies/*.tres` — 18 enemies (incl. 大树守卫, 狮子混种, 坠星兽)
 - `assets/*.png` — 自产 2D 美术（`tools/generate_assets.py` 生成）：卡牌符文边框、敌人意图图标、标题暗角、面板饰条、圣杯瓶/卢恩图标；AI 生成示例 `assets/ai_test_bg.png`（tiny-sd CPU，见 `docs/superpowers/specs/2026-05-23-ai-asset-generation-record.md`）
 
@@ -87,10 +94,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Combat Mechanics
 
-- **Energy (集中):** 3 per turn; card costs 0–3.
+- **Energy (集中):** 3 per turn (+1 per 3 集中属性, cap +2); card costs 0–3.
 - **Hand size:** Base 5 per turn + memory stones + relic draw bonuses; reshuffle when draw pile empty.
-- **Stance (姿态):** Enemy stance break with bonus damage window.
-- **Status:** 腐败 / 出血 / 易伤 / 力量.
+- **Stance (姿态):** Enemy stance break opens a decision point — 处决 (big damage, ×1.5 with `starscourge_prosthesis`) or 防反 (block + 1 ember). Charge moves telegraph heavy hits; phase-2 enemies swap move sets below an HP threshold.
+- **先手压制:** Normal fights, ≥3 attack cards on turn 1 → enemy stance halved (tempo compression).
+- **Status:** 腐败 / 出血 (burst at 10, or 5 with 血君主之乐) / 易伤 (cap 3) / 力量.
+- **Flask:** heals max(18, max_hp × 25%).
+- **Meta-progression:** `ProfileService` — NG+ (enemy HP +25%/level, dmg +15%, souls +30%), vows Ⅰ–Ⅲ, 誓言挑战 (无瓶/强敌), death echo (reclaim souls/2 or convert to memory; memory ≥100 → starting relic choice).
 - **Run length:** **12 floors** (3 acts × 4); act bosses on floors 4/8/12 (indices 3, 7, 11); final boss triggers `run_victory`.
 
 ## Recommended Next (see `docs/superpowers/plans/`)
@@ -98,7 +108,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. ~~默认音效包~~（P0 已完成：`audio/*.ogg` + `audio_path_test.gd`）；第四幕（16 层）**暂缓**，不在近期计划内。
 2. ~~Monte Carlo 平衡工具~~（P2 已完成：`tools/monte_carlo_balance.gd`）。
 3. ~~预言家 Boss 平衡~~（P3 已完成：`black_flame` 入初始牌组，Boss 胜率 20%→76%）。
-4. 普通战难度上调（P4 候选：Monte Carlo 显示裸卡组普通/精英战 100% 胜率，偏易）。
+4. ~~普通战难度上调~~（已重定向：S11 先手压制 + S2 敌人个性压缩普通战节奏，难度预算集中在精英/Boss 与外循环修饰 [NG+/誓约/挑战]；贪心 bot 满资源单挑仍 ≈100% 属预期，一贫如洗 vs 玛尔基特 74%。详见 `docs/superpowers/specs/2026-08-17-design-review-soulslike-direction.md` 复测补记。）
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
 
