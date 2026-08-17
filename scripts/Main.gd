@@ -411,7 +411,8 @@ func _render_combat() -> void:
 		_play_card,
 		combat.use_flask,
 		_end_player_turn,
-		_last_hp_snapshot
+		_last_hp_snapshot,
+		_show_pile
 	)
 	combat_layer.add_child(refs.root)
 	player_panel = refs.player_panel
@@ -534,6 +535,17 @@ func _on_pause_abandon_run() -> void:
 
 func _show_deck_view() -> void:
 	DeckPopupView.show(self, run_state.deck, registry)
+
+
+func _show_pile(which: String) -> void:
+	# 战斗中查看抽牌/弃牌/消耗堆（点击底角牌堆徽标）
+	match which:
+		"draw":
+			DeckPopupView.show(self, run_state.draw_pile, registry, "抽牌堆")
+		"discard":
+			DeckPopupView.show(self, run_state.discard_pile, registry, "弃牌堆")
+		"exhaust":
+			DeckPopupView.show(self, run_state.exhaust_pile, registry, "消耗堆")
 
 
 func _play_card(index: int, target_id: String = "") -> void:

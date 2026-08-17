@@ -10,10 +10,10 @@ const EMPTY_MUTED := Color("#9a8f78")
 const SUMMARY_MUTED := Color("#d8ccb4")
 
 
-static func show(parent: Node, deck: Array, registry: DataRegistry) -> void:
+static func show(parent: Node, deck: Array, registry: DataRegistry, title: String = "牌组") -> void:
 	var counts := DeckUtils.card_counts(deck)
 	var popup := AcceptDialog.new()
-	popup.title = "牌组"
+	popup.title = title
 	popup.ok_button_text = "关闭"
 	popup.min_size = Vector2i(660, 520)
 	parent.add_child(popup)

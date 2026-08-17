@@ -792,24 +792,31 @@ static func energy_orb(ember: int, max_ember: int) -> PanelContainer:
 	return orb
 
 
-static func pile_badge(icon_path: String, value_text: String, label_text: String) -> PanelContainer:
-	# 抽牌/弃牌/消耗堆：中性色徽标（不借用卡牌类型语义色），图标 + 数值 + 标签
-	var badge := PanelContainer.new()
+static func pile_badge(icon_path: String, value_text: String, label_text: String) -> Button:
+	# 抽牌/弃牌/消耗堆：中性色可点击徽标（查看堆内卡牌；不借用卡牌类型语义色）
+	var badge := Button.new()
+	badge.text = ""
 	badge.custom_minimum_size = Vector2(66, 54)
 	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	badge.tooltip_text = "查看%s" % label_text
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color("#1c1812")
 	style.border_color = GameTheme.BORDER
 	style.set_border_width_all(1)
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
+	style.set_corner_radius_all(8)
 	style.content_margin_left = 6
 	style.content_margin_right = 6
 	style.content_margin_top = 3
 	style.content_margin_bottom = 3
-	badge.add_theme_stylebox_override("panel", style)
+	badge.add_theme_stylebox_override("normal", style)
+	var hover := style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color("#26211a")
+	hover.border_color = GameTheme.GOLD.darkened(0.3)
+	badge.add_theme_stylebox_override("hover", hover)
+	var pressed := style.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color("#14110d")
+	badge.add_theme_stylebox_override("pressed", pressed)
+	badge.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_theme_constant_override("separation", 1)

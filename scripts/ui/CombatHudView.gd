@@ -32,7 +32,8 @@ static func build(
 	on_play_card: Callable,
 	on_flask: Callable,
 	on_end_turn: Callable,
-	prev_hp: Dictionary = {}
+	prev_hp: Dictionary = {},
+	on_show_pile: Callable = Callable()
 ) -> CombatHudRefs:
 	var refs := CombatHudRefs.new()
 
@@ -222,11 +223,14 @@ static func build(
 	refs.flask_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bottom_row.add_child(refs.flask_button)
 
-	# 抽牌堆：手牌左侧底角（品类惯例；中性色，不借卡牌类型语义）
-	bottom_row.add_child(UiBuilders.pile_badge(
+	# 抽牌堆：手牌左侧底角（品类惯例；中性色，不借卡牌类型语义；点击查看）
+	var draw_badge := UiBuilders.pile_badge(
 		"res://assets/external/kenney_icons/cards_take.png",
 		str(run_state.draw_pile.size()), "抽牌"
-	))
+	)
+	if on_show_pile.is_valid():
+		draw_badge.pressed.connect(on_show_pile.bind("draw"))
+	bottom_row.add_child(draw_badge)
 
 	var hand_scroll := ScrollContainer.new()
 	# 悬停抬头空间：卡片放大 1.25× 时向上展开约 0.25×card_h，需在滚动区上方预留足够空间
@@ -288,15 +292,21 @@ static func build(
 					aim_line.end()
 				)
 
-	# 弃牌/消耗堆：手牌右侧底角
-	bottom_row.add_child(UiBuilders.pile_badge(
+	# 弃牌/消耗堆：手牌右侧底角（点击查看）
+	var discard_badge := UiBuilders.pile_badge(
 		"res://assets/external/kenney_icons/card_down.png",
 		str(run_state.discard_pile.size()), "弃牌"
-	))
-	bottom_row.add_child(UiBuilders.pile_badge(
+	)
+	if on_show_pile.is_valid():
+		discard_badge.pressed.connect(on_show_pile.bind("discard"))
+	bottom_row.add_child(discard_badge)
+	var exhaust_badge := UiBuilders.pile_badge(
 		"res://assets/external/kenney_icons/card_remove.png",
 		str(run_state.exhaust_pile.size()), "消耗"
-	))
+	)
+	if on_show_pile.is_valid():
+		exhaust_badge.pressed.connect(on_show_pile.bind("exhaust"))
+	bottom_row.add_child(exhaust_badge)
 
 	refs.end_turn_button = UiBuilders.end_turn_button(combat.combat_over, on_end_turn)
 	refs.end_turn_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
