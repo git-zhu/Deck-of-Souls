@@ -11,7 +11,6 @@ const CardData = preload("res://data/CardData.gd")
 
 const PLAYER_PANEL_BG := Color("#1d1a15")
 const ENEMY_PANEL_BG := Color("#1d1714")
-const GildedFrame = preload("res://scripts/ui/GildedFrame.gd")
 const DropZone = preload("res://scripts/ui/DropZone.gd")
 const TargetingLine = preload("res://scripts/ui/TargetingLine.gd")
 const DragCard = preload("res://scripts/ui/DragCard.gd")
@@ -21,15 +20,6 @@ const DragCard = preload("res://scripts/ui/DragCard.gd")
 static func _make_drop_handler(on_play_card: Callable) -> Callable:
 	return func(card_index: int, target_id: String) -> void:
 		on_play_card.call(card_index, target_id)
-
-
-static func _enemy_names_text(combat: CombatController) -> String:
-	if combat.enemies.size() == 1:
-		return str(combat.enemies[0].get("name", ""))
-	var names: Array = []
-	for e in combat.enemies:
-		names.append(str(e.get("name", "")))
-	return "、".join(names)
 
 
 static func build(
@@ -155,11 +145,11 @@ static func build(
 		# 注册瞄准线锚点（敌人 HUD 中心，布局后刷新坐标）
 		aim_line.zone_centers["enemy_%d" % ei] = {"center": Vector2.ZERO, "radius": 70.0}
 
-	# ── 中区：日志（贴左）+ 战斗舞台（占其余），玩家/敌人关系居中呈现 ──
+	# ── 中区：日志（默认折叠）+ 战斗特效区（回合横幅/飘字的演出空间） ──
 	var mid_area := HBoxContainer.new()
 	mid_area.add_theme_constant_override("separation", 12)
 	mid_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	mid_area.custom_minimum_size = Vector2(0, 150)
+	mid_area.custom_minimum_size = Vector2(0, 110)
 	main.add_child(mid_area)
 
 	# 日志贴左（用户方案）：竖排窄条，低视觉权重
@@ -186,17 +176,11 @@ static func build(
 	refs.log_box.text = log_bbcode
 	log_left.add_child(refs.log_box)
 
-	# 战斗舞台（收窄，占中区剩余）
+	# 战斗特效区：回合横幅与伤害飘字的演出空间（不再放装饰性 P/E 圆牌与镀金框）
 	var stage_wrap := Control.new()
 	stage_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	mid_area.add_child(stage_wrap)
-	var stage_frame := GildedFrame.new()
-	stage_frame.set_anchors_preset(Control.PRESET_FULL_RECT)
-	stage_wrap.add_child(stage_frame)
-	var stage := UiBuilders.combat_stage("褪色者", _enemy_names_text(combat))
-	stage.set_anchors_preset(Control.PRESET_FULL_RECT)
-	stage_wrap.add_child(stage)
 
 	# 战斗区域投放目标（拖到舞台中央也可出牌）
 	var stage_zone := DropZone.new()
