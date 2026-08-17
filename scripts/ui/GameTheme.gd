@@ -127,7 +127,8 @@ static func intent_color(kind: String) -> Color:
 
 
 static func card_disabled_modulate() -> Color:
-	return Color(0.55, 0.55, 0.55, 1.0)
+	# 等比压暗（保留色相）：比 0.55 亮，仍能扫出"剩余能量能打哪类牌"
+	return Color(0.7, 0.7, 0.7, 1.0)
 
 
 # ---- 卡牌语义配色体系（稳定语义，避免随机区分） ----

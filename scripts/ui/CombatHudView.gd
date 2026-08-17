@@ -168,9 +168,10 @@ static func build(
 	log_left.add_theme_constant_override("separation", 4)
 	mid_area.add_child(log_left)
 	var log_toggle := Button.new()
-	log_toggle.text = "日志 ▾"
+	log_toggle.text = "日志 ▸"
 	log_toggle.flat = true
-	log_toggle.custom_minimum_size = Vector2(64, 24)
+	log_toggle.custom_minimum_size = Vector2(48, 24)
+	log_toggle.add_theme_font_size_override("font_size", 13)
 	log_toggle.tooltip_text = "展开 / 折叠战斗日志"
 	log_left.add_child(log_toggle)
 	refs.log_box = RichTextLabel.new()
@@ -214,8 +215,8 @@ static func build(
 
 	var orb := UiBuilders.energy_orb(combat.ember, combat.max_ember)
 	resource_row.add_child(orb)
-	# 能量不足时脉动提示（弱，不影响操作）
-	if combat.ember < combat.max_ember:
+	# 能量耗尽时脉动提示（暗示"可以结束回合了"）；出牌过程中的常态不再闪烁
+	if combat.ember <= 0:
 		var orb_pulse := orb.create_tween().set_loops()
 		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 0.75), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -223,10 +224,6 @@ static func build(
 			if orb_pulse != null and orb_pulse.is_valid():
 				orb_pulse.kill()
 		)
-
-	resource_row.add_child(UiBuilders.stat_capsule(str(run_state.draw_pile.size()), "抽牌", GameTheme.CARD_SKILL))
-	resource_row.add_child(UiBuilders.stat_capsule(str(run_state.discard_pile.size()), "弃牌", GameTheme.CARD_DEFENSE))
-	resource_row.add_child(UiBuilders.stat_capsule(str(run_state.exhaust_pile.size()), "消耗", GameTheme.CARD_ATTACK))
 
 	# ── 底部操作行：圣杯瓶 + 手牌 + 结束回合（主 CTA） ──
 	var bottom_row := HBoxContainer.new()
@@ -240,6 +237,12 @@ static func build(
 	)
 	refs.flask_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bottom_row.add_child(refs.flask_button)
+
+	# 抽牌堆：手牌左侧底角（品类惯例；中性色，不借卡牌类型语义）
+	bottom_row.add_child(UiBuilders.pile_badge(
+		"res://assets/external/kenney_icons/cards_take.png",
+		str(run_state.draw_pile.size()), "抽牌"
+	))
 
 	var hand_scroll := ScrollContainer.new()
 	# 悬停抬头空间：卡片放大 1.25× 时向上展开约 0.25×card_h，需在滚动区上方预留足够空间
@@ -292,12 +295,24 @@ static func build(
 					aim_line.end()
 				)
 
+	# 弃牌/消耗堆：手牌右侧底角
+	bottom_row.add_child(UiBuilders.pile_badge(
+		"res://assets/external/kenney_icons/card_down.png",
+		str(run_state.discard_pile.size()), "弃牌"
+	))
+	bottom_row.add_child(UiBuilders.pile_badge(
+		"res://assets/external/kenney_icons/card_remove.png",
+		str(run_state.exhaust_pile.size()), "消耗"
+	))
+
 	refs.end_turn_button = UiBuilders.end_turn_button(combat.combat_over, on_end_turn)
 	refs.end_turn_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bottom_row.add_child(refs.end_turn_button)
 
-	# 中区日志折叠开关（展开/收起日志列宽）
-	refs.log_box.set_meta("log_expanded", true)
+	# 中区日志折叠开关（默认折叠：交战区居中，日志按需展开）
+	refs.log_box.set_meta("log_expanded", false)
+	log_left.custom_minimum_size.x = 24.0
+	refs.log_box.visible = false
 	log_toggle.pressed.connect(func() -> void:
 		var expanded: bool = refs.log_box.get_meta("log_expanded", false)
 		expanded = not expanded

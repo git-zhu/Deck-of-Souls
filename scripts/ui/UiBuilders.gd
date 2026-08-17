@@ -350,10 +350,11 @@ static func card_button(
 		badge_style.bg_color = style_map.badge_bg
 		badge_style.border_color = style_map.badge_border
 		badge_style.set_border_width_all(1)
-		badge_style.corner_radius_top_left = 10
-		badge_style.corner_radius_top_right = 10
-		badge_style.corner_radius_bottom_left = 10
-		badge_style.corner_radius_bottom_right = 10
+		# 键帽造型（小圆角 + 底部投影）：与圆形消耗圆环区分"这是按键"
+		badge_style.set_corner_radius_all(5)
+		badge_style.shadow_color = Color(0, 0, 0, 0.55)
+		badge_style.shadow_size = 2
+		badge_style.shadow_offset = Vector2(0, 1)
 		hotkey_badge.add_theme_stylebox_override("panel", badge_style)
 		var hotkey := Label.new()
 		hotkey.text = str(index + 1)
@@ -371,7 +372,8 @@ static func card_button(
 	v.add_child(type_row)
 
 	var type_label := Label.new()
-	type_label.text = "%s  ·  集中 %d" % [card.type, card.cost]
+	# 费用已由左上消耗圆环表达，类型行不再重复"集中 N"
+	type_label.text = str(card.type)
 	type_label.add_theme_font_size_override("font_size", 11)
 	type_label.add_theme_color_override("font_color", accent.lightened(0.3))
 	type_row.add_child(type_label)
@@ -475,12 +477,20 @@ static func compact_fighter_hud(
 	name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.add_child(name)
 
+	# HP 行：护甲徽记（盾 + 数值，每回合最关键的防御决策数）+ HP 数字
+	var hp_row := HBoxContainer.new()
+	hp_row.add_theme_constant_override("separation", 8)
+	hp_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(hp_row)
+	if cur_block > 0:
+		hp_row.add_child(_block_badge(cur_block))
 	var hp_label := Label.new()
 	hp_label.text = "%d / %d" % [cur_hp, full_hp]
 	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hp_label.custom_minimum_size = Vector2(92, 0)
 	hp_label.add_theme_font_size_override("font_size", 18)
 	hp_label.add_theme_color_override("font_color", Color("#ffffff"))
-	v.add_child(hp_label)
+	hp_row.add_child(hp_label)
 
 	var bar := ProgressBar.new()
 	bar.max_value = full_hp
@@ -488,14 +498,22 @@ static func compact_fighter_hud(
 	bar.custom_minimum_size = Vector2(0, 10)
 	bar.show_percentage = false
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# 血条配色：暗底 + 余烬红填充；低血量（<30%）转亮红警示
+	var bar_bg := StyleBoxFlat.new()
+	bar_bg.bg_color = Color("#141110")
+	bar_bg.set_corner_radius_all(5)
+	bar.add_theme_stylebox_override("background", bar_bg)
+	var bar_fill := StyleBoxFlat.new()
+	var hp_ratio: float = float(cur_hp) / float(maxi(1, full_hp))
+	bar_fill.bg_color = Color("#e05a45") if hp_ratio < 0.3 else Color("#b8503f")
+	bar_fill.set_corner_radius_all(5)
+	bar.add_theme_stylebox_override("fill", bar_fill)
 	v.add_child(bar)
 
 	var chips := HBoxContainer.new()
 	chips.add_theme_constant_override("separation", 4)
 	chips.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(chips)
-	if cur_block > 0:
-		chips.add_child(status_chip("护甲 %d" % cur_block, GameTheme.CARD_DEFENSE, "res://assets/external/kenney_icons/shield.png"))
 	for key in statuses:
 		var val: int = int(statuses[key])
 		if val <= 0:
@@ -512,6 +530,42 @@ static func compact_fighter_hud(
 			"stance":
 				chips.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance"), "res://assets/external/kenney_icons/suit_diamonds.png"))
 	return panel_node
+
+
+static func _block_badge(value: int) -> PanelContainer:
+	# 大号护甲徽记：盾牌图标 + 数值（护甲 ≥1 时显示在 HP 数字旁）
+	var badge := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = GameTheme.CARD_DEFENSE.darkened(0.6)
+	style.border_color = GameTheme.CARD_DEFENSE
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 6
+	style.content_margin_right = 6
+	style.content_margin_top = 1
+	style.content_margin_bottom = 1
+	badge.add_theme_stylebox_override("panel", style)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(row)
+	var shield_tex := load("res://assets/external/kenney_icons/shield.png") as Texture2D
+	if shield_tex != null:
+		var icon := TextureRect.new()
+		icon.texture = shield_tex
+		icon.custom_minimum_size = Vector2(16, 16)
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.modulate = GameTheme.CARD_DEFENSE.lightened(0.3)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(icon)
+	var num := Label.new()
+	num.text = str(value)
+	num.add_theme_font_size_override("font_size", 18)
+	num.add_theme_color_override("font_color", GameTheme.CARD_DEFENSE.lightened(0.35))
+	num.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(num)
+	return badge
 
 
 static func status_chip(text: String, color: Color, icon_path: String = "") -> PanelContainer:
@@ -682,28 +736,29 @@ static func _fighter_token(name_text: String, color: Color, initial: String) -> 
 
 
 static func energy_orb(ember: int, max_ember: int) -> PanelContainer:
-	# StS 式能量球：金色圆环 + 大号能量数值，强调核心资源（与控制条胶囊等高）
+	# StS 式能量球：金色圆环 + 大号能量数值 —— 每回合的门槛资源，视觉权重最大
 	var orb := PanelContainer.new()
-	orb.custom_minimum_size = Vector2(46, 46)
+	orb.custom_minimum_size = Vector2(58, 58)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color("#3a2d10")
 	style.border_color = GameTheme.GOLD
 	style.set_border_width_all(3)
-	style.corner_radius_top_left = 23
-	style.corner_radius_top_right = 23
-	style.corner_radius_bottom_left = 23
-	style.corner_radius_bottom_right = 23
+	style.corner_radius_top_left = 29
+	style.corner_radius_top_right = 29
+	style.corner_radius_bottom_left = 29
+	style.corner_radius_bottom_right = 29
 	style.shadow_color = Color(0.88, 0.75, 0.4, 0.3)
-	style.shadow_size = 6
+	style.shadow_size = 7
 	orb.add_theme_stylebox_override("panel", style)
 
 	var v := VBoxContainer.new()
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_theme_constant_override("separation", 0)
 	orb.add_child(v)
 	var num := Label.new()
 	num.text = str(ember)
 	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	num.add_theme_font_size_override("font_size", 26)
+	num.add_theme_font_size_override("font_size", 28)
 	num.add_theme_color_override("font_color", GameTheme.GOLD.lightened(0.2))
 	v.add_child(num)
 	var cap := Label.new()
@@ -713,6 +768,60 @@ static func energy_orb(ember: int, max_ember: int) -> PanelContainer:
 	cap.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
 	v.add_child(cap)
 	return orb
+
+
+static func pile_badge(icon_path: String, value_text: String, label_text: String) -> PanelContainer:
+	# 抽牌/弃牌/消耗堆：中性色徽标（不借用卡牌类型语义色），图标 + 数值 + 标签
+	var badge := PanelContainer.new()
+	badge.custom_minimum_size = Vector2(66, 54)
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#1c1812")
+	style.border_color = GameTheme.BORDER
+	style.set_border_width_all(1)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	style.content_margin_left = 6
+	style.content_margin_right = 6
+	style.content_margin_top = 3
+	style.content_margin_bottom = 3
+	badge.add_theme_stylebox_override("panel", style)
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 1)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(col)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 4)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(row)
+	var icon_tex := load(icon_path) as Texture2D
+	if icon_tex != null:
+		var icon := TextureRect.new()
+		icon.texture = icon_tex
+		icon.custom_minimum_size = Vector2(16, 16)
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.modulate = GameTheme.TEXT_MUTED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(icon)
+	var value := Label.new()
+	value.text = value_text
+	value.add_theme_font_size_override("font_size", 17)
+	value.add_theme_color_override("font_color", GameTheme.TEXT)
+	value.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(value)
+	var label := Label.new()
+	label.text = label_text
+	label.add_theme_font_size_override("font_size", 11)
+	label.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(label)
+	return badge
 
 
 static func turn_label(turn: int) -> Label:
