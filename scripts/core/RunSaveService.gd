@@ -106,6 +106,7 @@ static func run_to_dict(run: RunState) -> Dictionary:
 		"flasks": run.flasks,
 		"max_flasks": run.max_flasks,
 		"souls": run.souls,
+		"souls_earned": run.souls_earned,
 		"floor_index": run.floor_index,
 		"deck": run.deck.duplicate(),
 		"draw_pile": run.draw_pile.duplicate(),
@@ -140,6 +141,7 @@ static func run_from_dict(run: RunState, data: Variant) -> void:
 	run.flasks = int(d.get("flasks", 0))
 	run.max_flasks = int(d.get("max_flasks", run.flasks))
 	run.souls = int(d.get("souls", 0))
+	run.souls_earned = int(d.get("souls_earned", run.souls))
 	run.floor_index = int(d.get("floor_index", 0))
 	run.deck = _string_array_from(d.get("deck", []))
 	run.draw_pile = _string_array_from(d.get("draw_pile", []))

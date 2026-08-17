@@ -12,6 +12,7 @@ const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const RunState = preload("res://scripts/core/RunState.gd")
 const RewardLayerViews = preload("res://scripts/ui/RewardLayerViews.gd")
 const DeckUtils = preload("res://scripts/ui/DeckUtils.gd")
+const ProfileService = preload("res://scripts/core/ProfileService.gd")
 
 var host: Node
 var merchant_stock: Array = []
@@ -474,6 +475,24 @@ func show_act_clear(on_done: Callable) -> void:
 				on_done.call(),
 			on_done,
 			"不取牌，继续"
+		)
+	)
+
+
+func show_memory_card_choice(card_ids: Array, on_done: Callable) -> void:
+	# 记忆的刻印：花 50 记忆选一张起始携带卡
+	host.call(
+		"_present_reward_layer",
+		RewardLayerViews.build_card_rewards(
+			"记忆的刻印",
+			"消耗 50 记忆，选择一张牌随身携带。",
+			card_ids,
+			host.get("registry"),
+			func(card_id: String):
+				ProfileService.add_memory(-50)
+				host.get("run_state").deck.append(card_id)
+				on_done.call(),
+			on_done
 		)
 	)
 

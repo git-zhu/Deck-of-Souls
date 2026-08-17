@@ -13,6 +13,8 @@ const VOW_DESCRIPTIONS: Array[String] = [
 	"誓约Ⅰ 破损的瓶：初始圣杯瓶 −1。",
 	"誓约Ⅱ 无恩之地：赐福休憩治疗减半。",
 	"誓约Ⅲ 鲜血契约：敌人伤害再 +10%，卢恩再 +30%。",
+	"誓约Ⅳ 苦行者：每回合抽牌 −1。",
+	"誓约Ⅴ 死荫：最大生命 −20%。",
 ]
 
 const CHALLENGE_DESCRIPTIONS: Array[String] = [

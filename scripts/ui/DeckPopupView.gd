@@ -10,7 +10,7 @@ const EMPTY_MUTED := Color("#9a8f78")
 const SUMMARY_MUTED := Color("#d8ccb4")
 
 
-static func show(parent: Node, deck: Array, registry: DataRegistry, title: String = "牌组") -> void:
+static func show(parent: Node, deck: Array, registry: DataRegistry, title: String = "牌组", upgraded_cards: Array = []) -> void:
 	var counts := DeckUtils.card_counts(deck)
 	var popup := AcceptDialog.new()
 	popup.title = title
@@ -66,7 +66,7 @@ static func show(parent: Node, deck: Array, registry: DataRegistry, title: Strin
 		for id in ids:
 			var card: CardData = registry.get_card(str(id))
 			if card != null:
-				list.add_child(UiBuilders.deck_summary_row(card, int(counts[id])))
+				list.add_child(UiBuilders.deck_summary_row(card, int(counts[id]), 520.0, upgraded_cards.has(str(id))))
 
 	popup.popup_centered()
 	popup.confirmed.connect(popup.queue_free)

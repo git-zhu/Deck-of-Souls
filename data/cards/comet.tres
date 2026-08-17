@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "comet"
+name = "彗星"
+cost = 2
+type = "魔法"
+rarity = "uncommon"
+text = "造成 11 伤害。夜空坠落的辉石彗星，学院的基础必修课。"
+tone = Color(0.471, 0.584, 0.812, 1)
+hook_id = ""
+exhaust_after_play = false

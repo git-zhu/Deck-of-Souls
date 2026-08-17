@@ -7,7 +7,7 @@ const RunState = preload("res://scripts/core/RunState.gd")
 
 const PROFILE_PATH := "user://profile.json"
 const MAX_NG := 7
-const MAX_VOW := 3
+const MAX_VOW := 5
 
 
 static func default_profile() -> Dictionary:
@@ -79,7 +79,7 @@ static func claim_echo() -> Dictionary:
 
 static func add_memory(amount: int) -> void:
 	var p := load_profile()
-	p["memory"] = int(p.get("memory", 0)) + amount
+	p["memory"] = maxi(0, int(p.get("memory", 0)) + amount)
 	save_profile(p)
 
 
@@ -91,3 +91,7 @@ static func apply_vow_start(run: RunState) -> void:
 		# 破损的瓶：初始圣杯瓶 −1
 		run.max_flasks = maxi(1, run.max_flasks - 1)
 		run.flasks = run.max_flasks
+	if run.vow_level >= 5:
+		# 死荫：最大生命 −20%
+		run.max_hp = maxi(20, int(run.max_hp * 0.8))
+		run.hp = mini(run.hp, run.max_hp)

@@ -331,7 +331,10 @@ static func card_button(
 	top.add_child(cost_badge)
 
 	var name_label := Label.new()
-	name_label.text = card.name
+	var is_upgraded: bool = combat != null and combat.run.upgraded_cards.has(card.id)
+	name_label.text = card.name + ("＋" if is_upgraded else "")
+	if is_upgraded:
+		name_label.add_theme_color_override("font_color", GameTheme.GOLD)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -1012,7 +1015,7 @@ static func end_turn_button(disabled: bool, on_press: Callable) -> Button:
 	return btn
 
 
-static func deck_summary_row(card: CardData, count: int, text_width: float = 520.0) -> PanelContainer:
+static func deck_summary_row(card: CardData, count: int, text_width: float = 520.0, upgraded: bool = false) -> PanelContainer:
 	var row := PanelContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var style := StyleBoxFlat.new()
@@ -1048,7 +1051,9 @@ static func deck_summary_row(card: CardData, count: int, text_width: float = 520
 	h.add_child(info)
 
 	var title := Label.new()
-	title.text = "%s  ·  %s  ·  集中 %d" % [card.name, card.type, card.cost]
+	title.text = "%s%s  ·  %s  ·  集中 %d" % [card.name, "＋" if upgraded else "", card.type, card.cost]
+	if upgraded:
+		title.add_theme_color_override("font_color", GameTheme.GOLD)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.add_theme_font_size_override("font_size", 18)

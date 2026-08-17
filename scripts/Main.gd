@@ -367,15 +367,38 @@ func _start_run(origin_id: String = "vagabond") -> void:
 		_log("第 %d 周目（NG+%d）：敌人更强，卢恩更丰。" % [pending_ng + 1, pending_ng])
 	if pending_vow > 0:
 		_log("誓约 %d 级已立。代价与荣耀同在。" % pending_vow)
-	# 记忆 ≥100：「记忆的祝福」开局选一枚护符（跨局成长）
-	var profile := ProfileService.load_profile()
-	if int(profile.get("memory", 0)) >= 100:
+	# 记忆祝福链：携带卡（消耗 50 记忆）→ 起始护符（记忆 ≥100）→ 地图
+	_start_blessings(int(ProfileService.load_profile().get("memory", 0)))
+
+
+func _start_blessings(mem: int) -> void:
+	if mem >= 50:
+		var card_ids := _roll_memory_cards(3)
+		if card_ids.size() > 0:
+			_log("记忆低语：选择一张牌随身携带（消耗 50 记忆）。")
+			reward_flow.show_memory_card_choice(card_ids, func(): _maybe_relic_blessing(mem))
+			return
+	_maybe_relic_blessing(mem)
+
+
+func _maybe_relic_blessing(mem: int) -> void:
+	if mem >= 100:
 		var offers := relic_service.roll_relic_offers(run_state, registry, rng, 3)
 		if offers.size() > 0:
 			_log("记忆低语：选择一枚护符作为旅途的开端。")
 			reward_flow.show_relic_rewards(offers, run_flow.show_map)
 			return
 	run_flow.show_map()
+
+
+func _roll_memory_cards(count: int) -> Array[String]:
+	var pool: Array[String] = []
+	for cid in registry.all_card_ids():
+		var c := registry.get_card(str(cid))
+		if c != null and c.rarity != "starter":
+			pool.append(str(cid))
+	pool.shuffle()
+	return pool.slice(0, mini(count, pool.size())) as Array[String]
 
 
 func _show_map() -> void:
@@ -630,18 +653,18 @@ func _on_pause_abandon_run() -> void:
 
 
 func _show_deck_view() -> void:
-	DeckPopupView.show(self, run_state.deck, registry)
+	DeckPopupView.show(self, run_state.deck, registry, "牌组", run_state.upgraded_cards)
 
 
 func _show_pile(which: String) -> void:
 	# 战斗中查看抽牌/弃牌/消耗堆（点击底角牌堆徽标）
 	match which:
 		"draw":
-			DeckPopupView.show(self, run_state.draw_pile, registry, "抽牌堆")
+			DeckPopupView.show(self, run_state.draw_pile, registry, "抽牌堆", run_state.upgraded_cards)
 		"discard":
-			DeckPopupView.show(self, run_state.discard_pile, registry, "弃牌堆")
+			DeckPopupView.show(self, run_state.discard_pile, registry, "弃牌堆", run_state.upgraded_cards)
 		"exhaust":
-			DeckPopupView.show(self, run_state.exhaust_pile, registry, "消耗堆")
+			DeckPopupView.show(self, run_state.exhaust_pile, registry, "消耗堆", run_state.upgraded_cards)
 
 
 func _play_card(index: int, target_id: String = "") -> void:
@@ -698,7 +721,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _show_game_over() -> void:
-	ProfileService.record_death(run_state.souls, run_state.floor_index, run_state.origin_id)
+	ProfileService.record_death(run_state.souls_earned, run_state.floor_index, run_state.origin_id)
 	RunSaveService.delete_save()
 	GameAudio.play(self, "defeat")
 	screen = GameScreen.GAME_OVER

@@ -223,6 +223,42 @@ func _catalog_steps(card_id: String) -> Array:
 			stomp.value = 5
 			stomp.stance = 3
 			steps.append(stomp)
+		"twinblade":
+			for _i in 2:
+				var tb := CardEffectStep.new()
+				tb.kind = CardEffectStep.Kind.DAMAGE
+				tb.value = 4
+				tb.stance = 1
+				steps.append(tb)
+		"storm_blade":
+			var sb := CardEffectStep.new()
+			sb.kind = CardEffectStep.Kind.DAMAGE
+			sb.value = 8
+			sb.stance = 4
+			steps.append(sb)
+		"bloody_slash":
+			var bl := CardEffectStep.new()
+			bl.kind = CardEffectStep.Kind.DAMAGE
+			bl.value = 6
+			bl.stance = 2
+			steps.append(bl)
+			var bl_bleed := CardEffectStep.new()
+			bl_bleed.kind = CardEffectStep.Kind.APPLY_BLEED
+			bl_bleed.value = 3
+			steps.append(bl_bleed)
+		"comet":
+			var cm := CardEffectStep.new()
+			cm.kind = CardEffectStep.Kind.DAMAGE
+			cm.value = 11
+			cm.stance = 2
+			steps.append(cm)
+		"shard_spiral":
+			for _i in 2:
+				var ss := CardEffectStep.new()
+				ss.kind = CardEffectStep.Kind.DAMAGE
+				ss.value = 6
+				ss.stance = 1
+				steps.append(ss)
 	return steps
 
 

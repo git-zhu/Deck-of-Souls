@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shard_spiral"
+name = "碎片旋涡"
+cost = 2
+type = "魔法"
+rarity = "uncommon"
+text = "造成 6 伤害两次。辉石碎片螺旋而出，扫清近身之敌。"
+tone = Color(0.471, 0.584, 0.812, 1)
+hook_id = ""
+exhaust_after_play = false

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bloody_slash"
+name = "战灰：血斩"
+cost = 1
+type = "战灰"
+rarity = "common"
+text = "造成 6 伤害，施加 3 出血。血刃斩击，破裂的前奏。"
+tone = Color(0.737, 0.345, 0.345, 1)
+hook_id = ""
+exhaust_after_play = false

@@ -228,6 +228,9 @@ func start_player_turn() -> void:
 	stance_mult_next_turn = false
 	apply_player_start_status()
 	var draw_count: int = run.player_hand_draw(relic_service.combat_extra_draw(run, registry))
+	# 誓约Ⅳ 苦行者：每回合抽牌 −1
+	if run.vow_level >= 4:
+		draw_count = maxi(1, draw_count - 1)
 	draw_cards(draw_count)
 	combat_changed.emit()
 
@@ -312,7 +315,13 @@ func deal_enemy_damage(amount: int, stance_damage: int, target_idx: int = -1) ->
 		e.vulnerable = mini(3, int(e.get("vulnerable", 0)) + 1)
 		e["break_open"] = true
 		e["stance_now"] = 0
-		combat_log("%s 姿态崩解，露出巨大破绽！" % e.name)
+		# 魂式打断：崩解可以打断蓄力重击（S2 设计承诺）
+		if int(e.get("_charge", 0)) > 0:
+			e["_charge"] = 0
+			_choose_one_intent(e)
+			combat_log("%s 姿态崩解，蓄力被打断了！" % e.name)
+		else:
+			combat_log("%s 姿态崩解，露出巨大破绽！" % e.name)
 	check_enemy_death(target_idx)
 	return broke
 
@@ -357,6 +366,11 @@ func apply_break_choice(kind: String) -> void:
 	else:
 		gain_block(int(choice.get("parry", 0)))
 		ember += 1
+		# 防反延续压制：敌人姿态不回满，破绽保留一回合（"先活下来，下回合处决"）
+		if not e.is_empty() and int(e.get("hp", 0)) > 0:
+			e["break_open"] = true
+			e["stance_now"] = 0
+			combat_log("防反！%s 踉跄未倒——破绽仍在。" % e.name)
 		combat_log("防反稳住架势：护甲上架，集中 +1。")
 	check_combat_end()
 	combat_changed.emit()
@@ -601,6 +615,11 @@ func _choose_one_intent(e: Dictionary) -> void:
 		e["_intent"] = {"kind": "attack", "value": int(e["_charge"]), "hits": 1, "text": "蓄力释放"}
 		return
 	var moves: Array = e.get("moves", [])
+	# NG+ 新鲜感：混入二阶段招式池（复用已有数据，免费的内容轮换）
+	if run.ng_plus > 0 and not bool(e.get("_phase2", false)):
+		var p2: Array = e.get("phase2_moves", [])
+		if p2.size() > 0:
+			moves = moves + p2
 	if moves.is_empty():
 		e["_intent"] = {"kind": "attack", "value": 6, "hits": 1, "text": "攻击"}
 		return
@@ -664,6 +683,7 @@ func check_enemy_death(target_idx: int = -1) -> void:
 			soul_gain *= 2
 			combat_log("黄金树的落叶格外慷慨：卢恩翻倍！")
 		run.souls += soul_gain
+		run.souls_earned += soul_gain
 		combat_log("%s 倒下。你获得 %d 卢恩。" % [e.name, soul_gain])
 		# 锻造石掉落：普通战低概率 1 级石；精英/幕 Boss 更高等级
 		_roll_smithing_stone(e)

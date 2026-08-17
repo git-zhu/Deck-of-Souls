@@ -566,11 +566,12 @@ static func build_deck_picker(
 
 	for card_id in counts.keys():
 		var c: CardData = registry.get_card(str(card_id))
-		var label := c.name if c != null else str(card_id)
+		var upgraded: bool = run_state.upgraded_cards.has(str(card_id))
+		var label := (c.name + ("＋" if upgraded else "")) if c != null else str(card_id)
 		var count: int = int(counts[card_id])
 		var btn := Button.new()
 		if c != null:
-			btn.text = "%s ×%d\n%s  集中:%d\n%s" % [c.name, count, c.type, c.cost, c.text]
+			btn.text = "%s ×%d\n%s  集中:%d\n%s" % [label, count, c.type, c.cost, c.text]
 		else:
 			btn.text = "%s ×%d" % [label, count]
 		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

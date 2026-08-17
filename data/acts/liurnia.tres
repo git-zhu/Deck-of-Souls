@@ -37,8 +37,8 @@ body = "守墓斗士守在墓碑之间，巨斧扬起时风声如哭。"
 [sub_resource type="Resource" id="Enc_6"]
 script = ExtResource("3")
 enemy_name = "挖石山妖"
-title = "坑道深处"
-body = "挖石山妖在矿道底层抬起巨臂，碎石从顶上落下。"
+title = "沉水坑道"
+body = "坑道半沉在湖水里，挖石山妖从晶脉之间站起，巨臂上缠着湿冷的苔藓。"
 [sub_resource type="Resource" id="Enc_7"]
 script = ExtResource("3")
 enemy_name = "坠星兽"
@@ -68,7 +68,7 @@ subtitle_template = "第 %d 段 / 4。%s"
 flavor = "金色倒影铺在湖面，学院与教堂的钟声在雾中重叠。"
 combat_encounters = Array[MapEncounterData]([SubResource("Enc_0"), SubResource("Enc_1"), SubResource("Enc_2"), SubResource("Enc_3")])
 elite_encounters = Array[MapEncounterData]([SubResource("Enc_4"), SubResource("Enc_5"), SubResource("Enc_6"), SubResource("Enc_7")])
-reward_cards = Array[String](["volcano_pot", "destined_death", "rock_sling", "flame_grant_me_strength", "glintstone_stars", "great_knife", "black_flame", "rotten_breath"])
+reward_cards = Array[String](["glintstone_stars", "comet", "shard_spiral", "destined_death", "flame_grant_me_strength", "black_flame"])
 event_ids = Array[String](["liurnia_scholar", "liurnia_drowned", "liurnia_crystal_crab", "liurnia_shabriri_grape", "liurnia_lake_chest", "liurnia_gambler"])
 fixed_nodes = Array[MapNodeData]([SubResource("Node_8"), SubResource("Node_9"), SubResource("Node_10")])
 act_boss_name = "接肢贵族"

@@ -25,7 +25,6 @@ func show_map() -> void:
 	var rng = host.get("rng")
 	var map_gen = host.get("map_gen")
 	var act: ActData = registry.get_act(run_state.act_index()) as ActData
-	run_state.map_fragment_revealed = false
 	var options: Array = map_gen.options_for_floor(run_state, registry, rng)
 	_inject_echo_event(run_state, registry, options)
 	_build_next_floor_preview(run_state, registry, map_gen)

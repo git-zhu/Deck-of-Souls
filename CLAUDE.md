@@ -38,6 +38,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - NG+ and vows (profile/scaling): `godot4.6 --headless --script tools/ngplus_test.gd`
 - Build depth (affinity rewards/rule relics/card upgrade/numbers): `godot4.6 --headless --script tools/build_depth_test.gd`
 - Souls features (map fragment/death echo/events/ambush/challenges): `godot4.6 --headless --script tools/souls_features_test.gd`
+- Round-2 fixes (charge interrupt/parry sustain/souls_earned/NG+ pools/vows): `godot4.6 --headless --script tools/round2_fixes_test.gd`
+- Host-level e2e (RunFlowController echo injection + fragment flow): `godot4.6 --headless --script tools/run_flow_host_test.gd`
 - Balance gate (greedy bot winrate): `godot4.6 --headless --script tools/monte_carlo_balance.gd`
 - Regenerate 2D art assets: `python tools/generate_assets.py`（自产 PNG：卡牌边框/意图图标/背景/图标）
 
@@ -74,7 +76,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Data (`.tres` under `data/`)
 
-- `data/cards/*.tres` — `CardData` + optional `hook_id` / `effects`
+- `data/cards/*.tres` — `CardData` + optional `hook_id` / `effects`（含幕专属卡：`twinblade` 宁姆格福 / `storm_blade` `bloody_slash` 史东薇尔 / `comet` `shard_spiral` 利耶尼亚；三幕奖励池零重叠）
 - `data/enemies/*.tres` — `EnemyData` + `MoveData`
 - `data/origins/*.tres` — `OriginData` starting decks
 - `data/acts/*.tres` — `ActData` per act (encounters, reward_cards, grace/merchant, boss)
@@ -96,11 +98,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Energy (集中):** 3 per turn (+1 per 3 集中属性, cap +2); card costs 0–3.
 - **Hand size:** Base 5 per turn + memory stones + relic draw bonuses; reshuffle when draw pile empty.
-- **Stance (姿态):** Enemy stance break opens a decision point — 处决 (big damage, ×1.5 with `starscourge_prosthesis`) or 防反 (block + 1 ember). Charge moves telegraph heavy hits; phase-2 enemies swap move sets below an HP threshold.
+- **Stance (姿态):** Enemy stance break opens a decision point — 处决 (big damage, ×1.5 with `starscourge_prosthesis`) or 防反 (block + 1 ember, and the enemy stays break_open for one more hit). Charge moves telegraph heavy hits and CAN be interrupted by a stance break; phase-2 enemies swap move sets below an HP threshold (玛尔基特 / 接肢贵族); NG+ mixes phase-2 moves into normal turns.
 - **先手压制:** Normal fights, ≥3 attack cards on turn 1 → enemy stance halved (tempo compression).
 - **Status:** 腐败 / 出血 (burst at 10, or 5 with 血君主之乐) / 易伤 (cap 3) / 力量.
 - **Flask:** heals max(18, max_hp × 25%).
-- **Meta-progression:** `ProfileService` — NG+ (enemy HP +25%/level, dmg +15%, souls +30%), vows Ⅰ–Ⅲ, 誓言挑战 (无瓶/强敌), death echo (reclaim souls/2 or convert to memory; memory ≥100 → starting relic choice).
+- **Meta-progression:** `ProfileService` — NG+ (enemy HP +25%/level, dmg +15%, souls +30%, phase-2 move mixing), vows Ⅰ–Ⅴ (破瓶/无恩之地/鲜血契约/苦行者 −1 抽牌/死荫 −20% HP), 誓言挑战 (无瓶/强敌), death echo (reclaim souls_earned/2 or convert to memory; memory ≥50 → starting card choice for 50 memory; memory ≥100 → starting relic choice).
 - **Run length:** **12 floors** (3 acts × 4); act bosses on floors 4/8/12 (indices 3, 7, 11); final boss triggers `run_victory`.
 
 ## Recommended Next (see `docs/superpowers/plans/`)

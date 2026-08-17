@@ -16,6 +16,7 @@ var max_hp: int = 72
 var flasks: int = 2
 var max_flasks: int = 2
 var souls: int = 0
+var souls_earned: int = 0  # 本局累计拾取的卢恩（死亡回响按此结算，而非余额）
 var floor_index: int = 0
 var deck: Array[String] = []
 var draw_pile: Array[String] = []
@@ -68,6 +69,9 @@ func is_act_boss_floor() -> bool:
 
 func advance_floor() -> void:
 	floor_index += 1
+	# 地图碎片按层购买：进入新一层时重置揭示状态与预览
+	map_fragment_revealed = false
+	next_floor_preview = []
 
 
 func reset_for_origin(origin: OriginData, seed: int) -> void:
@@ -78,6 +82,7 @@ func reset_for_origin(origin: OriginData, seed: int) -> void:
 	max_flasks = origin.flasks
 	flasks = max_flasks
 	souls = 0
+	souls_earned = 0
 	floor_index = 0
 	player_rot = 0
 	player_bleed = 0

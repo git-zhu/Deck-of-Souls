@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "twinblade"
+name = "双头剑"
+cost = 1
+type = "武器"
+rarity = "common"
+text = "造成 4 伤害两次。双头剑的连舞是姿态崩解的前奏。"
+tone = Color(0.722, 0.612, 0.431, 1)
+hook_id = ""
+exhaust_after_play = false
