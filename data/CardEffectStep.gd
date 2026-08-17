@@ -14,6 +14,7 @@ enum Kind {
 	APPLY_ROT_ON_ENEMY,
 	APPLY_VULN_ON_ENEMY,
 	GAIN_STRENGTH,
+	SELF_DAMAGE,         # 自伤（癫火系卡：力量的代价；不会自毙，最低留 1 HP）
 }
 
 @export var kind: Kind = Kind.DAMAGE

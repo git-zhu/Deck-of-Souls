@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "crucible_horn"
+name = "百相之角"
+cost = 1
+type = "传说"
+rarity = "rare"
+text = "获得 12 护甲，力量 +1（本场）。角盾顶住的每一次重击，都在教你百相的一课。（追忆：熔炉骑士）"
+tone = Color(0.85, 0.7, 0.35, 1)
+hook_id = ""
+exhaust_after_play = false

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "frenzy_flame"
+name = "癫狂烈焰"
+cost = 2
+type = "祷告"
+rarity = "rare"
+text = "对全体敌人造成 14 伤害，自己受 6 伤害。消耗。黄焰烧尽的不只是敌人，还有你的视网膜。"
+tone = Color(0.95, 0.55, 0.15, 1)
+hook_id = ""
+exhaust_after_play = true

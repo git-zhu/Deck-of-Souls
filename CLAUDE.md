@@ -113,7 +113,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. ~~预言家 Boss 平衡~~（P3 已完成：`black_flame` 入初始牌组，Boss 胜率 20%→76%）。
 4. ~~普通战难度上调~~（已重定向：S11 先手压制 + S2 敌人个性压缩普通战节奏，难度预算集中在精英/Boss 与外循环修饰 [NG+/誓约/挑战]；贪心 bot 满资源单挑仍 ≈100% 属预期，一贫如洗 vs 玛尔基特 74%。详见 `docs/superpowers/specs/2026-08-17-design-review-soulslike-direction.md` 复测补记。）
 5. ~~第三轮评审~~（M1–M12 全部实施：武器等级入 RunState+持久化、钩子卡吃武器倍率/攻击加成〈不吃属性补正，防 0 级 3 倍膨胀〉、接肢贵族 attack_rot+65% 二阶段、打断不重选蓄力、先手按实际伤害、属性描述/护符数值/誓约文案/祝福链重读、碎片 30+10×层、小圆盾统一结算、熔炉骑士/守墓斗士二阶段池。详见 `docs/superpowers/specs/2026-08-17-design-review-round3-structure-and-pipes.md` 第五节回执）。
-6. 第四轮评审（创新提案）待实施：I1 死亡回响·死因解析+对策记忆、I5 追忆二选一、I6 少女的引火（P0 三项）；I4 大卢恩朝圣、I8 癫火圣约、I9 杀死商人（P1）；I7 壶哥任务线、I3 追忆决斗（P2）。详见 `docs/superpowers/specs/2026-08-17-design-review-round4-elden-content-and-learning-loops.md`。
+6. 第四轮评审（创新提案）：B/C 簇已实施——I5 追忆二选一、I6 少女的引火、I4 大卢恩朝圣、I7 壶哥任务线、I8 癫火圣约、I9 杀死商人（含 exclusive 护符池、event_flags 事件链、duel_only 敌人、SELF_DAMAGE 步骤；验证 `tools/round4_features_test.gd`）。剩余 P0：I1 死亡回响·死因解析+对策记忆、I2 血迹地图、I3 追忆决斗。详见 `docs/superpowers/specs/2026-08-17-design-review-round4-elden-content-and-learning-loops.md` 第七节回执。
 
 **Git workflow:** After each implementation phase, `git commit` with a focused message, then **`git push`** to `origin`.
 

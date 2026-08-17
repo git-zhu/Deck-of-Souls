@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rune_margit_blood"
+name = "玛尔基特大卢恩·恶兆之血"
+body = "激活的大卢恩渗进血液。战斗开始时，力量 +1。"
+hook = "combat_strength"
+value = 1
+exclusive = true

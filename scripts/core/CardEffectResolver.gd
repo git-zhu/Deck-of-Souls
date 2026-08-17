@@ -80,6 +80,12 @@ func _apply_step(step: CardEffectStep, card: CardData = null) -> void:
 		CardEffectStep.Kind.GAIN_STRENGTH:
 			combat.run.player_strength += sv
 			combat.combat_log("力量 +%d（本场战斗）。" % sv)
+		CardEffectStep.Kind.SELF_DAMAGE:
+			# 癫火代价：灼烧自身，但不会自毙（最低留 1 HP）
+			if combat.run.hp > 1:
+				var self_dmg: int = mini(sv, combat.run.hp - 1)
+				combat.run.hp -= self_dmg
+				combat.combat_log("癫火灼烧了你：%d 伤害。" % self_dmg)
 
 
 func _catalog_steps(card_id: String) -> Array:
@@ -259,6 +265,120 @@ func _catalog_steps(card_id: String) -> Array:
 				ss.value = 6
 				ss.stance = 1
 				steps.append(ss)
+		# ── 追忆卡（I5）：BOSS 独占，二选一；NG+ 漫步灵庙可两件都拿 ──
+		"omen_judgment":
+			var oj := CardEffectStep.new()
+			oj.kind = CardEffectStep.Kind.DAMAGE
+			oj.value = 18
+			oj.stance = 6
+			steps.append(oj)
+			var oj_vuln := CardEffectStep.new()
+			oj_vuln.kind = CardEffectStep.Kind.APPLY_VULN_ON_ENEMY
+			oj_vuln.value = 1
+			steps.append(oj_vuln)
+		"omen_chain":
+			var oc := CardEffectStep.new()
+			oc.kind = CardEffectStep.Kind.DAMAGE
+			oc.value = 4
+			oc.stance = 1
+			oc.hits = 4
+			steps.append(oc)
+		"crucible_wings":
+			var cw := CardEffectStep.new()
+			cw.kind = CardEffectStep.Kind.DAMAGE
+			cw.value = 16
+			cw.stance = 8
+			steps.append(cw)
+		"crucible_horn":
+			var ch_block := CardEffectStep.new()
+			ch_block.kind = CardEffectStep.Kind.GAIN_BLOCK
+			ch_block.value = 12
+			steps.append(ch_block)
+			var ch_str := CardEffectStep.new()
+			ch_str.kind = CardEffectStep.Kind.GAIN_STRENGTH
+			ch_str.value = 1
+			steps.append(ch_str)
+		"grafted_dragon":
+			var gd := CardEffectStep.new()
+			gd.kind = CardEffectStep.Kind.DAMAGE_ALL
+			gd.value = 12
+			gd.stance = 4
+			steps.append(gd)
+			var gd_rot := CardEffectStep.new()
+			gd_rot.kind = CardEffectStep.Kind.APPLY_ALL_ROT
+			gd_rot.value = 2
+			steps.append(gd_rot)
+		"royal_rot":
+			var rr := CardEffectStep.new()
+			rr.kind = CardEffectStep.Kind.DAMAGE
+			rr.value = 8
+			rr.stance = 2
+			steps.append(rr)
+			var rr_rot := CardEffectStep.new()
+			rr_rot.kind = CardEffectStep.Kind.APPLY_ROT_ON_ENEMY
+			rr_rot.value = 5
+			steps.append(rr_rot)
+		# ── 献剑（I6 少女的引火：献出武器的回报）──
+		"sacrificed_blade":
+			var sb2 := CardEffectStep.new()
+			sb2.kind = CardEffectStep.Kind.DAMAGE
+			sb2.value = 24
+			sb2.stance = 6
+			steps.append(sb2)
+		# ── 癫火卡（I8）：强力但灼烧自身 ──
+		"frenzy_flame":
+			var ff := CardEffectStep.new()
+			ff.kind = CardEffectStep.Kind.DAMAGE_ALL
+			ff.value = 14
+			steps.append(ff)
+			var ff_self := CardEffectStep.new()
+			ff_self.kind = CardEffectStep.Kind.SELF_DAMAGE
+			ff_self.value = 6
+			steps.append(ff_self)
+		"three_fingers":
+			var tf := CardEffectStep.new()
+			tf.kind = CardEffectStep.Kind.DAMAGE
+			tf.value = 20
+			tf.stance = 4
+			steps.append(tf)
+			var tf_self := CardEffectStep.new()
+			tf_self.kind = CardEffectStep.Kind.SELF_DAMAGE
+			tf_self.value = 8
+			steps.append(tf_self)
+		"frenzied_burst":
+			var fb_rot := CardEffectStep.new()
+			fb_rot.kind = CardEffectStep.Kind.APPLY_ROT_ON_ENEMY
+			fb_rot.value = 6
+			steps.append(fb_rot)
+			var fb_self := CardEffectStep.new()
+			fb_self.kind = CardEffectStep.Kind.SELF_DAMAGE
+			fb_self.value = 3
+			steps.append(fb_self)
+		"lord_of_frenzy":
+			var lf_str := CardEffectStep.new()
+			lf_str.kind = CardEffectStep.Kind.GAIN_STRENGTH
+			lf_str.value = 3
+			steps.append(lf_str)
+			var lf_dmg := CardEffectStep.new()
+			lf_dmg.kind = CardEffectStep.Kind.DAMAGE
+			lf_dmg.value = 12
+			lf_dmg.stance = 3
+			steps.append(lf_dmg)
+			var lf_self := CardEffectStep.new()
+			lf_self.kind = CardEffectStep.Kind.SELF_DAMAGE
+			lf_self.value = 5
+			steps.append(lf_self)
+		# ── 壶哥赠礼（I7）──
+		"giant_jar_fist":
+			var jf := CardEffectStep.new()
+			jf.kind = CardEffectStep.Kind.DAMAGE
+			jf.value = 16
+			jf.stance = 6
+			steps.append(jf)
+			var jf_block := CardEffectStep.new()
+			jf_block.kind = CardEffectStep.Kind.GAIN_BLOCK
+			jf_block.value = 4
+			steps.append(jf_block)
 	return steps
 
 

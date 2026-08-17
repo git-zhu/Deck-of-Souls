@@ -14,12 +14,27 @@ const RewardLayerViews = preload("res://scripts/ui/RewardLayerViews.gd")
 const DeckUtils = preload("res://scripts/ui/DeckUtils.gd")
 const ProfileService = preload("res://scripts/core/ProfileService.gd")
 
+# I5 追忆：BOSS 名 -> 二选一独占卡
+const REMEMBRANCE := {
+	"恶兆妖鬼玛尔基特": ["omen_judgment", "omen_chain"],
+	"熔炉骑士": ["crucible_wings", "crucible_horn"],
+	"接肢贵族": ["grafted_dragon", "royal_rot"],
+}
+
+# I4 大卢恩：rune_id -> 两种激活形态（护符二选一）
+const RUNE_ACTIVATIONS := {
+	"rune_margit": ["rune_margit_might", "rune_margit_blood"],
+	"rune_crucible": ["rune_crucible_stance", "rune_crucible_armor"],
+}
+
 var host: Node
 var merchant_stock: Array = []
 var merchant_sold: Array[bool] = []
 var merchant_status: String = ""
 var merchant_cost_percent: int = 100
 var reward_export: Dictionary = {}
+var _rune_act_pending: Dictionary = {}      # I4：激活二选一的待决上下文
+var _remembrance_pending: Dictionary = {}   # I5：追忆拾取的待决上下文
 
 
 func _init(main_host: Node) -> void:
@@ -152,9 +167,48 @@ func show_merchant() -> void:
 			host.get("merchant_service"),
 			host.get("run_state"),
 			on_merchant_buy,
-			leave_merchant
+			leave_merchant,
+			_on_merchant_kill  # I9 黑暗抉择
 		)
 	)
+
+
+# I9 杀死商人：免费抄没全部未售库存 + 铃珠护符，代价是本局再无商人
+func _on_merchant_kill() -> void:
+	var registry = host.get("registry")
+	var run_state = host.get("run_state")
+	var rng = host.get("rng")
+	var merchant_service = host.get("merchant_service")
+	var seized := 0
+	for slot_index in range(merchant_stock.size()):
+		if slot_index < merchant_sold.size() and merchant_sold[slot_index]:
+			continue
+		var offer := merchant_stock[slot_index] as MerchantOfferData
+		if offer == null or not merchant_service.is_eligible(offer, run_state):
+			continue
+		var result: Dictionary = merchant_service.purchase(offer, run_state, registry, rng, 0)
+		if bool(result.get("ok", false)) \
+			and not bool(result.get("pick_card", false)) \
+			and not bool(result.get("pick_ash_replace", false)):
+			if slot_index < merchant_sold.size():
+				merchant_sold[slot_index] = true
+			seized += 1
+	host.get("relic_service").add_relic(run_state, registry, "kale_bellbearing")
+	run_state.merchant_killed = true
+	host.call(
+		"_present_reward_layer",
+		RewardLayerViews.build_centered_continue(
+			"铃珠",
+			"咖列倒下了。你抄没了他全部 %d 件货物，又从他的颈间取走一枚铃珠。剩下的路上，不会再有商人应你而来了。（某些需要他亲手操持的服务，随他一起走了。）" % seized,
+			"继续",
+			_on_merchant_kill_leave
+		)
+	)
+
+
+func _on_merchant_kill_leave() -> void:
+	host.get("run_state").advance_floor()
+	host.get("run_flow").show_map()
 
 
 func on_merchant_buy(offer: MerchantOfferData, slot_index: int) -> void:
@@ -445,6 +499,97 @@ func show_message_end(title_text: String, body_text: String) -> void:
 			title_text, body_text, "继续", func(): host.get("run_flow").show_map()
 		)
 	)
+
+
+func show_message_continue(title_text: String, body_text: String, on_done: Callable) -> void:
+	host.call(
+		"_present_reward_layer",
+		RewardLayerViews.build_centered_continue(title_text, body_text, "继续", on_done)
+	)
+
+
+func show_rune_activation(rune_id: String, on_done: Callable) -> void:
+	var run_state = host.get("run_state")
+	var registry = host.get("registry")
+	var relic_service = host.get("relic_service")
+	var pair: Array = RUNE_ACTIVATIONS.get(rune_id, [])
+	if pair.is_empty():
+		on_done.call()
+		return
+	_rune_act_pending = {"rune_id": rune_id, "pair": pair, "on_done": on_done}
+	host.call(
+		"_present_reward_layer",
+		RewardLayerViews.build_relic_rewards(
+			pair, registry, relic_service, run_state, _on_rune_activation_done
+		)
+	)
+
+
+func _on_rune_activation_done() -> void:
+	var pending: Dictionary = _rune_act_pending.duplicate()
+	_rune_act_pending = {}
+	var run_state = host.get("run_state")
+	var relic_service = host.get("relic_service")
+	var rune_id := str(pending.get("rune_id", ""))
+	var pair: Array = pending.get("pair", [])
+	# 记录激活结果（选其一 / 放弃）
+	var chosen := ""
+	for rid in pair:
+		if relic_service.has_relic(run_state, str(rid)):
+			chosen = str(rid)
+			break
+	if rune_id != "":
+		if chosen == "":
+			run_state.great_runes[rune_id] = "refused"
+		else:
+			run_state.great_runes[rune_id] = chosen
+	var cb: Callable = pending.get("on_done", Callable())
+	if cb.is_valid():
+		cb.call()
+
+
+func show_remembrance(boss_name: String, on_done: Callable) -> void:
+	var run_state = host.get("run_state")
+	var registry = host.get("registry")
+	var pair: Array = REMEMBRANCE.get(boss_name, [])
+	if pair.is_empty():
+		on_done.call()
+		return
+	if run_state.ng_plus > 0:
+		# NG+ 漫步灵庙：两件追忆都拿
+		var names: Array = []
+		for cid in pair:
+			run_state.deck.append(str(cid))
+			var c: CardData = registry.get_card(str(cid))
+			names.append(c.name if c != null else str(cid))
+		show_message_continue(
+			"追忆 · 漫步灵庙",
+			"灵庙为你鸣钟：《%s》与《%s》都加入了牌组。" % [names[0], names[1]],
+			on_done
+		)
+		return
+	_remembrance_pending = {"on_done": on_done}
+	host.call(
+		"_present_reward_layer",
+		RewardLayerViews.build_card_rewards(
+			"追忆",
+			"%s 的灵魂凝成了追忆。两件之中，选一件带走。" % boss_name,
+			pair,
+			registry,
+			_on_remembrance_pick,
+			on_done,
+			"不取追忆"
+		)
+	)
+
+
+func _on_remembrance_pick(card_id: String) -> void:
+	var pending: Dictionary = _remembrance_pending.duplicate()
+	_remembrance_pending = {}
+	host.get("run_state").deck.append(card_id)
+	var cb: Callable = pending.get("on_done", Callable())
+	if cb.is_valid():
+		cb.call()
 
 
 func finish_combat_rewards() -> void:

@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "duel"
+label = "接战：与战壶生死切磋（胜利有重赏）"
+effect = "duel_jar"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+set_flag = ""
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "decline"
+label = "婉拒：『下次吧，亚历山大。』"
+effect = "nothing"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+set_flag = ""
+
+[resource]
+script = ExtResource("1")
+id = "jar_trial"
+title = "战壶的试炼"
+body = "亚历山大站在空地上，壶身上的裂纹比上次多了。『又见面了！壶的规矩——重逢就要碰一碰拳。放心，我会全力以赴，这是对你的尊重。』"
+required_flag = "jar_freed"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1")])

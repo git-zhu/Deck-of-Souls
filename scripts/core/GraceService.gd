@@ -81,8 +81,8 @@ func apply(option: GraceOptionData, run: RunState) -> String:
 	match option.effect:
 		"heal_percent":
 			var heal: int = int(ceil(float(run.max_hp) * float(option.effect_value) / 100.0))
-			if run.vow_level >= 2:
-				# 誓约Ⅱ（无恩之地）：赐福休憩治疗减半
+			if run.vow_level >= 2 or run.frenzied_flame:
+				# 誓约Ⅱ（无恩之地）/ I8 癫火：赐福休憩治疗减半
 				heal = maxi(1, heal / 2)
 			run.hp = mini(run.max_hp, run.hp + heal)
 			run.flasks = run.max_flasks

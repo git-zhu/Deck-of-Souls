@@ -26,7 +26,7 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 		return []
 	var weighted: Array = []
 	for node in act.fixed_nodes:
-		var w: int = _weight_for_kind(act, str(node.kind))
+		var w: int = _weight_for_kind(act, str(node.kind), run)
 		if w > 0:
 			weighted.append({"option": _node_to_dict(node), "weight": w})
 	for enc in act.combat_encounters:
@@ -75,6 +75,10 @@ func options_for_floor(run: RunState, registry: DataRegistry, rng: RandomNumberG
 	for event_id in act.event_ids:
 		var event: MapEventData = registry.get_event(str(event_id)) as MapEventData
 		var event_w: int = act.map_weight_event
+		# I7：事件链旗标门控（壶哥任务线：未完成前置则不出现）
+		if event != null and str(event.required_flag) != "" \
+			and not run.event_flags.has(str(event.required_flag)):
+			continue
 		if event != null and event_w > 0:
 			weighted.append({
 				"option": {
@@ -125,11 +129,14 @@ func _act_group_pool(act: ActData, registry: DataRegistry) -> Array:
 	return []
 
 
-func _weight_for_kind(act: ActData, kind: String) -> int:
+func _weight_for_kind(act: ActData, kind: String, run: RunState) -> int:
 	match kind:
 		"grace":
 			return act.map_weight_grace
 		"merchant":
+			# I9 杀死商人：此后再无商人应召
+			if run != null and run.merchant_killed:
+				return 0
 			return act.map_weight_merchant
 		_:
 			return 1

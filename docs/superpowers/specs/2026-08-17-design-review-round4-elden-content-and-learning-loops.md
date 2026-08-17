@@ -170,3 +170,41 @@
 | I7 | `data/events/*`(3 事件)、`EventService`(flag 条件)、1 精英模板 + 1 护符 + 1 卡 |
 | I8 | `RunState`(flag)、`CombatController`(进出伤乘数)、4 卡、`EndScreenView`、誓言挑战表 |
 | I9 | `MerchantService`、`MapGenerator`、1 护符 |
+
+---
+
+## 七、实施回执（B 簇 + C 簇，2026-08-17）
+
+按用户指定实施 **簇 B（I5/I6/I4/I7）+ 簇 C（I8/I9）**，I1/I2/I3 不在本次范围。顺序：I5 → I6 → I9 → I8 → I4 → I7。
+
+### 已落地
+
+| 项 | 内容 | 关键实现 |
+|---|---|---|
+| I5 追忆二选一 | 6 张 BOSS 独占传说卡（恶兆审判/恶兆锁链/百相之翼/百相之角/接肢巨龙/王族腐败）；act_clear 与 run_victory 结算前插入追忆二选一；**NG+ 漫步灵庙：两件都拿** | `RunRewardFlow.show_remembrance`（复用 build_card_rewards）；`RunFlowController.on_combat_ended` 路由；追忆卡不入任何奖励池 |
+| I6 少女的引火 | 第 11 层（floor_index==10）强制事件「巨人火焰的锻炉」：献瓶（瓶位 −1 → 终局 BOSS −15% 生命 + 出伤 +10%）／献武器（移除锻造最深的武器 → 《献剑》24 伤消耗卡）／拒绝 | `EventService` sacrifice_flask/sacrifice_weapon/refuse_kindling；`CombatController.start_combat` 对 is_run_boss −15%；`deal_enemy_damage` +10%；`run.kindling` 持久化；EndScreen 结局分化 |
+| I9 杀死商人 | 商店界面新增红色「下手」按钮：免费抄没全部库存 + 《咖列的铃珠》纪念护符；本局再无商人 | `RunRewardFlow._on_merchant_kill`（purchase cost_percent=0）；`MapGenerator._weight_for_kind` 按 `merchant_killed` 归零 |
+| I8 癫火圣约 | 第二/三幕事件「三指教堂」：承接癫火（不可逆）= 出伤 +25%、每回合能量 +1；受伤 +25%、赐福治疗减半；随机得 1 张癫火卡；癫火卡入奖励池；结局「癫火之王」+ 挑战标记 frenzied_lord | 4 张癫火卡（含新 CardEffectStep.Kind.SELF_DAMAGE，自伤不自毙，最低留 1 HP）；乘数挂在 `deal_enemy_damage`/`take_player_damage`/`start_player_turn`/`GraceService` 四个漏斗 |
+| I4 大卢恩朝圣 | 击败幕末 BOSS 授未激活大卢恩（RunHeaderView 芯片展示）；下一幕首层注入「神授塔」选项 → 精英试炼（玛尔基特塔=狮子混种，熔炉塔=守墓斗士）→ 胜利二选一激活为专属护符 | `RunFlowController._inject_divine_tower`（floor 4/8，错过不补）；新增 hook 仅 2 个：`rune_all_attrs`（全属性 +2，生命同步 +4）、`stance_percent`（并入既有姿态百分比管道）；恶兆之血/百相之甲复用 combat_strength/combat_start_block；`RelicData.exclusive` + `_unowned_relic_pool` 排除专属护符 |
+| I7 壶哥任务线 | 三段链：救壶（+50 卢恩，set_flag jar_freed）→ 战壶的试炼（仅 flag 持有者可见，切磋 duel_only 精英「战壶亚历山大」90HP，胜利赠《壶之碎片》战斗开始 +3 护甲）→ 战壶的告别（赠《巨壶之拳》16 伤 +4 甲） | `MapEventData.required_flag` + `MapEventChoiceData.set_flag` + `run.event_flags`（全部持久化）；`MapGenerator` 按旗标门控事件；切磋败北 = 正常死亡（战壶不放水，文案已预警） |
+
+### 与设计的偏差（有意为之）
+
+1. **接肢贵族大卢恩不做法环式激活**：击败终局 BOSS 后没有下一幕，第三幕大卢恩直接标记 `innate`（胜利风味，RunHeaderView 计为已激活），原设计的「接肢之力/龙首」二选一随之取消——激活型大卢恩为 2 枚（各 2 形态）。
+2. **《百相之角》**：原案"下次攻击 +8"需要一次性 buff 管道，简化为"12 护甲 + 力量 1（本场）"，强度相当且零新机制。
+3. **献武器不做选武器 UI**：直接献出锻造等级最高的一把（并列取先序），省掉 PICK 管道；文案告知献出了哪把。
+4. **壶哥切磋保留真实死亡风险**：事件→战斗路由复用既有 begin_combat（比"无风险比试"少一条特殊结算管道），文案「生死切磋」预警。
+5. **神授塔守卫**：用既有精英模板（狮子混种/守墓斗士）而非新造塔专属敌人，控制内容面。
+
+### 验证
+
+- 新增 `tools/round4_features_test.gd`（I4–I9 全覆盖，含存档往返）：**通过**。
+- 全量回归 49/49 通过（`act_economy_test` 事件总数 21→26 同步更新；`content_pack_test` 敌人数用 ≥18 不受影响）。
+- Monte Carlo 锚点无漂移：一贫如洗 vs 玛尔基特 79.5%（锚点 78.7%）、vs 接肢贵族 54.5%（锚点 56.0%）；战壶亚历山大对一贫如洗 61.5% 胜率，介于精英带中段，切磋难度合理。
+- 新增数据：12 卡 / 6 护符（5 exclusive）/ 1 敌人（duel_only）/ 5 事件，manifest 140→164 preloads。
+
+### 新增文件
+
+- 卡：`omen_judgment` `omen_chain` `crucible_wings` `crucible_horn` `grafted_dragon` `royal_rot` `sacrificed_blade` `frenzy_flame` `three_fingers` `frenzied_burst` `lord_of_frenzy` `giant_jar_fist`
+- 护符：`kale_bellbearing` `rune_margit_might` `rune_margit_blood` `rune_crucible_stance` `rune_crucible_armor` `pot_shard`
+- 敌人：`jar_alexander`；事件：`maiden_kindling` `jar_in_hole` `jar_trial` `jar_farewell` `three_fingers_chapel`

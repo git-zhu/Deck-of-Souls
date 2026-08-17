@@ -86,6 +86,10 @@ func hook_summary(relic: RelicData) -> String:
 			return "处决伤害 +%d%%" % relic.value
 		"ember_and_rot":
 			return "能量上限 +%d，每回合积累 %d 腐败" % [relic.value, relic.value2]
+		"rune_all_attrs":
+			return "获得时：全属性 +%d" % relic.value
+		"stance_percent":
+			return "姿态削减 +%d%%" % relic.value
 		_:
 			return relic.hook
 
@@ -96,7 +100,8 @@ func _unowned_relic_pool(run: RunState, registry: DataRegistry) -> Array:
 		if has_relic(run, str(rid)):
 			continue
 		var relic := registry.get_relic(str(rid)) as RelicData
-		if relic != null:
+		# I4/I9：专属护符（大卢恩/铃珠）不进常规抽取池
+		if relic != null and not relic.exclusive:
 			pool.append(relic)
 	return pool
 
@@ -142,3 +147,19 @@ func _apply_on_acquire(run: RunState, relic: RelicData) -> void:
 		"on_acquire_max_hp":
 			run.max_hp += relic.value
 			run.hp += relic.value
+		"rune_all_attrs":
+			# I4 玛尔基特大卢恩·恶兆之力：全属性 +value（生命同步补 2 HP/点，与加点规则一致）
+			for key in run.attrs.keys():
+				run.attrs[key] = int(run.attrs[key]) + relic.value
+			run.max_hp += relic.value * 2
+			run.hp += relic.value * 2
+
+
+# I4/M7：姿态类护符的总百分比（双手剑徽章 stance_up_block_down + 大卢恩 stance_percent）
+func stance_percent_total(run: RunState, registry: DataRegistry) -> int:
+	var total := 0
+	for relic_id in run.relics:
+		var relic := registry.get_relic(str(relic_id)) as RelicData
+		if relic != null and str(relic.hook) in ["stance_up_block_down", "stance_percent"]:
+			total += relic.value
+	return total

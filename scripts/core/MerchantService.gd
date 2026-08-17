@@ -21,6 +21,8 @@ func load_from_registry(registry: DataRegistry) -> void:
 
 
 func effective_cost(offer: MerchantOfferData, cost_percent: int = 100) -> int:
+	if cost_percent <= 0:
+		return 0  # I9 杀死商人：抄没库存用
 	if cost_percent == 100:
 		return offer.soul_cost
 	return maxi(1, int(round(float(offer.soul_cost) * float(cost_percent) / 100.0)))

@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "free"
+label = "帮他把壶拔出来"
+effect = "gain_souls"
+effect_value = 50
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+set_flag = "jar_freed"
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "ignore"
+label = "装作没看见"
+effect = "nothing"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+set_flag = ""
+
+[resource]
+script = ExtResource("1")
+id = "jar_in_hole"
+title = "陷在坑里的战壶"
+body = "一口巨大的壶卡在土坑里，两条短腿在空中徒劳地蹬着。『喂！那边的褪色者！搭把手！我赶着去变强！』"
+required_flag = ""
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1")])

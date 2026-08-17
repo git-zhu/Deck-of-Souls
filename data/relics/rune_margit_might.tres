@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rune_margit_might"
+name = "玛尔基特大卢恩·恶兆之力"
+body = "激活的大卢恩在体内轰鸣。全属性 +2——被赐福的野心，如今是你的了。"
+hook = "rune_all_attrs"
+value = 2
+exclusive = true

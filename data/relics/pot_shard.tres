@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pot_shard"
+name = "壶之碎片"
+body = "从亚历山大身上崩下来的一块。他说这是荣耀。战斗开始时，护甲 +3。"
+hook = "combat_start_block"
+value = 3
+exclusive = true

@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
+
+[sub_resource type="Resource" id="MoveData_1"]
+script = ExtResource("2")
+kind = "attack"
+value = 14
+text = "壶王重拳"
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_2"]
+script = ExtResource("2")
+kind = "attack"
+value = 9
+text = "壶屑飞拳"
+hits = 2
+weight = 2
+
+[sub_resource type="Resource" id="MoveData_3"]
+script = ExtResource("2")
+kind = "buff"
+text = "战士的战吼"
+strength = 2
+weight = 1
+
+[sub_resource type="Resource" id="MoveData_4"]
+script = ExtResource("2")
+kind = "attack_block"
+value = 12
+text = "壶王铁头功"
+block = 8
+weight = 1
+
+[resource]
+script = ExtResource("1")
+name = "战壶亚历山大"
+max_hp = 90
+stance = 20
+souls = 60
+is_elite = true
+duel_only = true
+moves = [SubResource("MoveData_1"), SubResource("MoveData_2"), SubResource("MoveData_3"), SubResource("MoveData_4")]

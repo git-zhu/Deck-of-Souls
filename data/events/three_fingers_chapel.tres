@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "accept"
+label = "承接癫火（不可逆：出伤+25%/能量+1，受伤+25%/赐福减半）"
+effect = "frenzied_flame"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+set_flag = ""
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "leave"
+label = "闭上眼，退出去"
+effect = "nothing"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+set_flag = ""
+
+[resource]
+script = ExtResource("1")
+id = "three_fingers_chapel"
+title = "三指教堂"
+body = "门在身后自己合上了。黑暗中，三根焦黑的手指从地底缓缓升起，指尖烧着不会熄灭的黄焰。一个声音直接出现在你脑子里：『一切痛苦，都可以交给火。』"
+required_flag = ""
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1")])

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "royal_rot"
+name = "王族腐败"
+cost = 1
+type = "传说"
+rarity = "rare"
+text = "造成 8 伤害、姿态 2，施加 5 腐败。厅堂尽头的王座上，腐败比血脉传承得更久。（追忆：接肢贵族）"
+tone = Color(0.85, 0.7, 0.35, 1)
+hook_id = ""
+exhaust_after_play = false

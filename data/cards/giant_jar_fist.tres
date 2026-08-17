@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "giant_jar_fist"
+name = "巨壶之拳"
+cost = 2
+type = "传说"
+rarity = "rare"
+text = "造成 16 伤害、姿态 6，获得 4 护甲。亚历山大说：拳头要挥向值得挥向的地方。"
+tone = Color(0.85, 0.7, 0.35, 1)
+hook_id = ""
+exhaust_after_play = false

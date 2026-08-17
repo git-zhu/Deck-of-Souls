@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "gift"
+label = "收下临别赠礼"
+effect = "add_card"
+effect_value = 0
+soul_cost = 0
+card_id = "giant_jar_fist"
+min_deck_size = 0
+follow_event_id = ""
+set_flag = "jar_farewell_done"
+
+[resource]
+script = ExtResource("1")
+id = "jar_farewell"
+title = "战壶的告别"
+body = "亚历山大望着远处的风暴。『我要去我该去的地方了。在那之前——最后一课：拳头，要挥向值得挥向的地方。』他把一块拳形的护符塞进你手里。"
+required_flag = "jar_duel_won"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0")])

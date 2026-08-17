@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sacrificed_blade"
+name = "献剑"
+cost = 2
+type = "传说"
+rarity = "rare"
+text = "造成 24 伤害、姿态 6。消耗。把武器献给火焰的人，挥出的最后一击没有重量，只有决心。"
+tone = Color(0.9, 0.45, 0.2, 1)
+hook_id = ""
+exhaust_after_play = true

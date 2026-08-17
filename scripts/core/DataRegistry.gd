@@ -74,12 +74,14 @@ func template_by_name(enemy_name: String) -> Dictionary:
 func pick_enemy(rng: RandomNumberGenerator, elite: bool, boss: bool) -> Dictionary:
 	var pool: Array = _enemy_templates.filter(
 		func(e: Dictionary) -> bool:
-			return bool(e.get("boss", false)) == boss and bool(e.get("elite", false)) == elite
+			return not bool(e.get("duel_only", false)) \
+				and bool(e.get("boss", false)) == boss and bool(e.get("elite", false)) == elite
 	)
 	if pool.is_empty():
 		pool = _enemy_templates.filter(
 			func(e: Dictionary) -> bool:
-				return not bool(e.get("boss", false)) and not bool(e.get("elite", false))
+				return not bool(e.get("duel_only", false)) \
+					and not bool(e.get("boss", false)) and not bool(e.get("elite", false))
 		)
 	return pool[rng.randi_range(0, pool.size() - 1)].duplicate(true)
 
@@ -226,6 +228,7 @@ func _enemy_to_dict(template: EnemyData, res_path: String = "") -> Dictionary:
 		"souls": template.souls,
 		"boss": template.is_boss,
 		"elite": template.is_elite,
+		"duel_only": template.duel_only,
 		"is_act_boss": template.is_act_boss,
 		"is_run_boss": template.is_run_boss,
 		"moves": moves,

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "three_fingers"
+name = "三指之攫"
+cost = 2
+type = "祷告"
+rarity = "rare"
+text = "造成 20 伤害、姿态 4，自己受 8 伤害。被三指碰过的伤口，愈合后还是烫的。"
+tone = Color(0.95, 0.55, 0.15, 1)
+hook_id = ""
+exhaust_after_play = false

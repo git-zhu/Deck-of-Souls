@@ -745,7 +745,14 @@ func _show_victory() -> void:
 	end_layer.visible = true
 	_clear(end_layer)
 	end_layer.add_child(
-		EndScreenView.build_victory(run_state.souls, run_state.deck.size(), _show_origin, run_state.challenge_flags)
+		EndScreenView.build_victory(
+			run_state.souls,
+			run_state.deck.size(),
+			_show_origin,
+			run_state.challenge_flags,
+			run_state.kindling,
+			run_state.frenzied_flame
+		)
 	)
 	_animate_layer(end_layer)
 

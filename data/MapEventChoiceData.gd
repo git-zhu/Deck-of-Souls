@@ -9,3 +9,4 @@ extends Resource
 @export var card_id: String = ""
 @export var min_deck_size: int = 0
 @export var follow_event_id: String = ""
+@export var set_flag: String = ""  # I7：选择后写入 run.event_flags 的旗标

@@ -128,6 +128,11 @@ static func run_to_dict(run: RunState) -> Dictionary:
 		"ng_plus": run.ng_plus,
 		"vow_level": run.vow_level,
 		"challenge_flags": run.challenge_flags.duplicate(),
+		"kindling": run.kindling,
+		"frenzied_flame": run.frenzied_flame,
+		"merchant_killed": run.merchant_killed,
+		"great_runes": run.great_runes.duplicate(),
+		"event_flags": run.event_flags.duplicate(),
 	}
 
 
@@ -179,6 +184,15 @@ static func run_from_dict(run: RunState, data: Variant) -> void:
 	run.vow_level = int(d.get("vow_level", 0))
 	run.challenge_flags = _string_array_from(d.get("challenge_flags", []))
 	run.upgraded_cards = _string_array_from(d.get("upgraded_cards", []))
+	run.kindling = str(d.get("kindling", ""))
+	run.frenzied_flame = bool(d.get("frenzied_flame", false))
+	run.merchant_killed = bool(d.get("merchant_killed", false))
+	var runes_data: Variant = d.get("great_runes", {})
+	run.great_runes = {}
+	if typeof(runes_data) == TYPE_DICTIONARY:
+		for k in (runes_data as Dictionary).keys():
+			run.great_runes[str(k)] = str((runes_data as Dictionary)[k])
+	run.event_flags = _string_array_from(d.get("event_flags", []))
 
 
 static func combat_to_dict(combat: CombatController) -> Dictionary:

@@ -187,7 +187,8 @@ static func build_merchant_screen(
 	merchant_service: MerchantService,
 	run_state: RunState,
 	on_buy: Callable,
-	on_leave: Callable
+	on_leave: Callable,
+	on_kill: Callable = Callable()
 ) -> Control:
 	var wrap := _full_vbox(14)
 	wrap.add_child(_heading_label("商人咖列"))
@@ -214,6 +215,15 @@ static func build_merchant_screen(
 				merchant_service, run_state, on_buy
 			)
 		)
+
+	# I9 杀死商人：黑暗抉择——抢光库存，代价是本局再无商店
+	if on_kill.is_valid():
+		var kill := Button.new()
+		kill.text = "下手：抢光他的货——此后本局再无商人"
+		kill.custom_minimum_size = Vector2(360, 48)
+		kill.add_theme_color_override("font_color", Color(0.9, 0.35, 0.3))
+		kill.pressed.connect(on_kill)
+		wrap.add_child(kill)
 
 	var leave := Button.new()
 	leave.text = "离开商店"

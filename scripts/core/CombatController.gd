@@ -139,7 +139,7 @@ func calculate_stance_damage(base_stance: int) -> int:
 	var total: int = base_stance + int(run.attr("dexterity") * 0.5) + weapon_service.total_stance_bonus(run)
 	if stance_active_buff:
 		total *= 2
-	var stance_pct: int = relic_service.relic_value(run, registry, "twohanded_sword_badge")
+	var stance_pct: int = relic_service.stance_percent_total(run, registry)
 	if stance_pct > 0:
 		total = int(ceil(float(total) * (1.0 + float(stance_pct) / 100.0)))
 	return total
@@ -179,6 +179,9 @@ func start_combat(template: Dictionary) -> void:
 		if act != null and hp_percent != 100:
 			var scaled := int(round(float(e.max_hp) * hp_percent / 100.0))
 			e.max_hp = maxi(1, scaled)
+		# I6 灭裂之火：献瓶者对终局之敌的斩杀权（最大生命 −15%）
+		if run.kindling == "flask" and bool(e.get("is_run_boss", false)):
+			e.max_hp = maxi(1, int(round(float(e.max_hp) * 0.85)))
 		e.hp = e.max_hp
 		e.block = 0
 		e.rot = 0
@@ -225,6 +228,9 @@ func start_combat(template: Dictionary) -> void:
 func start_player_turn() -> void:
 	turn += 1
 	ember = max_ember
+	# I8 癫火：每回合能量 +1（黄焰让手指停不下来）
+	if run.frenzied_flame:
+		ember += 1
 	block = 0
 	stance_active_buff = stance_mult_next_turn
 	stance_mult_next_turn = false
@@ -295,6 +301,12 @@ func deal_enemy_damage(amount: int, stance_damage: int, target_idx: int = -1) ->
 		return false
 	var was_break_open: bool = bool(e.get("break_open", false))
 	var final: int = amount
+	# I6 灭裂之火：献瓶的代价换来的伤害 +10%
+	if run.kindling == "flask":
+		final = int(ceil(final * 1.10))
+	# I8 癫火：出伤 +25%（力量的代价在别处结算）
+	if run.frenzied_flame:
+		final = int(ceil(final * 1.25))
 	if int(e.get("vulnerable", 0)) > 0:
 		final = int(ceil(final * 1.5))
 	if int(e.get("stance_now", 0)) <= 0:
@@ -594,7 +606,11 @@ func enemy_damage_multiplier() -> float:
 
 
 func take_player_damage(amount: int, ignores_block: bool) -> void:
-	var final: int = amount
+	# I8 癫火：受伤 +25%——承接癫火那天就写好的条款
+	var incoming: int = amount
+	if run.frenzied_flame:
+		incoming = int(ceil(incoming * 1.25))
+	var final: int = incoming
 	if not ignores_block:
 		var absorbed: int = mini(block, final)
 		block -= absorbed
@@ -763,6 +779,11 @@ func roll_rewards(act: ActData = null) -> Array[String]:
 				pool.append(str(card_id))
 	if pool.size() < 3:
 		pool = _global_non_starter_card_pool()
+	# I8 癫火圣约：承约期间，癫火卡游入奖励池
+	if run.frenzied_flame:
+		for fcid in ["frenzy_flame", "three_fingers", "frenzied_burst", "lord_of_frenzy"]:
+			if not pool.has(fcid):
+				pool.append(fcid)
 	# 流派化：2 张倾向卡 + 1 张异端卡（鼓励转型的意外之喜）
 	var affinity_school := _build_affinity_school()
 	var affinity_cards: Array[String] = []

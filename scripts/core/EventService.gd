@@ -8,6 +8,9 @@ const CardData = preload("res://data/CardData.gd")
 const ProfileService = preload("res://scripts/core/ProfileService.gd")
 
 const PICK_CARD := "__event_pick_card__"
+const DUEL_JAR := "__duel_jar__"  # I7：壶哥切磋 → RunFlowController 路由进战斗
+
+const FRENZY_CARDS := ["frenzy_flame", "three_fingers", "frenzied_burst", "lord_of_frenzy"]
 
 
 func _echo_available() -> bool:
@@ -54,6 +57,16 @@ func is_choice_eligible(
 			)
 		"gain_souls", "max_hp", "nothing", "gamble_souls":
 			return true
+		"sacrifice_flask":
+			return run.max_flasks > 1 and run.kindling == ""
+		"sacrifice_weapon":
+			return not run.weapons.is_empty() and run.kindling == ""
+		"refuse_kindling":
+			return run.kindling == ""
+		"frenzied_flame":
+			return not run.frenzied_flame
+		"duel_jar":
+			return true
 		_:
 			return false
 
@@ -67,6 +80,10 @@ func apply(
 	if run.souls < choice.soul_cost:
 		return "卢恩不足，无法做出这一选择。"
 	run.souls -= choice.soul_cost
+	# I7 事件链旗标：选择可以解锁后续事件（壶哥任务线等）
+	var set_flag := str(choice.set_flag).strip_edges()
+	if set_flag != "" and not run.event_flags.has(set_flag):
+		run.event_flags.append(set_flag)
 
 	match choice.effect:
 		"heal_percent":
@@ -133,6 +150,46 @@ func apply(
 			return "赌输了。卢恩不翼而飞。"
 		"nothing":
 			return "你未作改变，悄然离开。"
+		# ── I6 少女的引火：终局前的不可逆献祭 ──
+		"sacrifice_flask":
+			run.max_flasks = maxi(1, run.max_flasks - 1)
+			run.flasks = mini(run.flasks, run.max_flasks)
+			run.kindling = "flask"
+			return "你把圣杯瓶投入火焰。瓶熔化了，火却在你血管里点灯——终局之敌生命 −15%，你的伤害 +10%。（此决定不可撤销）"
+		"sacrifice_weapon":
+			var removed_id := ""
+			var best_lv := -1
+			for wid in run.weapons:
+				var lv: int = int(run.weapon_levels.get(str(wid), 0))
+				if lv > best_lv:
+					best_lv = lv
+					removed_id = str(wid)
+			if removed_id == "":
+				return "你没有武器可献。火焰沉默着。"
+			run.weapons.erase(removed_id)
+			run.weapon_levels.erase(removed_id)
+			run.deck.append("sacrificed_blade")
+			run.kindling = "weapon"
+			var wname: String = removed_id
+			var w := registry.get_weapon(removed_id)
+			if w != null:
+				wname = w.name
+			return "你把《%s》（+%d）投入火焰。它没有熔化，而是凝成一柄更轻的剑——《献剑》加入了牌组。（此决定不可撤销）" % [wname, best_lv]
+		"refuse_kindling":
+			return "你向火焰摇头。有些路，要自己完整地走。（以完整之姿直面终局）"
+		# ── I8 癫火圣约：不可逆禁忌 ──
+		"frenzied_flame":
+			run.frenzied_flame = true
+			if not run.challenge_flags.has("frenzied_lord"):
+				run.challenge_flags.append("frenzied_lord")
+			var prize: String = FRENZY_CARDS[rng.randi_range(0, FRENZY_CARDS.size() - 1)]
+			run.deck.append(prize)
+			var fc := registry.get_card(prize) as CardData
+			var fcname := fc.name if fc != null else prize
+			return "三指没入你的胸口。黄焰在眼眶里安家：出伤 +25%%、每回合能量 +1；受伤 +25%%、赐福治疗减半。《%s》加入了牌组。这条路，回不了头了。" % fcname
+		# ── I7 壶哥切磋：路由进战斗（由 RunFlowController 承接）──
+		"duel_jar":
+			return DUEL_JAR
 		_:
 			return "事件结束了，却似乎什么也没发生。"
 

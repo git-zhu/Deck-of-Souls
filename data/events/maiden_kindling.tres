@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "kindle_flask"
+label = "献出圣杯瓶（瓶位 −1 → 终局之敌 −15% 生命，你的伤害 +10%）"
+effect = "sacrifice_flask"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+set_flag = ""
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "kindle_weapon"
+label = "献出锻造最深的武器（→ 《献剑》入牌组）"
+effect = "sacrifice_weapon"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+set_flag = ""
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2")
+id = "refuse"
+label = "拒绝献祭，以完整之姿直面终局"
+effect = "refuse_kindling"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+set_flag = ""
+
+[resource]
+script = ExtResource("1")
+id = "maiden_kindling"
+title = "巨人火焰的锻炉"
+body = "终局前夜。锻炉里的火不烫，只是很安静，像在等你把什么东西放进去。有些代价一旦付出就不可撤销——但火焰从不说谎。"
+required_flag = ""
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1"), SubResource("Choice_2")])

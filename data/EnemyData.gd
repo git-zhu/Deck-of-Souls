@@ -12,6 +12,7 @@ const MoveData = preload("res://data/MoveData.gd")
 @export_group("Classification")
 @export var is_elite: bool = false
 @export var is_boss: bool = false
+@export var duel_only: bool = false  # I7：仅作为特定决斗对手，不进遭遇池/平衡表
 
 @export_group("Boss Flags")
 @export var is_act_boss: bool = false

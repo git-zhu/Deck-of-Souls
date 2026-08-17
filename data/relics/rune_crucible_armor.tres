@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RelicData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/RelicData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rune_crucible_armor"
+name = "熔炉骑士大卢恩·百相之甲"
+body = "激活的大卢恩在皮肤下长出看不见的鳞。战斗开始时，护甲 +2。"
+hook = "combat_start_block"
+value = 2
+exclusive = true

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "lord_of_frenzy"
+name = "癫火之王"
+cost = 3
+type = "传说"
+rarity = "rare"
+text = "力量 +3（本场），造成 12 伤害、姿态 3，自己受 5 伤害。消耗。你举起手，火焰替你回答了一切。"
+tone = Color(0.95, 0.55, 0.15, 1)
+hook_id = ""
+exhaust_after_play = true

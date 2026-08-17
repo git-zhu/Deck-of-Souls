@@ -59,6 +59,13 @@ var challenge_flags: Array[String] = []  # 本局自选誓言挑战
 var next_floor_preview: Array = []
 var map_fragment_revealed: bool = false
 
+# ── 第四轮创新（I4–I9）──
+var kindling: String = ""                 # I6 少女的引火：""/"flask"/"weapon"（不可逆献祭）
+var frenzied_flame: bool = false          # I8 癫火圣约（不可逆禁忌）
+var merchant_killed: bool = false         # I9 杀死商人：本局不再有商店
+var great_runes: Dictionary = {}          # I4 大卢恩：rune_id -> "" 未激活 / 激活后的护符 id
+var event_flags: Array[String] = []       # I7 事件链旗标（壶哥任务线等）
+
 
 func act_index() -> int:
 	return floor_index / FLOORS_PER_ACT
@@ -114,6 +121,11 @@ func reset_for_origin(origin: OriginData, seed: int) -> void:
 	challenge_flags = []
 	next_floor_preview = []
 	map_fragment_revealed = false
+	kindling = ""
+	frenzied_flame = false
+	merchant_killed = false
+	great_runes = {}
+	event_flags = []
 	deck.assign(origin.deck)
 
 

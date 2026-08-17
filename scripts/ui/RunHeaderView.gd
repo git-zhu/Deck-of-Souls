@@ -45,6 +45,32 @@ static func build(
 			"res://assets/external/kenney_icons/dice_skull.png",
 			"记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES], "记忆石"
 		))
+	# I4/I6/I8 仪式状态芯片：大卢恩 / 引火 / 癫火
+	var inert_runes := 0
+	var active_runes := 0
+	for rk in run_state.great_runes.keys():
+		if str(run_state.great_runes[rk]) == "":
+			inert_runes += 1
+		elif str(run_state.great_runes[rk]) not in ["refused"]:
+			active_runes += 1
+	if inert_runes > 0:
+		left.add_child(UiBuilders.header_chip(
+			"res://assets/external/kenney_icons/suit_diamonds.png",
+			"大卢恩 %d（待朝圣）" % inert_runes, "大卢恩"
+		))
+	elif active_runes > 0:
+		left.add_child(UiBuilders.header_chip(
+			"res://assets/external/kenney_icons/suit_diamonds.png",
+			"大卢恩 %d（已激活）" % active_runes, "大卢恩"
+		))
+	if run_state.kindling != "":
+		left.add_child(UiBuilders.header_chip(
+			"res://assets/external/kenney_icons/suit_hearts.png", "灭裂之火", "献祭"
+		))
+	if run_state.frenzied_flame:
+		left.add_child(UiBuilders.header_chip(
+			"res://assets/external/kenney_icons/suit_hearts.png", "癫火", "禁忌"
+		))
 	left.add_child(UiBuilders.header_chip(
 		"res://assets/external/kenney_icons/cards_stack.png",
 		"牌组 %d" % run_state.deck.size(), "牌组"
