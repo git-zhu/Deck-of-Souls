@@ -235,10 +235,14 @@ static func build(
 	bottom_row.add_child(refs.flask_button)
 
 	var hand_scroll := ScrollContainer.new()
-	hand_scroll.custom_minimum_size = Vector2(0, card_h + 12)
+	# 悬停抬头空间：卡片放大 1.25× 时向上展开约 0.25×card_h，需在滚动区上方预留足够空间
+	hand_scroll.custom_minimum_size = Vector2(0, card_h + int(card_h * 0.3) + 6)
 	hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hand_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	# 关键修复：ScrollContainer 默认 clip_contents=true 会把放大后的卡牌顶部裁掉，
+	# 关闭裁剪让放大卡完整浮出（绘制层级在资源条之上，见 main 子节点顺序）
+	hand_scroll.clip_contents = false
 	bottom_row.add_child(hand_scroll)
 	hand_scroll.gui_input.connect(func(ev: InputEvent) -> void:
 		if ev is InputEventMouseButton:
@@ -254,6 +258,8 @@ static func build(
 	refs.hand_row = HBoxContainer.new()
 	refs.hand_row.add_theme_constant_override("separation", 10)
 	refs.hand_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	# 手牌行填满滚动区高度 + 卡片底对齐：悬停放大向上展开时落在抬头空间内，不遮挡回合控制条
+	refs.hand_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	hand_scroll.add_child(refs.hand_row)
 
 	# 手牌卡：连接拖拽信号到瞄准线

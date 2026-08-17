@@ -241,7 +241,8 @@ static func card_button(
 	button.setup(index, on_play)
 	button.custom_minimum_size = Vector2(card_w, card_h)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	button.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	# 垂直底对齐：悬停放大（scale 1.25，底部中心锚点）向上展开时，落在手牌区预留的抬头空间内
+	button.size_flags_vertical = Control.SIZE_SHRINK_END
 	button.text = ""
 	button.tooltip_text = "%s（快捷键 %d）" % [card.text, index + 1] if index < 9 else card.text
 	button.disabled = unplayable
