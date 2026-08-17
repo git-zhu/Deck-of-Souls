@@ -13,11 +13,16 @@ func _initialize() -> void:
 	root.add_child(ui)
 	await process_frame
 	var buttons := _find_buttons(ui)
-	if buttons.size() < 6:
-		push_error("Origin screen should have >= 6 pick buttons, got %d" % buttons.size())
+	# 难度行（周目/誓约/誓言挑战）使用 OptionButton，排除后剩下的才是出身选择按钮
+	var pick_buttons: Array[Button] = []
+	for b in buttons:
+		if not (b is OptionButton):
+			pick_buttons.append(b)
+	if pick_buttons.size() < 6:
+		push_error("Origin screen should have >= 6 pick buttons, got %d" % pick_buttons.size())
 		quit(1)
 		return
-	buttons[0].emit_signal("pressed")
+	pick_buttons[0].emit_signal("pressed")
 	await process_frame
 	if picked[0] == "":
 		push_error("Origin pick button did not fire callback")

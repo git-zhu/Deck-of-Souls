@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "accept"
+label = "接受诅咒（失去 1 瓶位）"
+effect = "curse_card"
+effect_value = 0
+soul_cost = 0
+card_id = "destined_death"
+min_deck_size = 0
+follow_event_id = ""
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "leave"
+label = "转身离开"
+effect = "nothing"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+
+[resource]
+script = ExtResource("1")
+id = "stormveil_cursed_altar"
+title = "诅咒祭坛"
+body = "祭坛上摆着命定之死的残页，黑泥在石缝里呼吸。拿走它，就要留下一部分自己。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1")])

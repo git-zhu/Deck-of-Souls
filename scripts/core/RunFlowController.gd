@@ -9,6 +9,8 @@ const MapEventChoiceData = preload("res://data/MapEventChoiceData.gd")
 const MapScreenView = preload("res://scripts/ui/MapScreenView.gd")
 const RewardLayerViews = preload("res://scripts/ui/RewardLayerViews.gd")
 const GameAudio = preload("res://scripts/ui/GameAudio.gd")
+const ProfileService = preload("res://scripts/core/ProfileService.gd")
+const RunState = preload("res://scripts/core/RunState.gd")
 
 var host: Node
 
@@ -23,11 +25,48 @@ func show_map() -> void:
 	var rng = host.get("rng")
 	var map_gen = host.get("map_gen")
 	var act: ActData = registry.get_act(run_state.act_index()) as ActData
+	run_state.map_fragment_revealed = false
 	var options: Array = map_gen.options_for_floor(run_state, registry, rng)
+	_inject_echo_event(run_state, registry, options)
+	_build_next_floor_preview(run_state, registry, map_gen)
 	host.call(
 		"_enter_map_layer",
-		MapScreenView.build(act, run_state, options, choose_map_option)
+		MapScreenView.build(act, run_state, options, choose_map_option, show_map)
 	)
+
+
+# 死亡回响：上一局死在本层 → 注入「上一局的痕迹」事件
+func _inject_echo_event(run_state, registry, options: Array) -> void:
+	var profile := ProfileService.load_profile()
+	var echo_var: Variant = profile.get("echo", {})
+	var echo: Dictionary = echo_var if typeof(echo_var) == TYPE_DICTIONARY else {}
+	if echo.is_empty() or int(echo.get("floor", -1)) != run_state.floor_index:
+		return
+	if int(echo.get("souls", 0)) <= 0:
+		return
+	var ev: MapEventData = registry.get_event("echo_of_last_run") as MapEventData
+	if ev == null:
+		return
+	options.push_front({
+		"kind": "event",
+		"cardType": "event",
+		"event_id": "echo_of_last_run",
+		"title": ev.title,
+		"body": ev.body,
+	})
+
+
+# 地图碎片：用独立种子生成下一层选项快照（不扰动主 RNG）
+func _build_next_floor_preview(run_state, registry, map_gen) -> void:
+	if run_state.floor_index + 1 >= RunState.TOTAL_FLOORS:
+		run_state.next_floor_preview = []
+		return
+	var preview_rng := RandomNumberGenerator.new()
+	preview_rng.seed = run_state.run_seed + (run_state.floor_index + 1) * 7919
+	var original_floor: int = run_state.floor_index
+	run_state.floor_index = original_floor + 1
+	run_state.next_floor_preview = map_gen.options_for_floor(run_state, registry, preview_rng)
+	run_state.floor_index = original_floor
 
 
 func choose_map_option(option: Dictionary) -> void:

@@ -16,12 +16,22 @@ static func build_game_over(on_pick_origin: Callable) -> Control:
 	)
 
 
-static func build_victory(souls: int, deck_size: int, on_retry: Callable) -> Control:
+static func build_victory(souls: int, deck_size: int, on_retry: Callable, challenge_flags: Array = []) -> Control:
+	var body_text: String = "接肢贵族倒下。你带着 %d 卢恩和 %d 张牌离开雾门。" % [souls, deck_size]
+	if not challenge_flags.is_empty():
+		var names: Array[String] = []
+		for flag in challenge_flags:
+			match str(flag):
+				"no_flask":
+					names.append("无瓶")
+				"strong_foe":
+					names.append("强敌")
+		body_text += "\n誓言已践：%s。这份胜利更重。" % "、".join(names)
 	return _centered_screen(
 		"传说暂时闭环",
 		48,
 		VICTORY_GOLD,
-		"接肢贵族倒下。你带着 %d 卢恩和 %d 张牌离开雾门。" % [souls, deck_size],
+		body_text,
 		"再开一局",
 		on_retry
 	)

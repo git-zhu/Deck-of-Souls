@@ -15,6 +15,12 @@ const VOW_DESCRIPTIONS: Array[String] = [
 	"誓约Ⅲ 鲜血契约：敌人伤害再 +10%，卢恩再 +30%。",
 ]
 
+const CHALLENGE_DESCRIPTIONS: Array[String] = [
+	"无誓言挑战。",
+	"誓言：无瓶（开局 0 圣杯瓶，全靠自己）。",
+	"誓言：强敌（敌人生命 +50%）。",
+]
+
 
 static func build(
 	registry: DataRegistry,
@@ -37,11 +43,10 @@ static func build(
 	desc.add_theme_color_override("font_color", GameTheme.BODY_MUTED)
 	wrap.add_child(desc)
 
-	# 周目 / 誓约选择（通关后逐步解锁）
+	# 周目 / 誓约 / 誓言挑战（周目与誓约通关后逐步解锁，挑战始终可选）
 	var max_ng: int = int(profile.get("max_ng_unlocked", 0))
 	var max_vow: int = int(profile.get("max_vow_unlocked", 0))
-	if max_ng > 0 or max_vow > 0:
-		wrap.add_child(_difficulty_row(max_ng, max_vow, on_difficulty_changed))
+	wrap.add_child(_difficulty_row(max_ng, max_vow, on_difficulty_changed))
 
 	var grid := GridContainer.new()
 	grid.columns = 3
@@ -81,11 +86,22 @@ static func _difficulty_row(max_ng: int, max_vow: int, on_changed: Callable) -> 
 	vow_options.select(0)
 	row.add_child(vow_options)
 
+	var challenge_label := Label.new()
+	challenge_label.text = "誓言挑战"
+	challenge_label.add_theme_color_override("font_color", GameTheme.GOLD)
+	row.add_child(challenge_label)
+	var challenge_options := OptionButton.new()
+	for i in range(0, CHALLENGE_DESCRIPTIONS.size()):
+		challenge_options.add_item(CHALLENGE_DESCRIPTIONS[i], i)
+	challenge_options.select(0)
+	row.add_child(challenge_options)
+
 	var emit := func() -> void:
 		if on_changed.is_valid():
-			on_changed.call(ng_options.selected, vow_options.selected)
+			on_changed.call(ng_options.selected, vow_options.selected, challenge_options.selected)
 	ng_options.item_selected.connect(func(_idx: int) -> void: emit.call())
 	vow_options.item_selected.connect(func(_idx: int) -> void: emit.call())
+	challenge_options.item_selected.connect(func(_idx: int) -> void: emit.call())
 	return row
 
 

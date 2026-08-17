@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "claim"
+label = "夺回回响"
+effect = "claim_echo"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "offer"
+label = "献给赐福（凝成记忆）"
+effect = "offer_echo"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2")
+id = "ignore"
+label = "默然离开"
+effect = "nothing"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+
+[resource]
+script = ExtResource("1")
+id = "echo_of_last_run"
+title = "上一局的痕迹"
+body = "你看见自己坐死在这里。上一局的卢恩还在尸手里微微发亮。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1"), SubResource("Choice_2")])

@@ -23,6 +23,8 @@ var enemies: Array = []
 var target_index: int = 0
 var combat_over: bool = false
 var turn: int = 0
+var first_turn_attacks: int = 0  # 第 1 回合打出的攻击型卡数（先手压制）
+var ambush_used: bool = false
 var ember: int = 3
 var max_ember: int = 3
 var block: int = 0
@@ -147,6 +149,8 @@ func start_combat(template: Dictionary) -> void:
 	break_choice = {}
 	stance_mult_next_turn = false
 	stance_active_buff = false
+	first_turn_attacks = 0
+	ambush_used = false
 	run.player_rot = 0
 	run.player_bleed = 0
 	run.player_vulnerable = 0
@@ -160,6 +164,9 @@ func start_combat(template: Dictionary) -> void:
 	var hp_percent: int = act.enemy_hp_percent if act != null else 100
 	# NG+ 缩放：每级敌人 HP +25%（与幕缩放叠乘）
 	hp_percent = int(round(float(hp_percent) * (1.0 + 0.25 * float(run.ng_plus))))
+	# 誓言挑战「强敌」：敌人 HP +50%
+	if run.challenge_flags.has("strong_foe"):
+		hp_percent = int(round(float(hp_percent) * 1.5))
 	# 模板级标记（精英群/群怪）：传播到成员，供战斗结束判定
 	var group_elite: bool = bool(template.get("elite", false))
 	var group_boss: bool = bool(template.get("boss", false))
@@ -260,6 +267,9 @@ func play_card(index: int) -> void:
 	combat_log("你打出《%s》。" % card.name)
 	var resolver := CardEffectResolver.new(self)
 	var exhaust: bool = resolver.resolve(card)
+	# 先手压制：第 1 回合打出的攻击型卡计数
+	if turn == 1 and str(card.type) in ["武器", "战灰", "魔法", "祷告", "传说", "壶"]:
+		first_turn_attacks += 1
 	if relic_service.has_relic(run, "azurs_staff") and str(card.type) == "魔法":
 		draw_cards(1)
 		combat_log("亚兹勒的辉石奔流：抽 1 张。")
@@ -454,9 +464,24 @@ func end_player_turn() -> void:
 		return
 	if not break_choice.is_empty():
 		return
+	# 先手压制：普通战第 1 回合打出 ≥3 张攻击卡 → 敌人姿态减半（StS 式 tempo 奖励）
+	if turn == 1 and first_turn_attacks >= 3 and not ambush_used and _is_normal_encounter():
+		ambush_used = true
+		for e in enemies:
+			if int(e.get("hp", 0)) > 0:
+				e["stance_now"] = int(ceil(float(int(e.get("stance_now", 0))) / 2.0))
+		combat_log("先手压制！敌人的姿态被打乱了（姿态减半）。")
 	run.discard_pile.append_array(run.hand)
 	run.hand.clear()
 	enemy_turn()
+
+
+# 普通遭遇（无精英/Boss）才触发先手压制
+func _is_normal_encounter() -> bool:
+	for e in enemies:
+		if bool(e.get("elite", false)) or bool(e.get("boss", false)):
+			return false
+	return true
 
 
 func enemy_turn() -> void:
@@ -472,8 +497,8 @@ func enemy_turn() -> void:
 			combat_log("腐败啃食 %s：%d 点伤害。" % [e.name, rot_dmg])
 			e.rot = maxi(0, rot_dmg - 1)
 			_check_phase_transition(e)
-		if int(e.get("bleed", 0)) >= 10:
-			e.bleed = int(e.get("bleed", 0)) - 10
+		if int(e.get("bleed", 0)) >= bleed_burst_threshold():
+			e.bleed = int(e.get("bleed", 0)) - bleed_burst_threshold()
 			var burst: int = maxi(8, int(e.get("max_hp", 1) * 0.16))
 			e.hp = maxi(0, int(e.get("hp", 0)) - burst)
 			_fx("damage", _enemy_tag(e), burst)

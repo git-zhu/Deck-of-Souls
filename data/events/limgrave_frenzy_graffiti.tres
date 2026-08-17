@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="MapEventData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://data/MapEventData.gd" id="1"]
+[ext_resource type="Script" path="res://data/MapEventChoiceData.gd" id="2"]
+
+[sub_resource type="Resource" id="Choice_0"]
+script = ExtResource("2")
+id = "touch"
+label = "触摸涂鸦"
+effect = "gamble_card"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2")
+id = "leave"
+label = "移开视线"
+effect = "nothing"
+effect_value = 0
+soul_cost = 0
+card_id = ""
+min_deck_size = 0
+follow_event_id = ""
+
+[resource]
+script = ExtResource("1")
+id = "limgrave_frenzy_graffiti"
+title = "癫火涂鸦"
+body = "岩壁上用焦黑颜料画着三指的手印。盯得久了，指尖会自己发烫。"
+choices = Array[MapEventChoiceData]([SubResource("Choice_0"), SubResource("Choice_1")])

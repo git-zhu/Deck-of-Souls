@@ -27,8 +27,8 @@ func _initialize() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
 
-	if registry.events.size() != 15:
-		_fail("expected 15 events, got %d" % registry.events.size())
+	if registry.events.size() != 21:
+		_fail("expected 21 events, got %d" % registry.events.size())
 		return
 
 	for act_index in range(RunState.ACT_COUNT):

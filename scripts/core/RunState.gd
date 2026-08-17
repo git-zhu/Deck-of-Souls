@@ -53,6 +53,10 @@ var ng_plus: int = 0                    # 0=正常，1=NG+ …（敌人更强、
 var vow_level: int = 0                  # 誓约等级（累积修饰器）
 var challenge_flags: Array[String] = []  # 本局自选誓言挑战
 
+# ── 地图碎片：下一层预览（法环式探图）──
+var next_floor_preview: Array = []
+var map_fragment_revealed: bool = false
+
 
 func act_index() -> int:
 	return floor_index / FLOORS_PER_ACT
@@ -101,6 +105,8 @@ func reset_for_origin(origin: OriginData, seed: int) -> void:
 	ng_plus = 0
 	vow_level = 0
 	challenge_flags = []
+	next_floor_preview = []
+	map_fragment_revealed = false
 	deck.assign(origin.deck)
 
 

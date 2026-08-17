@@ -52,6 +52,7 @@ var reward_flow: RunRewardFlow
 var run_flow: RunFlowController
 var pending_ng: int = 0    # 出身屏选择的周目
 var pending_vow: int = 0   # 出身屏选择的誓约等级
+var pending_challenge: int = 0  # 出身屏选择的誓言挑战（0 无 / 1 无瓶 / 2 强敌）
 
 var deck: Array[String]:
 	get:
@@ -320,6 +321,7 @@ func _show_origin() -> void:
 	screen = GameScreen.ORIGIN
 	pending_ng = 0
 	pending_vow = 0
+	pending_challenge = 0
 	_hide_layers()
 	_show_bg("bg_elden")
 	title_layer.visible = true
@@ -332,9 +334,10 @@ func _show_origin() -> void:
 	_focus_first_button(title_layer)
 
 
-func _on_difficulty_changed(ng_level: int, vow_level: int) -> void:
+func _on_difficulty_changed(ng_level: int, vow_level: int, challenge_level: int = 0) -> void:
 	pending_ng = ng_level
 	pending_vow = vow_level
+	pending_challenge = challenge_level
 
 
 func _start_run(origin_id: String = "vagabond") -> void:
@@ -347,6 +350,16 @@ func _start_run(origin_id: String = "vagabond") -> void:
 	run_state.ng_plus = pending_ng
 	run_state.vow_level = pending_vow
 	ProfileService.apply_vow_start(run_state)
+	# 誓言挑战
+	match pending_challenge:
+		1:
+			run_state.challenge_flags.append("no_flask")
+			run_state.max_flasks = 0
+			run_state.flasks = 0
+			_log("誓言挑战「无瓶」：你不会得到任何圣杯瓶。")
+		2:
+			run_state.challenge_flags.append("strong_foe")
+			_log("誓言挑战「强敌」：敌人生命 +50%。")
 	RunSaveService.delete_save()
 	log_lines.clear()
 	_log("出身：%s。装备：%s。" % [origin.name, origin.equipment])
@@ -354,6 +367,14 @@ func _start_run(origin_id: String = "vagabond") -> void:
 		_log("第 %d 周目（NG+%d）：敌人更强，卢恩更丰。" % [pending_ng + 1, pending_ng])
 	if pending_vow > 0:
 		_log("誓约 %d 级已立。代价与荣耀同在。" % pending_vow)
+	# 记忆 ≥100：「记忆的祝福」开局选一枚护符（跨局成长）
+	var profile := ProfileService.load_profile()
+	if int(profile.get("memory", 0)) >= 100:
+		var offers := relic_service.roll_relic_offers(run_state, registry, rng, 3)
+		if offers.size() > 0:
+			_log("记忆低语：选择一枚护符作为旅途的开端。")
+			reward_flow.show_relic_rewards(offers, run_flow.show_map)
+			return
 	run_flow.show_map()
 
 
@@ -699,7 +720,7 @@ func _show_victory() -> void:
 	end_layer.visible = true
 	_clear(end_layer)
 	end_layer.add_child(
-		EndScreenView.build_victory(run_state.souls, run_state.deck.size(), _show_origin)
+		EndScreenView.build_victory(run_state.souls, run_state.deck.size(), _show_origin, run_state.challenge_flags)
 	)
 	_animate_layer(end_layer)
 
