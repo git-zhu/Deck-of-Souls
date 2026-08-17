@@ -28,6 +28,23 @@ var block: int = 0
 var relic_service := RelicService.new()
 var weapon_service := WeaponService.new()
 
+# FX 事件队列：伤害/治疗/护甲变化即时记录，UI 层在重建后消费（飘字/闪烁）
+var fx_events: Array = []
+
+
+func _fx(kind: String, target: String, value: int) -> void:
+	fx_events.append({"kind": kind, "target": target, "value": value})
+
+
+func _enemy_tag(e: Dictionary) -> String:
+	return "enemy_%d" % enemies.find(e)
+
+
+func consume_fx_events() -> Array:
+	var out := fx_events.duplicate()
+	fx_events.clear()
+	return out
+
 # ── 兼容 getter：enemy = 选中目标（默认第一个存活敌人）──
 var enemy: Dictionary:
 	get:
@@ -237,6 +254,10 @@ func deal_enemy_damage(amount: int, stance_damage: int, target_idx: int = -1) ->
 	final -= blocked
 	e.hp = maxi(0, int(e.get("hp", 0)) - final)
 	e.stance_now = int(e.get("stance_now", 0)) - stance_damage
+	if blocked > 0:
+		_fx("block_hit", _enemy_tag(e), blocked)
+	if final > 0:
+		_fx("damage", _enemy_tag(e), final)
 	combat_log("对%s造成 %d 伤害，削减 %d 姿态。" % [e.name, final, stance_damage])
 	var broke: bool = false
 	if int(e.get("stance_now", 0)) <= 0:
@@ -258,6 +279,7 @@ func apply_enemy_bleed(value: int, target_idx: int = -1) -> void:
 		e.bleed = int(e.get("bleed", 0)) - 10
 		var burst: int = maxi(8, int(e.get("max_hp", 1) * 0.16))
 		e.hp = maxi(0, int(e.get("hp", 0)) - burst)
+		_fx("damage", _enemy_tag(e), burst)
 		combat_log("%s 出血爆发，追加 %d 点伤害。" % [e.name, burst])
 		check_enemy_death(target_idx)
 
@@ -271,12 +293,15 @@ func _target_dict(target_idx: int) -> Dictionary:
 
 func gain_block(value: int) -> void:
 	block += value
+	_fx("block_gain", "player", value)
 	combat_log("获得 %d 护甲。" % value)
 
 
 func heal_player(value: int) -> void:
 	var recovered: int = mini(run.max_hp - run.hp, value)
 	run.hp += recovered
+	if recovered > 0:
+		_fx("heal", "player", recovered)
 	combat_log("回复 %d 生命。" % recovered)
 
 
@@ -315,13 +340,16 @@ func enemy_turn() -> void:
 			continue
 		e.block = 0
 		if int(e.get("rot", 0)) > 0:
-			e.hp = maxi(0, int(e.get("hp", 0)) - int(e.get("rot", 0)))
-			combat_log("腐败啃食 %s：%d 点伤害。" % [e.name, e.rot])
-			e.rot = maxi(0, int(e.get("rot", 0)) - 1)
+			var rot_dmg: int = int(e.get("rot", 0))
+			e.hp = maxi(0, int(e.get("hp", 0)) - rot_dmg)
+			_fx("damage", _enemy_tag(e), rot_dmg)
+			combat_log("腐败啃食 %s：%d 点伤害。" % [e.name, rot_dmg])
+			e.rot = maxi(0, rot_dmg - 1)
 		if int(e.get("bleed", 0)) >= 10:
 			e.bleed = int(e.get("bleed", 0)) - 10
 			var burst: int = maxi(8, int(e.get("max_hp", 1) * 0.16))
 			e.hp = maxi(0, int(e.get("hp", 0)) - burst)
+			_fx("damage", _enemy_tag(e), burst)
 			combat_log("%s 出血爆发，受到 %d 点伤害。" % [e.name, burst])
 		if int(e.get("hp", 0)) <= 0:
 			continue
@@ -343,6 +371,7 @@ func _execute_enemy_action(e: Dictionary, intent: Dictionary) -> void:
 			_enemy_attack(e, int(intent.value), int(intent.get("hits", 1)))
 		"attack_block":
 			e.block = int(e.get("block", 0)) + int(intent.block)
+			_fx("block_gain", _enemy_tag(e), int(intent.block))
 			combat_log("%s 获得 %d 护甲。" % [e.name, intent.block])
 			_enemy_attack(e, int(intent.value), 1)
 		"debuff":
@@ -368,6 +397,8 @@ func _enemy_attack(e: Dictionary, value: int, hits: int) -> void:
 		var absorbed: int = mini(block, amount)
 		block -= absorbed
 		amount -= absorbed
+		if absorbed > 0:
+			_fx("block_hit", "player", absorbed)
 		take_player_damage(amount, false)
 		combat_log("%s 造成 %d 点伤害。" % [e.name, amount])
 
@@ -379,6 +410,8 @@ func take_player_damage(amount: int, ignores_block: bool) -> void:
 		block -= absorbed
 		final -= absorbed
 	run.hp = maxi(0, run.hp - final)
+	if final > 0:
+		_fx("damage", "player", final)
 
 
 func choose_enemy_intent() -> void:

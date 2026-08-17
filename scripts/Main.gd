@@ -80,6 +80,9 @@ var flask_button: Button
 var deck_button: Button
 var menu_button: Button
 var pause_overlay: Control
+# 战斗反馈：上一帧血量快照（血条过渡用）+ 上一回合数（回合横幅用）
+var _last_hp_snapshot: Dictionary = {}
+var _prev_turn: int = 0
 
 func _ready() -> void:
 	rng.randomize()
@@ -379,6 +382,8 @@ func _test_grace_pick(option_id: String) -> void:
 func _begin_combat(template: Dictionary) -> void:
 	screen = GameScreen.COMBAT
 	_log_reset()
+	_last_hp_snapshot = {}
+	_prev_turn = 0
 	combat.start_combat(template)
 	_render_combat()
 	_maybe_autosave()
@@ -405,7 +410,8 @@ func _render_combat() -> void:
 		CARD_H,
 		_play_card,
 		combat.use_flask,
-		_end_player_turn
+		_end_player_turn,
+		_last_hp_snapshot
 	)
 	combat_layer.add_child(refs.root)
 	player_panel = refs.player_panel
@@ -414,8 +420,65 @@ func _render_combat() -> void:
 	hand_row = refs.hand_row
 	flask_button = refs.flask_button
 	end_turn_button = refs.end_turn_button
+	_last_hp_snapshot = _snapshot_hp()
+	_spawn_fx_next_frame(refs)
 	_animate_layer(combat_layer)
 	_focus_first_button(combat_layer)
+
+
+func _snapshot_hp() -> Dictionary:
+	var snap := {}
+	if run_state == null or combat == null:
+		return snap
+	snap["player"] = run_state.hp
+	for ei in range(combat.enemies.size()):
+		snap["enemy_%d" % ei] = int(combat.enemies[ei].get("hp", 0))
+	return snap
+
+
+func _spawn_fx_next_frame(refs: CombatHudRefs) -> void:
+	# 等一帧布局完成（面板有真实坐标）再生成飘字；层已切换则放弃
+	await get_tree().process_frame
+	if not is_instance_valid(refs.root) or refs.root.get_parent() == null:
+		return
+	_consume_combat_fx(refs)
+
+
+func _consume_combat_fx(refs: CombatHudRefs) -> void:
+	var events := combat.consume_fx_events()
+	for ev in events:
+		var kind: String = str(ev.get("kind", ""))
+		var target: String = str(ev.get("target", ""))
+		var value: int = int(ev.get("value", 0))
+		if value <= 0:
+			continue
+		var host := _fx_host(refs, target) as Control
+		if host == null:
+			continue
+		var at: Vector2 = host.global_position + Vector2(host.size.x * 0.5, 12)
+		match kind:
+			"damage":
+				var col := Color("#ff6a58") if target == "player" else Color("#ffd27a")
+				FloatingText.spawn(combat_layer, "-%d" % value, at, col, 24)
+			"block_hit":
+				FloatingText.spawn(combat_layer, "格挡 %d" % value, at + Vector2(0, 22), Color("#8fd9de"), 16)
+			"block_gain":
+				FloatingText.spawn(combat_layer, "+%d 护甲" % value, at, Color("#8fd9de"), 18)
+			"heal":
+				FloatingText.spawn(combat_layer, "+%d" % value, at, Color("#8ade9a"), 22)
+	# 回合推进横幅（首回合不弹；战斗已结束时不弹）
+	if combat.turn > _prev_turn and _prev_turn > 0 and not combat.combat_over:
+		FloatingText.spawn_banner(combat_layer, "回合 %d" % combat.turn)
+	_prev_turn = combat.turn
+
+
+func _fx_host(refs: CombatHudRefs, target: String) -> Control:
+	if target == "player":
+		return refs.player_panel
+	if target.begins_with("enemy_"):
+		var idx := int(target.trim_prefix("enemy_"))
+		return refs.enemy_panels.get(idx, null)
+	return null
 
 
 func _build_header() -> void:

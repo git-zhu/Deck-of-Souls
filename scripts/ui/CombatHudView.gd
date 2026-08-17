@@ -41,7 +41,8 @@ static func build(
 	card_h: float,
 	on_play_card: Callable,
 	on_flask: Callable,
-	on_end_turn: Callable
+	on_end_turn: Callable,
+	prev_hp: Dictionary = {}
 ) -> CombatHudRefs:
 	var refs := CombatHudRefs.new()
 
@@ -310,7 +311,52 @@ static func build(
 	# 布局完成后刷新瞄准线锚点（敌人 HUD 实际全局坐标）
 	_refresh_aim_anchors(aim_line, refs.enemy_panels)
 
+	# 战斗反馈：血条从上一帧数值过渡 + 受伤面板红闪（prev_hp 由 Main 快照提供）
+	_animate_hp(refs.player_panel, int(prev_hp.get("player", -1)), run_state.hp)
+	for ei in refs.enemy_panels:
+		if ei < combat.enemies.size():
+			var e: Dictionary = combat.enemies[ei]
+			_animate_hp(refs.enemy_panels[ei], int(prev_hp.get("enemy_%d" % ei, -1)), int(e.hp))
+
 	return refs
+
+
+static func _find_progress_bar(node: Node) -> ProgressBar:
+	if node is ProgressBar:
+		return node as ProgressBar
+	for child in node.get_children():
+		var found := _find_progress_bar(child)
+		if found != null:
+			return found
+	return null
+
+
+static func _animate_hp(panel: PanelContainer, prev: int, cur: int) -> void:
+	# 血条过渡动画 + 受伤红闪：prev < 0 表示无上一帧数据（首次渲染），直接呈现
+	if panel == null or prev < 0:
+		return
+	var bar := _find_progress_bar(panel)
+	if bar != null and prev != cur:
+		bar.value = prev
+		var tw := bar.create_tween()
+		tw.tween_property(bar, "value", cur, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		panel.tree_exiting.connect(func() -> void:
+			if tw != null and tw.is_valid():
+				tw.kill()
+		)
+	if prev > cur:
+		_hit_flash(panel)
+
+
+static func _hit_flash(panel: PanelContainer) -> void:
+	var base: Color = panel.modulate
+	var tw := panel.create_tween()
+	tw.tween_property(panel, "modulate", Color(1.5, 0.55, 0.45), 0.06)
+	tw.tween_property(panel, "modulate", base, 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	panel.tree_exiting.connect(func() -> void:
+		if tw != null and tw.is_valid():
+			tw.kill()
+	)
 
 
 static func _refresh_aim_anchors(aim_line: TargetingLine, panels: Dictionary) -> void:
