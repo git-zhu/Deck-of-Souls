@@ -254,7 +254,8 @@ static func build(
 	)
 
 	refs.hand_row = HBoxContainer.new()
-	refs.hand_row.add_theme_constant_override("separation", 10)
+	# 负间距叠放：StS 式扇形手牌（旋转/弧线由每张牌的 slot 独立承载）
+	refs.hand_row.add_theme_constant_override("separation", -22)
 	refs.hand_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	# 手牌行填满滚动区高度 + 卡片底对齐：悬停放大向上展开时落在抬头空间内，不遮挡回合控制条
 	refs.hand_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -268,7 +269,8 @@ static func build(
 	preview_host.visible = false
 	main.add_child(preview_host)
 
-	# 手牌卡：连接拖拽信号到瞄准线
+	# 手牌卡：连接拖拽信号到瞄准线；slot wrapper 承载扇形旋转 + 弧线下沉
+	var n_hand: int = run_state.hand.size()
 	for i in range(run_state.hand.size()):
 		var card_id: String = run_state.hand[i]
 		var card_data: CardData = registry.get_card(card_id)
@@ -281,7 +283,19 @@ static func build(
 				card_h,
 				on_play_card.bind(i)
 			)
-			refs.hand_row.add_child(card_btn)
+			var slot := Control.new()
+			slot.custom_minimum_size = Vector2(card_w, card_h)
+			slot.size_flags_vertical = Control.SIZE_SHRINK_END
+			slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			refs.hand_row.add_child(slot)
+			slot.add_child(card_btn)
+			# 扇形：中间牌正，两侧渐旋 + 二次曲线下沉（底部中心为轴，lift 同轴不冲突）
+			card_btn.size = Vector2(card_w, card_h)
+			var t: float = float(i) - float(n_hand - 1) / 2.0
+			var step_deg: float = minf(4.0, 24.0 / float(maxi(1, n_hand - 1)))
+			card_btn.pivot_offset = Vector2(card_w * 0.5, card_h)
+			card_btn.rotation_degrees = t * step_deg
+			card_btn.position = Vector2(0.0, 3.0 * t * t)
 			_wire_hover_preview(card_btn, card_data, preview_host)
 			if card_btn is DragCard:
 				var dc := card_btn as DragCard
@@ -328,6 +342,11 @@ static func build(
 
 	# 布局完成后刷新瞄准线锚点（敌人 HUD 实际全局坐标）
 	_refresh_aim_anchors(aim_line, refs.enemy_panels)
+
+	# 底部呼吸空间：手牌（含扇形下沉）不贴屏幕底边
+	var bottom_pad := Control.new()
+	bottom_pad.custom_minimum_size = Vector2(0, 8)
+	main.add_child(bottom_pad)
 
 	# 战斗反馈：血条从上一帧数值过渡 + 受伤面板红闪（prev_hp 由 Main 快照提供）
 	_animate_hp(refs.player_panel, int(prev_hp.get("player", -1)), run_state.hp)
