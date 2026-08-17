@@ -399,6 +399,101 @@ static func card_button(
 	return button
 
 
+const PREVIEW_W := 190.0
+const PREVIEW_H := 250.0
+
+
+static func card_preview(card: CardData, rarity_dict: Dictionary, border_color: Color) -> PanelContainer:
+	# 悬停检视卡：悬停时在手牌上方显示的大卡（190×250），效果文本放大到 16px 保证可读性
+	var accent := GameTheme.card_type_color(card.type)
+	var style_map := GameTheme.card_type_style(card.type)
+	var preview := PanelContainer.new()
+	preview.custom_minimum_size = Vector2(PREVIEW_W, PREVIEW_H)
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = style_map.bg.darkened(0.15)
+	style.border_color = border_color
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	style.shadow_color = Color(0, 0, 0, 0.65)
+	style.shadow_size = 14
+	style.shadow_offset = Vector2(0, 8)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
+	preview.add_theme_stylebox_override("panel", style)
+
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.add_child(v)
+
+	# 顶行：大消耗圆环（32px）+ 卡名（18px 可换行）
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 8)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(top)
+	var cost_badge := PanelContainer.new()
+	cost_badge.custom_minimum_size = Vector2(32, 32)
+	cost_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var cost_style := StyleBoxFlat.new()
+	cost_style.bg_color = Color("#16130f")
+	cost_style.border_color = GameTheme.GOLD
+	cost_style.set_border_width_all(2)
+	cost_style.set_corner_radius_all(16)
+	cost_badge.add_theme_stylebox_override("panel", cost_style)
+	var cost_label := Label.new()
+	cost_label.text = str(card.cost)
+	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cost_label.add_theme_font_size_override("font_size", 18)
+	cost_label.add_theme_color_override("font_color", GameTheme.GOLD)
+	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cost_badge.add_child(cost_label)
+	top.add_child(cost_badge)
+	var name_label := Label.new()
+	name_label.text = card.name
+	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_color_override("font_color", Color("#f0e5cd"))
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(name_label)
+
+	# 类型 + 集中 + 稀有度（13px）
+	var type_row := HBoxContainer.new()
+	type_row.add_theme_constant_override("separation", 8)
+	type_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(type_row)
+	var type_label := Label.new()
+	type_label.text = "%s · 集中 %d" % [card.type, card.cost]
+	type_label.add_theme_font_size_override("font_size", 13)
+	type_label.add_theme_color_override("font_color", accent.lightened(0.3))
+	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	type_row.add_child(type_label)
+	var rarity_tag := Label.new()
+	rarity_tag.text = str(rarity_dict.get("label", ""))
+	rarity_tag.add_theme_font_size_override("font_size", 13)
+	rarity_tag.add_theme_color_override("font_color", rarity_dict.get("color", GameTheme.TEXT_MUTED))
+	rarity_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	type_row.add_child(rarity_tag)
+
+	# 效果正文：16px 自动换行 —— 检视卡的核心价值（决策信息清晰可读）
+	var effect := RichTextLabel.new()
+	effect.bbcode_enabled = true
+	effect.fit_content = true
+	effect.scroll_active = false
+	effect.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	effect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	effect.add_theme_font_size_override("normal_font_size", 16)
+	effect.add_theme_color_override("default_color", GameTheme.TEXT)
+	effect.text = emphasize_numbers(card.text)
+	v.add_child(effect)
+	return preview
+
+
 # ---------- 战斗 UI 重构（游戏化） ----------
 
 static func _num_regex() -> RegEx:

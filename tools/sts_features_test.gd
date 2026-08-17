@@ -71,6 +71,12 @@ func _initialize() -> void:
 	if c.z_index < 10:
 		_fail("hover lift z_index not raised")
 		return
+	# 5) 悬停检视大卡：悬停后应出现 190×250 预览卡（效果文本可读性）
+	var preview := _find_preview_panel(refs.root)
+	if preview == null:
+		_fail("hover preview card missing")
+		return
+	print("hover preview OK")
 	c.mouse_exited.emit()
 	await create_timer(0.25).timeout
 	print("card hover lift OK (scale %.2f -> restoring)" % c.scale.x)
@@ -119,6 +125,16 @@ func _find_drag_cards(node: Node) -> Array:
 		for c in found:
 			out.append(c)
 	return out
+
+func _find_preview_panel(node: Node) -> PanelContainer:
+	if node is PanelContainer and (node as PanelContainer).custom_minimum_size == Vector2(190, 250):
+		return node as PanelContainer
+	for child in node.get_children():
+		var found := _find_preview_panel(child)
+		if found != null:
+			return found
+	return null
+
 
 func _fail(msg: String) -> void:
 	push_error(msg)

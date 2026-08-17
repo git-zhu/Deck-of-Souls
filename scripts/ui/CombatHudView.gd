@@ -256,6 +256,14 @@ static func build(
 	refs.hand_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	hand_scroll.add_child(refs.hand_row)
 
+	# 悬停检视大卡宿主：top_level 脱离 VBox 布局，悬停时手动定位到手牌上方
+	var preview_host := Control.new()
+	preview_host.top_level = true
+	preview_host.z_index = 60
+	preview_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview_host.visible = false
+	main.add_child(preview_host)
+
 	# 手牌卡：连接拖拽信号到瞄准线
 	for i in range(run_state.hand.size()):
 		var card_id: String = run_state.hand[i]
@@ -270,6 +278,7 @@ static func build(
 				on_play_card.bind(i)
 			)
 			refs.hand_row.add_child(card_btn)
+			_wire_hover_preview(card_btn, card_data, preview_host)
 			if card_btn is DragCard:
 				var dc := card_btn as DragCard
 				dc.drag_started.connect(func(_idx: int, from_g: Vector2) -> void:
@@ -318,6 +327,43 @@ static func build(
 			_animate_hp(refs.enemy_panels[ei], int(prev_hp.get("enemy_%d" % ei, -1)), int(e.hp))
 
 	return refs
+
+
+static func _wire_hover_preview(card_btn: Button, card: CardData, host: Control) -> void:
+	# 悬停 → 显示检视大卡；离开/拖拽 → 收起（DragCard 内部另有 lift，二者互不冲突）
+	card_btn.mouse_entered.connect(func() -> void:
+		_show_card_preview(host, card, card_btn)
+	)
+	card_btn.mouse_exited.connect(func() -> void:
+		host.visible = false
+	)
+	if card_btn is DragCard:
+		(card_btn as DragCard).drag_started.connect(func(_idx: int, _from: Vector2) -> void:
+			host.visible = false
+		)
+
+
+static func _show_card_preview(host: Control, card: CardData, source: Control) -> void:
+	for child in host.get_children():
+		child.queue_free()
+	var rarity_dict: Dictionary = UiBuilders.rarity_meta(card.rarity)
+	var accent := GameTheme.card_type_color(card.type)
+	var border_color: Color = accent.lightened(0.15)
+	if rarity_dict.get("border_only", false):
+		border_color = rarity_dict.color
+	var preview := UiBuilders.card_preview(card, rarity_dict, border_color)
+	host.add_child(preview)
+	preview.set_anchors_preset(Control.PRESET_FULL_RECT)
+	host.size = Vector2(UiBuilders.PREVIEW_W, UiBuilders.PREVIEW_H)
+	# 定位：悬停卡正上方居中（底边距卡顶 10px），水平方向夹在屏幕内
+	var src_rect := source.get_global_rect()
+	var vp_w: float = host.get_viewport_rect().size.x
+	var px := clampf(src_rect.get_center().x - UiBuilders.PREVIEW_W * 0.5, 12.0, vp_w - UiBuilders.PREVIEW_W - 12.0)
+	var py := src_rect.position.y - UiBuilders.PREVIEW_H - 10.0
+	if py < 8.0:
+		py = 8.0
+	host.position = Vector2(px, py)
+	host.visible = true
 
 
 static func _find_progress_bar(node: Node) -> ProgressBar:
