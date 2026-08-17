@@ -85,37 +85,40 @@ static func build(
 	stage_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_row.add_child(stage_spacer)
 
-	# 右侧：敌方意图胶囊（状态框正上方，小体积不遮挡）+ 敌人 HUD 组
-	var enemy_side := VBoxContainer.new()
-	enemy_side.add_theme_constant_override("separation", 6)
-	enemy_side.size_flags_horizontal = Control.SIZE_SHRINK_END
-	top_row.add_child(enemy_side)
-
-	var intent_panel := UiBuilders.intent_banner(
-		str(combat.enemy_intent.get("kind", "")),
-		combat.intent_text()
-	)
-	intent_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
-	enemy_side.add_child(intent_panel)
-	var intent_kind := str(combat.enemy_intent.get("kind", ""))
-	if intent_kind in ["attack", "attack_block", "attack_rot"]:
-		var pulse := intent_panel.create_tween().set_loops()
-		pulse.tween_property(intent_panel, "modulate", Color(1, 1, 1, 0.82), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		pulse.tween_property(intent_panel, "modulate", Color(1, 1, 1, 1), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		intent_panel.tree_exiting.connect(func() -> void:
-			if pulse != null and pulse.is_valid():
-				pulse.kill()
-		)
-
-	# 敌人区：多敌人紧凑 HUD（每个含 DropZone 目标投放 + 瞄准线锚点）
+	# 右侧：敌人 HUD 组 —— 每个敌人头顶挂自己的意图胶囊（多敌人决策信息完整）
 	var enemy_area := HBoxContainer.new()
-	enemy_area.add_theme_constant_override("separation", 10)
+	enemy_area.add_theme_constant_override("separation", 14)
 	enemy_area.size_flags_horizontal = Control.SIZE_SHRINK_END
-	enemy_side.add_child(enemy_area)
+	enemy_area.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	top_row.add_child(enemy_area)
+
+	# 多敌人（≥3）压缩 HUD，避免横向溢出
+	var many := combat.enemies.size() >= 3
 
 	for ei in range(combat.enemies.size()):
 		var e: Dictionary = combat.enemies[ei]
 		var is_target := ei == combat.target_index
+
+		var e_col := VBoxContainer.new()
+		e_col.add_theme_constant_override("separation", 5)
+		e_col.size_flags_vertical = Control.SIZE_SHRINK_END
+		enemy_area.add_child(e_col)
+
+		# 敌人专属意图胶囊（仅选中目标保留"敌方意图"标签，其余省略冗余文案）
+		var e_intent: Dictionary = e.get("_intent", {})
+		var e_kind := str(e_intent.get("kind", ""))
+		var e_intent_panel := UiBuilders.intent_banner(e_kind, combat.intent_text_for(e), is_target)
+		e_intent_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		e_col.add_child(e_intent_panel)
+		if e_kind in ["attack", "attack_block", "attack_rot"]:
+			var pulse := e_intent_panel.create_tween().set_loops()
+			pulse.tween_property(e_intent_panel, "modulate", Color(1, 1, 1, 0.82), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			pulse.tween_property(e_intent_panel, "modulate", Color(1, 1, 1, 1), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			e_intent_panel.tree_exiting.connect(func() -> void:
+				if pulse != null and pulse.is_valid():
+					pulse.kill()
+			)
+
 		var e_panel := UiBuilders.compact_fighter_hud(
 			str(e.name),
 			int(e.hp),
@@ -133,10 +136,13 @@ static func build(
 			int(e.stance_now),
 			int(e.stance_max)
 		)
+		if many:
+			e_panel.custom_minimum_size = Vector2(180, 108)
 		e_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		if is_target:
 			e_panel.modulate = Color(1.06, 1.0, 0.85, 1.0)
-		enemy_area.add_child(e_panel)
+		e_col.add_child(e_panel)
+		refs.enemy_panels[ei] = e_panel
 		# 每个敌人一个投放目标（target_id = "enemy_i"，供 Main 指定目标出牌）
 		var zone := DropZone.new()
 		zone.setup("enemy_%d" % ei, _make_drop_handler(on_play_card))
@@ -302,15 +308,15 @@ static func build(
 	)
 
 	# 布局完成后刷新瞄准线锚点（敌人 HUD 实际全局坐标）
-	_refresh_aim_anchors(aim_line, enemy_area)
+	_refresh_aim_anchors(aim_line, refs.enemy_panels)
 
 	return refs
 
 
-static func _refresh_aim_anchors(aim_line: TargetingLine, enemy_area: HBoxContainer) -> void:
+static func _refresh_aim_anchors(aim_line: TargetingLine, panels: Dictionary) -> void:
 	# 布局后敌人面板有实际坐标；此处立即读取（build 返回前 children 已在树中）
-	for child in enemy_area.get_children():
-		var zone := child as PanelContainer
+	for key in panels:
+		var zone := panels[key] as PanelContainer
 		if zone == null:
 			continue
 		for sub in zone.get_children():

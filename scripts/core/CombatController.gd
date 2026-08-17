@@ -403,20 +403,27 @@ func _choose_one_intent(e: Dictionary) -> void:
 
 
 func intent_text() -> String:
-	var label: String = str(enemy_intent.get("text", "凝视"))
-	match enemy_intent.get("kind", ""):
+	return intent_text_for(_current_enemy())
+
+
+# 任意敌人实例的意图描述（多敌人：每个敌人头顶各自展示）
+func intent_text_for(e: Dictionary) -> String:
+	var it: Dictionary = e.get("_intent", {})
+	var label: String = str(it.get("text", "凝视"))
+	var atk: int = int(it.get("value", 0)) + int(e.get("strength", 0))
+	match str(it.get("kind", "")):
 		"attack":
-			return "%s，攻击 %d x%d" % [label, enemy_intent.value + int(enemy.get("strength", 0)), enemy_intent.get("hits", 1)]
+			return "%s，攻击 %d x%d" % [label, atk, int(it.get("hits", 1))]
 		"attack_block":
-			return "%s，攻击 %d，护甲 %d" % [label, enemy_intent.value + int(enemy.get("strength", 0)), enemy_intent.block]
+			return "%s，攻击 %d，护甲 %d" % [label, atk, int(it.get("block", 0))]
 		"debuff":
-			return "%s，施加易伤 %d" % [label, enemy_intent.vulnerable]
+			return "%s，施加易伤 %d" % [label, int(it.get("vulnerable", 0))]
 		"buff":
-			return "%s，力量 +%d" % [label, enemy_intent.strength]
+			return "%s，力量 +%d" % [label, int(it.get("strength", 0))]
 		"rot":
-			return "%s，腐败 +%d" % [label, enemy_intent.value]
+			return "%s，腐败 +%d" % [label, int(it.get("value", 0))]
 		"attack_rot":
-			return "%s，攻击 %d，腐败 +%d" % [label, enemy_intent.value + int(enemy.get("strength", 0)), enemy_intent.rot]
+			return "%s，攻击 %d，腐败 +%d" % [label, atk, int(it.get("rot", 0))]
 	return label
 
 

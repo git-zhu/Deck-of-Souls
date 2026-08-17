@@ -554,7 +554,7 @@ static func status_chip(text: String, color: Color, icon_path: String = "") -> P
 	return chip
 
 
-static func intent_banner(intent_kind: String, intent_text: String) -> PanelContainer:
+static func intent_banner(intent_kind: String, intent_text: String, show_tag: bool = true) -> PanelContainer:
 	# 敌方意图：小型胶囊提示（置于敌方状态框正上方，不遮挡玩家/敌人状态文本）
 	var accent := GameTheme.intent_color(intent_kind)
 	var panel_node := PanelContainer.new()
@@ -580,11 +580,12 @@ static func intent_banner(intent_kind: String, intent_text: String) -> PanelCont
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	panel_node.add_child(row)
 
-	var tag := Label.new()
-	tag.text = "敌方意图"
-	tag.add_theme_font_size_override("font_size", 12)
-	tag.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
-	row.add_child(tag)
+	if show_tag:
+		var tag := Label.new()
+		tag.text = "敌方意图"
+		tag.add_theme_font_size_override("font_size", 12)
+		tag.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+		row.add_child(tag)
 
 	# 意图图标：固定 16px 的 Kenney PNG（语义色调色）
 	var icon_path := _intent_icon_path(intent_kind)
