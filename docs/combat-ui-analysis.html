@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>战斗UI布局对比分析</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", system-ui, sans-serif; background: #1a1a2e; color: #e0d8c8; padding: 32px; }
+  h1 { text-align: center; margin-bottom: 8px; font-size: 28px; color: #d4a853; }
+  .subtitle { text-align: center; color: #8a8070; margin-bottom: 32px; font-size: 14px; }
+  .section { margin-bottom: 48px; }
+  h2 { color: #d4a853; margin-bottom: 16px; font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+  .layout-box { background: #16213e; border: 1px solid #333; border-radius: 12px; padding: 24px; position: relative; }
+  .layout-box h3 { margin-bottom: 16px; font-size: 16px; }
+  .current h3 { color: #e07a5f; }
+  .sts h3 { color: #81b29a; }
+  /* Mini viewport 1280x720 → 640x360 scale */
+  .vp { width: 100%; max-width: 600px; aspect-ratio: 1280/720; border: 2px solid #444; border-radius: 8px; margin: 0 auto; position: relative; overflow: hidden; font-size: 8px; background: #0a0a1a; }
+  .vp .bar { position: absolute; display: flex; align-items: center; justify-content: center; font-size: 7px; white-space: nowrap; }
+  .vp .chip { display: inline-flex; align-items: center; padding: 2px 6px; margin: 1px; border-radius: 8px; font-size: 6px; white-space: nowrap; }
+  .vp .card-mini { display: inline-block; width: 18px; height: 24px; border-radius: 2px; margin: 0 1px; vertical-align: bottom; }
+  .vp .panel-mini { position: absolute; border-radius: 4px; border: 1px solid; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 6px; }
+  .vp .hp-bar { width: 80%; height: 3px; border-radius: 2px; background: #333; margin: 2px auto; }
+  .vp .hp-fill { height: 100%; border-radius: 2px; }
+
+  /* Layout labels */
+  .lbl-header { background: rgba(60,50,40,0.7); border: 1px solid #5a4a30; }
+  .lbl-topbar { background: rgba(40,50,60,0.7); border: 1px solid #3a5a7a; }
+  .lbl-stage { background: rgba(20,30,20,0.3); border: 1px dashed #2a4a2a; }
+  .lbl-hand { background: rgba(30,25,40,0.5); border: 1px solid #4a3a5a; }
+  .lbl-cta { background: rgba(80,30,30,0.6); border: 1px solid #8a3a3a; }
+  .lbl-enemy { background: rgba(60,30,20,0.7); border: 1px solid #8a5040; }
+  .lbl-player { background: rgba(20,40,60,0.7); border: 1px solid #4070a0; }
+  .lbl-log { background: rgba(40,40,30,0.5); border: 1px solid #5a5a3a; }
+  .lbl-energy { background: rgba(80,60,20,0.7); border: 2px solid #c8a030; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: #ffd700; font-weight: bold; }
+
+  /* Issues */
+  .issue-list { list-style: none; padding: 0; }
+  .issue-list li { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid; background: rgba(255,255,255,0.03); }
+  .issue-critical { border-left-color: #e74c3c; background: rgba(231,76,60,0.08); }
+  .issue-major { border-left-color: #f39c12; background: rgba(243,156,18,0.06); }
+  .issue-minor { border-left-color: #3498db; background: rgba(52,152,219,0.06); }
+  .issue-severity { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-right: 8px; }
+  .sev-critical { background: #e74c3c; color: white; }
+  .sev-major { background: #f39c12; color: #1a1a2e; }
+  .sev-minor { background: #3498db; color: white; }
+  .issue-title { font-weight: bold; margin-bottom: 4px; }
+  .issue-desc { color: #a09888; font-size: 13px; line-height: 1.5; }
+
+  /* Suggestion */
+  .suggestion { padding: 16px; margin-bottom: 12px; border-radius: 8px; background: rgba(129,178,154,0.08); border: 1px solid rgba(129,178,154,0.3); }
+  .suggestion h4 { color: #81b29a; margin-bottom: 8px; }
+  .suggestion p { color: #b0a898; font-size: 13px; line-height: 1.6; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #8a8070; }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 2px; border: 1px solid; }
+</style>
+</head>
+<body>
+
+<h1>🎮 战斗界面布局对比分析</h1>
+<p class="subtitle">当前 Deck of Souls vs 杀戮尖塔（Slay the Spire）品类参考标准 · 1280×720 视口</p>
+
+<div class="section">
+<h2>一、布局可视化对比</h2>
+<div class="grid-2">
+
+<!-- Current Layout -->
+<div class="layout-box current">
+<h3>📌 当前布局（Deck of Souls）</h3>
+<div class="vp">
+  <!-- Header -->
+  <div class="bar lbl-header" style="top:0;left:0;right:0;height:8%;">
+    <span class="chip" style="background:#2a2010;border-color:#5a4020;">❤️ 100/100</span>
+    <span class="chip" style="background:#1a2a1a;border-color:#3a5a3a;">🏺 2/3</span>
+    <span class="chip" style="background:#2a2010;border-color:#5a4020;">✨ 15</span>
+    <span class="chip" style="background:#2a2010;border-color:#5a4020;">📚 28</span>
+    <span style="flex:1"></span>
+    <span class="chip" style="background:#3a2a10;border-color:#6a5020;">宁姆格福 · 1/4</span>
+  </div>
+  <!-- Top bar -->
+  <div class="bar lbl-topbar" style="top:8%;left:0;right:0;height:7%;justify-content:center;">
+    <span class="chip" style="background:#1c1812;border-color:#5a5030;margin-right:8px;">回合 3</span>
+    <span class="lbl-energy">3</span>
+    <span style="font-size:6px;color:#888;margin-left:4px;">/3</span>
+  </div>
+  <!-- Stage -->
+  <div class="lbl-stage" style="top:15%;left:3%;right:3%;bottom:32%;">
+    <!-- Enemy panels -->
+    <div class="panel-mini lbl-enemy" style="top:5%;left:35%;width:18%;height:35%;">
+      <span style="color:#e07a6a;">⚔️ 攻击 8</span>
+      <span style="color:#aaa;">玛尔基特</span>
+      <div class="hp-bar"><div class="hp-fill" style="width:60%;background:#b8503f;"></div></div>
+      <span style="color:#fff;">142/240</span>
+    </div>
+    <!-- Drop zone gap -->
+    <div style="position:absolute;top:45%;left:0;right:0;height:15%;display:flex;align-items:center;justify-content:center;">
+      <span style="color:#2a4a2a;font-size:7px;">▼ 投放区 ▼</span>
+    </div>
+    <!-- Player panel -->
+    <div class="panel-mini lbl-player" style="bottom:5%;left:30%;width:25%;height:30%;">
+      <span style="color:#4070a0;">🛡️ 5</span>
+      <span style="color:#e4c06d;">褪色者</span>
+      <div class="hp-bar"><div class="hp-fill" style="width:80%;background:#4a9a6a;"></div></div>
+      <span style="color:#fff;">100/100</span>
+    </div>
+    <!-- Log -->
+    <div class="lbl-log" style="position:absolute;left:2%;top:10%;bottom:10%;width:2%;display:flex;align-items:center;padding:2px;">
+      <span style="color:#5a5a3a;writing-mode:vertical-rl;">日志◂</span>
+    </div>
+  </div>
+  <!-- Hand area -->
+  <div class="lbl-hand" style="bottom:7%;left:3%;right:3%;height:12%;">
+    <div style="display:flex;align-items:center;height:100%;padding:2px 8px;">
+      <span class="chip" style="background:#1f3a24;border-color:#3a6a3a;">🏺 圣杯瓶</span>
+      <span class="chip" style="background:#1c1812;border-color:#4a4030;margin:0 4px;">📥 18</span>
+      <div style="flex:1;display:flex;align-items:flex-end;justify-content:center;gap:1px;">
+        <span class="card-mini" style="background:#3a2a1a;border:1px solid #6a5030;"></span>
+        <span class="card-mini" style="background:#2a3a1a;border:1px solid #4a6a30;margin-left:-4px;"></span>
+        <span class="card-mini" style="background:#3a2a2a;border:1px solid #6a3030;margin-left:-4px;"></span>
+        <span class="card-mini" style="background:#2a2a3a;border:1px solid #304060;margin-left:-4px;"></span>
+        <span class="card-mini" style="background:#3a2a1a;border:1px solid #6a5030;margin-left:-4px;"></span>
+      </div>
+      <span class="chip" style="background:#1c1812;border-color:#4a4030;margin:0 4px;">📤 5</span>
+      <span class="chip" style="background:#1c1812;border-color:#4a4030;">🗑 2</span>
+    </div>
+  </div>
+  <!-- End turn CTA -->
+  <div class="bar lbl-cta" style="bottom:0;left:0;right:0;height:6%;">
+    <span style="padding:3px 20px;border-radius:4px;font-size:8px;font-weight:bold;color:#f0d090;">结束回合 [E]</span>
+  </div>
+</div>
+<div class="legend">
+  <span class="legend-item"><span class="legend-swatch lbl-header"></span>全局Header</span>
+  <span class="legend-item"><span class="legend-swatch lbl-topbar"></span>回合/能量</span>
+  <span class="legend-item"><span class="legend-swatch lbl-stage"></span>战斗舞台</span>
+  <span class="legend-item"><span class="legend-swatch lbl-enemy"></span>敌人面板</span>
+  <span class="legend-item"><span class="legend-swatch lbl-player"></span>玩家面板</span>
+  <span class="legend-item"><span class="legend-swatch lbl-hand"></span>手牌区</span>
+  <span class="legend-item"><span class="legend-swatch lbl-cta"></span>结束回合CTA</span>
+</div>
+</div>
+
+<!-- StS Reference Layout -->
+<div class="layout-box sts">
+<h3>🏔️ 杀戮尖塔布局（品类参考标准）</h3>
+<div class="vp">
+  <!-- Resource bar (single row) -->
+  <div class="bar" style="top:0;left:0;right:0;height:7%;background:rgba(20,15,10,0.8);border-bottom:1px solid #4a3a20;">
+    <span class="chip" style="background:#2a1a1a;border-color:#6a3030;">❤️ 100/100</span>
+    <span class="chip" style="background:#1a2a3a;border-color:#305060;">🛡️ 5</span>
+    <span style="flex:1;display:flex;justify-content:center;">
+      <span class="lbl-energy" style="width:18px;height:18px;">3</span>
+    </span>
+    <span class="chip" style="background:#2a2a1a;border-color:#5a5030;">回合 3</span>
+    <span class="chip" style="background:#1c1812;border-color:#4a4030;margin-left:4px;">📥 18</span>
+    <span class="chip" style="background:#1c1812;border-color:#4a4030;">📤 5</span>
+  </div>
+  <!-- Enemy area (center-top) -->
+  <div class="panel-mini lbl-enemy" style="top:12%;left:38%;width:24%;height:38%;background:rgba(60,30,20,0.5);">
+    <span style="color:#e07a6a;font-size:7px;">⚔️ 攻击 8</span>
+    <div style="width:40px;height:40px;border-radius:50%;background:rgba(80,40,20,0.6);margin:4px;"></div>
+    <div class="hp-bar" style="width:60%;"><div class="hp-fill" style="width:60%;background:#b8503f;"></div></div>
+    <span style="color:#fff;">142/240</span>
+  </div>
+  <!-- Player area (left) -->
+  <div class="panel-mini lbl-player" style="top:20%;left:4%;width:16%;height:30%;">
+    <div style="width:30px;height:30px;border-radius:50%;background:rgba(20,50,80,0.6);margin:2px;"></div>
+    <span style="color:#e4c06d;">褪色者</span>
+  </div>
+  <!-- Hand -->
+  <div style="position:absolute;bottom:10%;left:10%;right:10%;height:22%;display:flex;align-items:flex-end;justify-content:center;gap:-6px;">
+    <span class="card-mini" style="background:#3a2a1a;border:1px solid #6a5030;width:28px;height:36px;transform:rotate(-8deg);"></span>
+    <span class="card-mini" style="background:#2a3a1a;border:1px solid #4a6a30;width:28px;height:36px;transform:rotate(-4deg);margin-left:-10px;"></span>
+    <span class="card-mini" style="background:#3a2a2a;border:1px solid #6a3030;width:28px;height:36px;transform:rotate(0deg);margin-left:-10px;"></span>
+    <span class="card-mini" style="background:#2a2a3a;border:1px solid #304060;width:28px;height:36px;transform:rotate(4deg);margin-left:-10px;"></span>
+    <span class="card-mini" style="background:#3a2a1a;border:1px solid #6a5030;width:28px;height:36px;transform:rotate(8deg);margin-left:-10px;"></span>
+  </div>
+  <!-- End turn + flask (bottom bar) -->
+  <div class="bar" style="bottom:0;left:0;right:0;height:8%;background:rgba(20,15,10,0.8);border-top:1px solid #4a3a20;">
+    <span class="chip" style="background:#1f3a24;border-color:#3a6a3a;">🏺 圣杯瓶 ×2</span>
+    <span style="flex:1"></span>
+    <span class="chip" style="background:#5c1e1e;border-color:#c8a030;padding:4px 16px;font-size:7px;color:#f0d090;">结束回合 [E]</span>
+    <span style="flex:1"></span>
+    <span class="chip" style="background:#2a2010;border-color:#5a4020;">🗑 2</span>
+  </div>
+  <!-- Status icons (near player) -->
+  <div style="position:absolute;top:52%;left:6%;display:flex;flex-direction:column;gap:2px;">
+    <span class="chip" style="background:rgba(200,80,50,0.3);border-color:#c85030;font-size:5px;width:16px;text-align:center;">🔥3</span>
+  </div>
+</div>
+<div class="legend">
+  <span class="legend-item">StS 布局核心原则：资源单行 · 敌居中 · 玩在左 · 手牌底部居中 · CTA 底栏</span>
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="section">
+<h2>二、问题清单（按严重程度排列）</h2>
+<ul class="issue-list">
+
+<li class="issue-critical">
+  <span class="issue-severity sev-critical">严重</span>
+  <span class="issue-title">空间浪费：四层纵向分割挤压手牌区</span>
+  <div class="issue-desc">
+    当前布局从上到下分为 <b>Header → TopBar → Stage → Hand → CTA</b> 共 5 个纵向区块。
+    Header(46px) + TopBar(约 60px) + Stage(弹性) + Hand(约 160px) + CTA(约 80px) = 固定区域已占 ~346px，
+    实际留给 Stage 战斗舞台的空间仅 ~280px（720-440）。<br>
+    <b>影响：</b>多敌人时面板重叠，玩家面板与手牌区视觉竞争。
+    结束回合按钮独占一行 (220×64)，在 720px 高度下浪费约 11% 的垂直空间。
+  </div>
+</li>
+
+<li class="issue-critical">
+  <span class="issue-severity sev-critical">严重</span>
+  <span class="issue-title">信息冗余：玩家生命重复显示在 Header 和 Stage 两个位置</span>
+  <div class="issue-desc">
+    <code>RunHeaderView</code> 的左侧 chip 显示 <b>生命 100/100</b>，同时 <code>stage_root</code> 底部 <code>player_panel</code> 又显示一遍完整的生命条/HP。<br>
+    <b>影响：</b>玩家扫描屏幕时需要决定"该看哪个数值"，增加认知负担。StS 只在一处显示玩家 HP（左上资源区），
+    战斗舞台只放敌人。
+  </div>
+</li>
+
+<li class="issue-major">
+  <span class="issue-severity sev-major">中等</span>
+  <span class="issue-title">玩家面板位置不合理：居中底部与手牌区竞争空间</span>
+  <div class="issue-desc">
+    当前玩家面板 (200×280) 在 <code>stage_root</code> 中 <b>水平居中、底部对齐</b>，直接压在即将出现的手牌区上方。<br>
+    <b>品类惯例：</b>StS 将玩家放在 <b>左下区域</b>（或简化为状态图标），把舞台中央留给敌人和特效。
+    玩家不需要巨大的立绘面板——玩家是"自己"，敌人的意图/姿态才是决策焦点。
+  </div>
+</li>
+
+<li class="issue-major">
+  <span class="issue-severity sev-major">中等</span>
+  <span class="issue-title">资源分散：能量球与回合数脱离主资源条</span>
+  <div class="issue-desc">
+    能量球 (58×58) 和回合数胶囊 (100×44) 放在独立的 <code>top_bar</code>，与 Header 的 HP/卢恩/瓶位物理分离。<br>
+    <b>品类惯例：</b>StS 将所有核心资源（HP、护甲、能量、回合、牌堆数、弃牌数）放在<b>同一行</b>。
+    玩家扫一眼即可获取完整决策信息。当前布局需要目光上下移动两次才能拼出资源状态。
+  </div>
+</li>
+
+<li class="issue-major">
+  <span class="issue-severity sev-major">中等</span>
+  <span class="issue-title">玩家面板过大 (200×280)，挤占舞台空间</span>
+  <div class="issue-desc">
+    玩家面板尺寸是敌人面板 (150-180 × 210-240) 的约 1.5 倍，且带有大幅立绘区、状态徽章行、血条。<br>
+    <b>问题根源：</b>玩家面板复用了与敌人相同的 <code>battle_entity_panel</code> 构建器，但玩家不需要意图横幅、
+    不需要姿态条、不需要大量状态展示（玩家状态可压缩为图标行贴在左侧）。
+  </div>
+</li>
+
+<li class="issue-minor">
+  <span class="issue-severity sev-minor">轻微</span>
+  <span class="issue-title">圣杯瓶按钮与手牌徽标混杂在 hand_band 中</span>
+  <div class="issue-desc">
+    圣杯瓶按钮 (132×54) 与抽牌/弃牌/消耗堆徽标 (52×44) 放在同一个 <code>HBoxContainer</code>，
+    视觉层级与手牌卡片混淆。圣杯瓶是 CTA 按钮而非信息徽标，应该与"结束回合"同属底部操作栏。
+  </div>
+</li>
+
+<li class="issue-minor">
+  <span class="issue-severity sev-minor">轻微</span>
+  <span class="issue-title">日志折叠按钮过于隐蔽，与战斗舞台割裂</span>
+  <div class="issue-desc">
+    日志默认折叠后只剩 24px 宽的窄条，在 <code>mid_area</code> 左侧。虽然"默认折叠"是正确的（交战区优先），
+    但折叠后与舞台之间没有明确的视觉分隔，容易误触。
+  </div>
+</li>
+
+</ul>
+</div>
+
+<div class="section">
+<h2>三、建议改进方案</h2>
+
+<div class="suggestion">
+  <h4>🔧 方案 A：StS 式单行资源条（推荐，改动最小）</h4>
+  <p>
+    <b>目标：</b>消除 TopBar 和独立 CTA 行，释放 ~140px 垂直空间给战斗舞台。<br><br>
+    <b>具体改动：</b><br>
+    1. 将 Header 改为战斗资源单行：[❤️ HP] [🛡️ 护甲] [⚡ 能量球] [回合] [📥 抽牌] [📤 弃牌]<br>
+    2. 将"结束回合"和"圣杯瓶"放入底部操作栏（hand_band 下方的一行，高度 ~50px）<br>
+    3. 移除 TopBar 和 CTA_band，Stage 区向下延伸<br>
+    4. 玩家面板简化为左侧紧凑状态列 (120px 宽)，去掉立绘区，只保留 HP 条 + 状态图标
+  </p>
+</div>
+
+<div class="suggestion">
+  <h4>🔧 方案 B：玩家左侧化（解决面板竞争）</h4>
+  <p>
+    <b>目标：</b>玩家不在舞台中央底部，避免与手牌区重叠。<br><br>
+    <b>具体改动：</b><br>
+    1. Stage 改为 HBox：左侧玩家紧凑面板 (120px) + 右侧敌人舞台 (弹性展开)<br>
+    2. 敌人保持水平排列居中<br>
+    3. 玩家面板高度缩减至 160px，仅显示立绘 + HP 条 + 状态图标行<br>
+    4. 掉落区从"舞台中间"改为"敌人面板本身"（已实现 DropZone）
+  </p>
+</div>
+
+<div class="suggestion">
+  <h4>🔧 方案 C：信息优先级重排</h4>
+  <p>
+    <b>目标：</b>消除重复信息，每类数据只出现一次。<br><br>
+    <b>优先级表：</b><br>
+    • HP / 护甲 → 资源单行左侧（不放在 Stage 玩家面板）<br>
+    • 能量 / 回合 → 资源单行居中<br>
+    • 牌堆数 → 资源单行右侧<br>
+    • 卢恩 / 瓶位 → 全局 Header 左侧（非战斗数据）<br>
+    • 大卢恩 / 癫火 → 全局 Header 右侧（仪式状态）<br>
+    • 敌人意图 → 敌人面板上方（已有，保持不变）<br>
+    • 玩家状态（腐败/出血等）→ 紧凑贴在资源条 HP 下方，不独立成面板
+  </p>
+</div>
+
+</div>
+
+<div class="section">
+<h2>四、目标布局线框</h2>
+<div class="layout-box" style="border-color: #81b29a;">
+<h3 style="color: #81b29a;">📐 建议布局（1280×720）</h3>
+<div class="vp" style="border-color: #81b29a;">
+  <!-- Global header (non-combat info) -->
+  <div class="bar" style="top:0;left:0;right:0;height:5%;background:rgba(20,15,10,0.6);border-bottom:1px solid #3a2a10;">
+    <span class="chip" style="background:#2a2010;border-color:#5a4020;font-size:6px;">✨ 卢恩 15</span>
+    <span class="chip" style="background:#2a1a1a;border-color:#5a3020;font-size:6px;">🏺 瓶 2/3</span>
+    <span style="flex:1;display:flex;justify-content:center;">
+      <span class="chip" style="background:#3a2a10;border-color:#6a5020;font-size:6px;">宁姆格福 · 3/4</span>
+    </span>
+    <span class="chip" style="background:#2a2010;border-color:#5a4020;font-size:6px;">📚 28</span>
+  </div>
+  <!-- Combat resource bar (single row!) -->
+  <div class="bar" style="top:5%;left:0;right:0;height:8%;background:rgba(25,20,12,0.9);border-bottom:2px solid #5a4a30;">
+    <span class="chip" style="background:#2a1a1a;border-color:#6a3030;">❤️ 100/100</span>
+    <span class="chip" style="background:#1a2a3a;border-color:#305060;">🛡️ 5</span>
+    <span style="flex:1;display:flex;justify-content:center;align-items:center;gap:4px;">
+      <span class="lbl-energy" style="width:24px;height:24px;font-size:10px;">3</span>
+      <span style="color:#aaa;font-size:6px;">/3</span>
+      <span style="color:#888;font-size:6px;margin-left:8px;">回合 3</span>
+    </span>
+    <span class="chip" style="background:#1c1812;border-color:#4a4030;">📥 18</span>
+    <span class="chip" style="background:#1c1812;border-color:#4a4030;">📤 5</span>
+  </div>
+  <!-- Combat stage -->
+  <div style="position:absolute;top:13%;left:2%;right:2%;bottom:35%;background:rgba(10,10,20,0.3);border:1px dashed #2a3a2a;border-radius:6px;">
+    <!-- Player (compact, left) -->
+    <div class="panel-mini lbl-player" style="top:15%;left:2%;width:12%;height:55%;background:rgba(20,40,60,0.4);border-width:1px;">
+      <div style="width:28px;height:28px;border-radius:50%;background:rgba(30,60,100,0.5);margin:2px auto;"></div>
+      <div class="hp-bar" style="width:70%;"><div class="hp-fill" style="width:80%;background:#4a9a6a;"></div></div>
+      <div style="display:flex;flex-direction:column;gap:1px;align-items:center;margin-top:2px;">
+        <span class="chip" style="background:rgba(200,80,50,0.2);border-color:#c85030;font-size:5px;width:18px;text-align:center;">🔥3</span>
+      </div>
+    </div>
+    <!-- Enemies (center) -->
+    <div class="panel-mini lbl-enemy" style="top:8%;left:30%;width:22%;height:50%;background:rgba(60,30,20,0.4);">
+      <span style="color:#e07a6a;font-size:7px;">⚔️ 攻击 8</span>
+      <div style="width:44px;height:44px;border-radius:50%;background:rgba(80,40,20,0.5);margin:3px;"></div>
+      <div class="hp-bar"><div class="hp-fill" style="width:60%;background:#b8503f;"></div></div>
+      <span style="color:#e4c06d;font-size:6px;">玛尔基特</span>
+      <span style="color:#fff;font-size:6px;">142/240</span>
+    </div>
+    <!-- Player card -->
+    <span style="position:absolute;bottom:10%;right:48%;font-size:7px;color:#4070a0;">🃏 打出</span>
+    <!-- Enemy card -->
+    <span style="position:absolute;top:60%;left:50%;font-size:7px;color:#e07a6a;">💥 受击</span>
+  </div>
+  <!-- Hand -->
+  <div style="position:absolute;bottom:12%;left:5%;right:5%;height:20%;display:flex;align-items:flex-end;justify-content:center;">
+    <span class="card-mini" style="background:#3a2a1a;border:1px solid #6a5030;width:24px;height:32px;transform:rotate(-8deg);"></span>
+    <span class="card-mini" style="background:#2a3a1a;border:1px solid #4a6a30;width:24px;height:32px;transform:rotate(-4deg);margin-left:-8px;"></span>
+    <span class="card-mini" style="background:#3a2a2a;border:1px solid #6a3030;width:24px;height:32px;transform:rotate(0deg);margin-left:-8px;"></span>
+    <span class="card-mini" style="background:#2a2a3a;border:1px solid #304060;width:24px;height:32px;transform:rotate(4deg);margin-left:-8px;"></span>
+    <span class="card-mini" style="background:#3a2a1a;border:1px solid #6a5030;width:24px;height:32px;transform:rotate(8deg);margin-left:-8px;"></span>
+  </div>
+  <!-- Bottom CTA bar -->
+  <div class="bar" style="bottom:0;left:0;right:0;height:10%;background:rgba(20,15,10,0.9);border-top:2px solid #5a4a30;">
+    <span class="chip" style="background:#1f3a24;border-color:#3a6a3a;padding:4px 12px;font-size:7px;">🏺 圣杯瓶 ×2</span>
+    <span style="flex:1"></span>
+    <span style="padding:4px 24px;border-radius:6px;background:#5c1e1e;border:2px solid #c8a030;font-size:9px;color:#f0d090;font-weight:bold;">结束回合 [E]</span>
+    <span style="flex:1"></span>
+    <span class="chip" style="background:#1c1812;border-color:#4a4030;">🗑 2</span>
+  </div>
+</div>
+<div class="legend">
+  <span class="legend-item">对比当前：纵向区块从 5 层减少到 4 层，释放 ~140px 给战斗舞台</span>
+  <span class="legend-item">|</span>
+  <span class="legend-item">玩家面板从居中 200×280 缩减为左侧 12% 宽度</span>
+</div>
+</div>
+</div>
+
+</body>
+</html>
