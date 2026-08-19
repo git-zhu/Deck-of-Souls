@@ -84,8 +84,9 @@ var flask_button: Button
 var deck_button: Button
 var menu_button: Button
 var pause_overlay: Control
-# 战斗反馈：上一帧血量快照（血条过渡用）+ 上一回合数（回合横幅用）
+# 战斗反馈：上一帧血量快照（血条过渡用）+ 上一帧状态快照（图标飘字用）+ 上一回合数（回合横幅用）
 var _last_hp_snapshot: Dictionary = {}
+var _last_status_snapshot: Dictionary = {}
 var _prev_turn: int = 0
 
 func _ready() -> void:
@@ -180,9 +181,17 @@ func _new_layer(parent: Control) -> Control:
 func _load_bg(kind: String) -> Texture2D:
 	match kind:
 		"combat":
-			return load("res://assets/bg_combat.svg") as Texture2D
+			return load("res://assets/bg_combat.png") as Texture2D
+		"map":
+			return load("res://assets/bg_map.png") as Texture2D
+		"origin":
+			return load("res://assets/bg_origin.png") as Texture2D
+		"reward":
+			return load("res://assets/bg_reward.png") as Texture2D
+		"title":
+			return load("res://assets/bg_title.png") as Texture2D
 		_:
-			return load("res://assets/bg_elden.svg") as Texture2D
+			return load("res://assets/bg_title.png") as Texture2D
 
 
 func _show_ai_overlay(kind: String) -> void:
@@ -262,7 +271,7 @@ func _hide_layers() -> void:
 func _present_reward_layer(root: Control) -> void:
 	screen = GameScreen.REWARD
 	_hide_layers()
-	_show_bg("bg_elden")
+	_show_bg("reward")
 	reward_layer.visible = true
 	_clear(reward_layer)
 	_build_header()
@@ -281,7 +290,7 @@ func _show_title() -> void:
 	_hide_pause_menu()
 	screen = GameScreen.TITLE
 	_hide_layers()
-	_show_bg("bg_elden")
+	_show_bg("title")
 	title_layer.visible = true
 	_clear(title_layer)
 	var has_save := RunSaveService.has_save()
@@ -323,7 +332,7 @@ func _show_origin() -> void:
 	pending_vow = 0
 	pending_challenge = 0
 	_hide_layers()
-	_show_bg("bg_elden")
+	_show_bg("origin")
 	title_layer.visible = true
 	_clear(title_layer)
 	_build_header()
@@ -410,7 +419,7 @@ func _show_map() -> void:
 func _enter_map_layer(content: Control) -> void:
 	screen = GameScreen.MAP
 	_hide_layers()
-	_show_bg("bg_elden")
+	_show_bg("map")
 	map_layer.visible = true
 	_clear(map_layer)
 	_build_header()
@@ -448,6 +457,7 @@ func _begin_combat(template: Dictionary) -> void:
 	screen = GameScreen.COMBAT
 	_log_reset()
 	_last_hp_snapshot = {}
+	_last_status_snapshot = {}
 	_prev_turn = 0
 	combat.start_combat(template)
 	_render_combat()
@@ -477,7 +487,8 @@ func _render_combat() -> void:
 		combat.use_flask,
 		_end_player_turn,
 		_last_hp_snapshot,
-		_show_pile
+		_show_pile,
+		_last_status_snapshot
 	)
 	combat_layer.add_child(refs.root)
 	if not combat.break_choice.is_empty():
@@ -489,6 +500,7 @@ func _render_combat() -> void:
 	flask_button = refs.flask_button
 	end_turn_button = refs.end_turn_button
 	_last_hp_snapshot = _snapshot_hp()
+	_last_status_snapshot = _snapshot_status()
 	_spawn_fx_next_frame(refs)
 	_animate_layer(combat_layer)
 	_focus_first_button(combat_layer)
@@ -558,6 +570,28 @@ func _snapshot_hp() -> Dictionary:
 	return snap
 
 
+func _snapshot_status() -> Dictionary:
+	var snap := {}
+	if run_state == null or combat == null:
+		return snap
+	snap["player"] = {
+		"rot": run_state.player_rot,
+		"bleed": run_state.player_bleed,
+		"vulnerable": run_state.player_vulnerable,
+		"strength": run_state.player_strength,
+	}
+	for ei in range(combat.enemies.size()):
+		var e: Dictionary = combat.enemies[ei]
+		snap["enemy_%d" % ei] = {
+			"rot": int(e.rot),
+			"bleed": int(e.bleed),
+			"vulnerable": int(e.vulnerable),
+			"strength": int(e.strength),
+			"break_open": 1 if bool(e.get("break_open", false)) else 0,
+		}
+	return snap
+
+
 func _spawn_fx_next_frame(refs: CombatHudRefs) -> void:
 	# 等一帧布局完成（面板有真实坐标）再生成飘字；层已切换则放弃
 	await get_tree().process_frame
@@ -581,13 +615,19 @@ func _consume_combat_fx(refs: CombatHudRefs) -> void:
 		match kind:
 			"damage":
 				var col := Color("#ff6a58") if target == "player" else Color("#ffd27a")
-				FloatingText.spawn(combat_layer, "-%d" % value, at, col, 24)
+				# 大数字暴击：根据伤害值分层字号
+				var font_size := 22
+				if value >= 10:
+					font_size = 38
+				elif value >= 5:
+					font_size = 28
+				FloatingText.spawn(combat_layer, "-%d" % value, at, col, font_size)
 			"block_hit":
 				FloatingText.spawn(combat_layer, "格挡 %d" % value, at + Vector2(0, 22), Color("#8fd9de"), 16)
 			"block_gain":
 				FloatingText.spawn(combat_layer, "+%d 护甲" % value, at, Color("#8fd9de"), 18)
 			"heal":
-				FloatingText.spawn(combat_layer, "+%d" % value, at, Color("#8ade9a"), 22)
+				FloatingText.spawn(combat_layer, "+%d" % value, at, Color("#8ade9a"), 24)
 	# 回合推进横幅（首回合不弹；战斗已结束时不弹）
 	if combat.turn > _prev_turn and _prev_turn > 0 and not combat.combat_over:
 		FloatingText.spawn_banner(combat_layer, "回合 %d" % combat.turn)
@@ -728,7 +768,7 @@ func _show_game_over() -> void:
 	GameAudio.play(self, "defeat")
 	screen = GameScreen.GAME_OVER
 	_hide_layers()
-	_show_bg("bg_elden")
+	_show_bg("title")
 	end_layer.visible = true
 	_clear(end_layer)
 	end_layer.add_child(EndScreenView.build_game_over(_show_origin))
@@ -741,7 +781,7 @@ func _show_victory() -> void:
 	GameAudio.play(self, "victory")
 	screen = GameScreen.VICTORY
 	_hide_layers()
-	_show_bg("bg_elden")
+	_show_bg("title")
 	end_layer.visible = true
 	_clear(end_layer)
 	end_layer.add_child(

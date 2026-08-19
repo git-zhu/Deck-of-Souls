@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="OriginData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="OriginData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://data/OriginData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/origins/wretch_portrait.png" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -12,6 +13,7 @@ flasks = 3
 stats = "全属性 10"
 equipment = "棍棒"
 note = "几乎没有装备，只有均等属性和更多圣杯瓶。"
+portrait = ExtResource("2")
 deck = ["club", "club", "club", "club", "club", "crimson_flask", "crimson_flask"]
 attr_vigor = 10
 attr_strength = 10

@@ -220,9 +220,14 @@ func _enemy_to_dict(template: EnemyData, res_path: String = "") -> Dictionary:
 	var file_id := ""
 	if res_path != "":
 		file_id = res_path.get_file().get_basename()
+	# portrait 只存路径字符串，避免 JSON 存档序列化 Texture2D 失败
+	var portrait_path := ""
+	if template.portrait != null:
+		portrait_path = template.portrait.resource_path
 	return {
 		"file_id": file_id,
 		"name": template.name,
+		"portrait_path": portrait_path,
 		"max_hp": template.max_hp,
 		"stance": template.stance,
 		"souls": template.souls,

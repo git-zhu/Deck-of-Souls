@@ -101,6 +101,7 @@ static func run_to_dict(run: RunState) -> Dictionary:
 	return {
 		"run_seed": run.run_seed,
 		"origin_id": run.origin_id,
+		"player_portrait_path": run.player_portrait_path,
 		"hp": run.hp,
 		"max_hp": run.max_hp,
 		"flasks": run.flasks,
@@ -142,6 +143,7 @@ static func run_from_dict(run: RunState, data: Variant) -> void:
 	var d: Dictionary = data
 	run.run_seed = int(d.get("run_seed", 0))
 	run.origin_id = str(d.get("origin_id", "vagabond"))
+	run.player_portrait_path = str(d.get("player_portrait_path", ""))
 	run.hp = int(d.get("hp", run.max_hp))
 	run.max_hp = int(d.get("max_hp", run.hp))
 	run.flasks = int(d.get("flasks", 0))

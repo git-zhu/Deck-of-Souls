@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="OriginData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="OriginData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://data/OriginData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/origins/astrologer_portrait.png" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -12,6 +13,7 @@ flasks = 2
 stats = "集中 15 / 智力 16 / 灵巧 12"
 equipment = "辉石魔砾、辉石弯弧、短剑、观星杖"
 note = "依靠雷亚卢卡利亚的辉石魔法，用脆弱生命换取稳定输出。"
+portrait = ExtResource("2")
 deck = ["glintstone_pebble", "glintstone_pebble", "glintstone_pebble", "glintstone_arc", "longsword", "heater_shield", "magic_glintblade", "crimson_flask"]
 attr_vigor = 9
 attr_strength = 8

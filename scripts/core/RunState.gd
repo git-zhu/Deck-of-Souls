@@ -31,6 +31,7 @@ var relics: Array[String] = []
 var memory_stones: int = 0
 var weapons: Array[String] = []
 var weapon_levels: Dictionary = {}  # weapon_id -> 强化等级（随局存档，杜绝跨局串档）
+var player_portrait_path: String = ""
 
 # ── 属性加点（法环式）：基础属性 + 升级加点 ──
 var attrs := {
@@ -85,6 +86,10 @@ func advance_floor() -> void:
 func reset_for_origin(origin: OriginData, seed: int) -> void:
 	run_seed = seed
 	origin_id = origin.id
+	if origin.portrait != null:
+		player_portrait_path = origin.portrait.resource_path
+	else:
+		player_portrait_path = ""
 	max_hp = origin.max_hp
 	hp = max_hp
 	max_flasks = origin.flasks

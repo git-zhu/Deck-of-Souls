@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="OriginData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="OriginData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://data/OriginData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/origins/warrior_portrait.png" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -12,6 +13,7 @@ flasks = 2
 stats = "集中 12 / 耐力 11 / 灵巧 16"
 equipment = "双弯刀、铆钉木盾"
 note = "双刀连击最容易触发低费循环，但防线薄。"
+portrait = ExtResource("2")
 deck = ["scimitar", "scimitar", "scimitar", "scimitar", "buckler", "buckler", "bloodhounds_step", "crimson_flask"]
 attr_vigor = 11
 attr_strength = 10

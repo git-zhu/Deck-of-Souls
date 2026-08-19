@@ -12,6 +12,7 @@ extends Resource
 @export var stats: String
 @export var equipment: String
 @export var note: String
+@export var portrait: Texture2D
 
 @export_group("Attributes")
 @export var attr_vigor: int = 10

@@ -298,6 +298,33 @@ static func card_button(
 	v_margin.add_theme_constant_override("margin_bottom", 5)
 	v_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(v_margin)
+
+	if index < 9:
+		# 左下角快捷键角标：即使手牌层叠也能看清 1-8
+		var hotkey_badge := PanelContainer.new()
+		hotkey_badge.custom_minimum_size = Vector2(20, 20)
+		hotkey_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hotkey_badge.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+		hotkey_badge.position = Vector2(4, -4)
+		var badge_style := StyleBoxFlat.new()
+		badge_style.bg_color = style_map.badge_bg
+		badge_style.border_color = style_map.badge_border
+		badge_style.set_border_width_all(1)
+		badge_style.set_corner_radius_all(5)
+		badge_style.shadow_color = Color(0, 0, 0, 0.55)
+		badge_style.shadow_size = 2
+		badge_style.shadow_offset = Vector2(0, 1)
+		hotkey_badge.add_theme_stylebox_override("panel", badge_style)
+		var hotkey := Label.new()
+		hotkey.text = str(index + 1)
+		hotkey.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hotkey.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		hotkey.add_theme_font_size_override("font_size", 12)
+		hotkey.add_theme_color_override("font_color", style_map.badge_fg)
+		hotkey.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hotkey_badge.add_child(hotkey)
+		button.add_child(hotkey_badge)
+
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 4)
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -343,31 +370,16 @@ static func card_button(
 	name_label.add_theme_color_override("font_color", Color("#f0e5cd"))
 	top.add_child(name_label)
 
-	if index < 9:
-		# 右上角张数/快捷键角标：底色与文字随卡牌主题自动映射
-		# （金色牌 → 深褐底黄字；青色牌 → 深青底白字）
-		var hotkey_badge := PanelContainer.new()
-		hotkey_badge.custom_minimum_size = Vector2(20, 20)
-		hotkey_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var badge_style := StyleBoxFlat.new()
-		badge_style.bg_color = style_map.badge_bg
-		badge_style.border_color = style_map.badge_border
-		badge_style.set_border_width_all(1)
-		# 键帽造型（小圆角 + 底部投影）：与圆形消耗圆环区分"这是按键"
-		badge_style.set_corner_radius_all(5)
-		badge_style.shadow_color = Color(0, 0, 0, 0.55)
-		badge_style.shadow_size = 2
-		badge_style.shadow_offset = Vector2(0, 1)
-		hotkey_badge.add_theme_stylebox_override("panel", badge_style)
-		var hotkey := Label.new()
-		hotkey.text = str(index + 1)
-		hotkey.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hotkey.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		hotkey.add_theme_font_size_override("font_size", 12)
-		hotkey.add_theme_color_override("font_color", style_map.badge_fg)
-		hotkey.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		hotkey_badge.add_child(hotkey)
-		top.add_child(hotkey_badge)
+	# 卡牌插画区：优先展示 art，缺失时留白为暗色石碑纹理
+	if card.art != null:
+		var art_rect := TextureRect.new()
+		art_rect.texture = card.art
+		art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		art_rect.custom_minimum_size = Vector2(0, 54)
+		art_rect.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		v.add_child(art_rect)
 
 	var type_row := HBoxContainer.new()
 	type_row.add_theme_constant_override("separation", 6)
@@ -394,7 +406,7 @@ static func card_button(
 	effect.scroll_active = false
 	effect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	effect.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	effect.text = "[font_size=12]%s[/font_size]" % emphasize_numbers(card.text)
+	effect.text = "[font_size=12]%s[/font_size]" % emphasize_numbers(extract_keywords(card.text))
 	v.add_child(effect)
 
 	button.pressed.connect(on_play)
@@ -483,6 +495,17 @@ static func card_preview(card: CardData, rarity_dict: Dictionary, border_color: 
 	rarity_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	type_row.add_child(rarity_tag)
 
+	# 卡牌插画区（检视大卡）
+	if card.art != null:
+		var art_rect := TextureRect.new()
+		art_rect.texture = card.art
+		art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		art_rect.custom_minimum_size = Vector2(0, 86)
+		art_rect.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		v.add_child(art_rect)
+
 	# 效果正文：16px 自动换行 —— 检视卡的核心价值（决策信息清晰可读）
 	var effect := RichTextLabel.new()
 	effect.bbcode_enabled = true
@@ -508,22 +531,45 @@ static func _num_regex() -> RegEx:
 static func _intent_icon_path(kind: String) -> String:
 	match kind:
 		"attack", "attack_block", "attack_rot":
-			return "res://assets/external/kenney_icons/sword.png"
+			return "res://assets/icons/icon_sword.svg"
 		"block":
-			return "res://assets/external/kenney_icons/shield.png"
+			return "res://assets/icons/icon_shield.svg"
 		"buff", "strength":
-			return "res://assets/external/kenney_icons/arrow_right.png"
+			return "res://assets/icons/icon_arrow_right.svg"
 		"debuff", "rot":
-			return "res://assets/external/kenney_icons/skull.png"
+			return "res://assets/icons/icon_skull.svg"
 		_:
-			return "res://assets/external/kenney_icons/shield.png"
+			return "res://assets/icons/icon_shield.svg"
 
 
 static func emphasize_numbers(text: String) -> String:
 	# 卡牌效果文本中高亮数字（数值优先原则）
 	var r := _num_regex()
-	var replaced := r.sub(text, "[color=#f0cf6a]$0[/color]", true)
+	var replaced := r.sub(text, "[color=%s]$0[/color]" % GameTheme.NUMBER_HIGHLIGHT.to_html(false), true)
 	return replaced
+
+
+static func extract_keywords(text: String) -> String:
+	# 手牌卡面仅显示关键数值短语，完整描述留给悬浮预览
+	var out: Array[String] = []
+	# 数字 + 可选"点" + 效果关键词
+	var r1 := RegEx.new()
+	r1.compile("(\\d+)\\s*(?:点\\s*)?(伤害|生命|护甲|姿态|易伤|出血|腐败|力量|集中)")
+	for m in r1.search_all(text):
+		out.append("%s %s" % [m.get_string(1), m.get_string(2)])
+	# 抽 N 张牌
+	var r2 := RegEx.new()
+	r2.compile("抽\\s*(\\d+)\\s*张")
+	for m in r2.search_all(text):
+		out.append("抽 %s" % m.get_string(1))
+	# N 次
+	var r3 := RegEx.new()
+	r3.compile("(\\d+)\\s*次")
+	for m in r3.search_all(text):
+		out.append("%s 次" % m.get_string(1))
+	if out.is_empty():
+		return text.substr(0, 10) + "…" if text.length() > 10 else text
+	return " / ".join(out)
 
 
 static func compact_fighter_hud(
@@ -535,7 +581,8 @@ static func compact_fighter_hud(
 	bg: Color,
 	is_enemy: bool = false,
 	stance_now: int = -1,
-	stance_max: int = -1
+	stance_max: int = -1,
+	portrait: Texture2D = null
 ) -> PanelContainer:
 	# 紧凑 HUD：名字 + 大号 HP + 细血条 + 状态 chip，取代大型面板
 	var border := GameTheme.BORDER
@@ -558,6 +605,8 @@ static func compact_fighter_hud(
 	pstyle.content_margin_bottom = 6
 	if border_width >= 2:
 		pstyle.modulate_color = border
+	else:
+		pstyle.modulate_color = bg
 	panel_node.add_theme_stylebox_override("panel", pstyle)
 	panel_node.custom_minimum_size = Vector2(240, 116)
 	panel_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -566,6 +615,21 @@ static func compact_fighter_hud(
 	v.add_theme_constant_override("separation", 4)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	panel_node.add_child(v)
+
+	# 名字行：敌人左侧显示圆形头像（若有）
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 8)
+	name_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(name_row)
+
+	if is_enemy and portrait != null:
+		var portrait_rect := TextureRect.new()
+		portrait_rect.texture = portrait
+		portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait_rect.custom_minimum_size = Vector2(28, 28)
+		portrait_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		name_row.add_child(portrait_rect)
 
 	var name := Label.new()
 	name.text = name_text
@@ -576,7 +640,7 @@ static func compact_fighter_hud(
 	if name_font != null:
 		name.add_theme_font_override("font", name_font)
 	name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	v.add_child(name)
+	name_row.add_child(name)
 
 	# HP 行：护甲徽记（盾 + 数值，每回合最关键的防御决策数）+ HP 数字
 	var hp_row := HBoxContainer.new()
@@ -621,17 +685,162 @@ static func compact_fighter_hud(
 			continue
 		match str(key):
 			"rot":
-				chips.add_child(status_chip("腐败 %d" % val, GameTheme.status_color("rot"), "res://assets/external/kenney_icons/fire.png"))
+				chips.add_child(status_chip("腐败 %d" % val, GameTheme.status_color("rot"), "res://assets/icons/icon_flame.svg"))
 			"bleed":
-				chips.add_child(status_chip("出血 %d" % val, GameTheme.status_color("bleed"), "res://assets/external/kenney_icons/sword.png"))
+				chips.add_child(status_chip("出血 %d" % val, GameTheme.status_color("bleed"), "res://assets/icons/icon_sword.svg"))
 			"vulnerable":
-				chips.add_child(status_chip("易伤 %d" % val, GameTheme.status_color("vulnerable"), "res://assets/external/kenney_icons/skull.png"))
+				chips.add_child(status_chip("易伤 %d" % val, GameTheme.status_color("vulnerable"), "res://assets/icons/icon_skull.svg"))
 			"strength":
-				chips.add_child(status_chip("力量 %d" % val, GameTheme.status_color("strength"), "res://assets/external/kenney_icons/arrow_right.png"))
+				chips.add_child(status_chip("力量 %d" % val, GameTheme.status_color("strength"), "res://assets/icons/icon_arrow_right.svg"))
 			"stance":
-				chips.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance"), "res://assets/external/kenney_icons/suit_diamonds.png"))
+				chips.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance"), "res://assets/icons/icon_shield.svg"))
 			"break_open":
-				chips.add_child(status_chip("破绽！", Color("#ffd24a"), "res://assets/external/kenney_icons/sword.png"))
+				chips.add_child(status_chip("破绽！", Color("#ffd24a"), "res://assets/icons/icon_sword.svg"))
+	return panel_node
+
+
+static func battle_entity_panel(
+	name_text: String,
+	cur_hp: int,
+	full_hp: int,
+	cur_block: int,
+	statuses: Dictionary,
+	portrait: Texture2D = null,
+	is_enemy: bool = false,
+	stance_now: int = -1,
+	stance_max: int = -1,
+	intent: Dictionary = {}
+) -> PanelContainer:
+	# 大幅立绘战斗实体：立绘占主体，顶部意图/状态小徽章，底部简化血条与护甲
+	var border := GameTheme.BORDER
+	var border_width := 1
+	if stance_max > 0 and float(stance_now) / float(stance_max) <= 0.25:
+		border = GameTheme.GOLD
+		border_width = 2
+
+	var panel_node := PanelContainer.new()
+	panel_node.custom_minimum_size = Vector2(180, 240)
+	panel_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+
+	var pstyle := StyleBoxFlat.new()
+	pstyle.bg_color = Color("#16120f")
+	pstyle.border_color = border
+	pstyle.set_border_width_all(border_width)
+	pstyle.set_corner_radius_all(10)
+	pstyle.content_margin_left = 8
+	pstyle.content_margin_right = 8
+	pstyle.content_margin_top = 6
+	pstyle.content_margin_bottom = 6
+	panel_node.add_theme_stylebox_override("panel", pstyle)
+
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 5)
+	panel_node.add_child(v)
+
+	# 敌方意图横幅（仅敌人）
+	if is_enemy and intent.has("kind") and str(intent.get("kind", "")) != "":
+		var intent_node := intent_banner(intent.get("kind", ""), str(intent.get("text", "")), false)
+		v.add_child(intent_node)
+		panel_node.set_meta("_intent_banner", intent_node)
+
+	# 状态徽章行（位于立绘上方）
+	var chip_row := HBoxContainer.new()
+	chip_row.add_theme_constant_override("separation", 4)
+	chip_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	chip_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_child(chip_row)
+
+	if cur_block > 0:
+		chip_row.add_child(_block_badge(cur_block))
+
+	for key in statuses:
+		var val: int = int(statuses[key])
+		if val <= 0:
+			continue
+		match str(key):
+			"rot":
+				chip_row.add_child(status_chip("腐败 %d" % val, GameTheme.status_color("rot"), "res://assets/icons/icon_flame.svg"))
+			"bleed":
+				chip_row.add_child(status_chip("出血 %d" % val, GameTheme.status_color("bleed"), "res://assets/icons/icon_sword.svg"))
+			"vulnerable":
+				chip_row.add_child(status_chip("易伤 %d" % val, GameTheme.status_color("vulnerable"), "res://assets/icons/icon_skull.svg"))
+			"strength":
+				chip_row.add_child(status_chip("力量 %d" % val, GameTheme.status_color("strength"), "res://assets/icons/icon_arrow_right.svg"))
+			"stance":
+				chip_row.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance"), "res://assets/icons/icon_shield.svg"))
+			"break_open":
+				chip_row.add_child(status_chip("破绽！", Color("#ffd24a"), "res://assets/icons/icon_sword.svg"))
+
+	# 立绘区
+	var portrait_container := PanelContainer.new()
+	portrait_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	portrait_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var portrait_style := StyleBoxFlat.new()
+	portrait_style.bg_color = Color("#0f0c0a")
+	portrait_style.set_corner_radius_all(6)
+	portrait_container.add_theme_stylebox_override("panel", portrait_style)
+	v.add_child(portrait_container)
+
+	if portrait != null:
+		var tex_rect := TextureRect.new()
+		tex_rect.texture = portrait
+		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex_rect.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tex_rect.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		portrait_container.add_child(tex_rect)
+	else:
+		var placeholder := Label.new()
+		placeholder.text = name_text
+		placeholder.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		placeholder.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		placeholder.set_anchors_preset(Control.PRESET_CENTER)
+		placeholder.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+		placeholder.add_theme_font_size_override("font_size", 16)
+		portrait_container.add_child(placeholder)
+
+	# 底部信息：血条 + 名字/HP
+	var bar := ProgressBar.new()
+	bar.max_value = full_hp
+	bar.value = cur_hp
+	bar.custom_minimum_size = Vector2(0, 10)
+	bar.show_percentage = false
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var bar_bg := StyleBoxFlat.new()
+	bar_bg.bg_color = Color("#141110")
+	bar_bg.set_corner_radius_all(5)
+	bar.add_theme_stylebox_override("background", bar_bg)
+	var bar_fill := StyleBoxFlat.new()
+	var hp_ratio: float = float(cur_hp) / float(maxi(1, full_hp))
+	bar_fill.bg_color = Color("#e05a45") if hp_ratio < 0.3 else Color("#b8503f")
+	bar_fill.set_corner_radius_all(5)
+	bar.add_theme_stylebox_override("fill", bar_fill)
+	v.add_child(bar)
+
+	var info_row := HBoxContainer.new()
+	info_row.add_theme_constant_override("separation", 8)
+	info_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(info_row)
+
+	var name_label := Label.new()
+	name_label.text = name_text
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.add_theme_color_override("font_color", Color("#e4c06d"))
+	var name_font := GameTheme.display_font()
+	if name_font != null:
+		name_label.add_theme_font_override("font", name_font)
+	info_row.add_child(name_label)
+
+	var hp_label := Label.new()
+	hp_label.text = "%d / %d" % [cur_hp, full_hp]
+	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hp_label.add_theme_font_size_override("font_size", 13)
+	hp_label.add_theme_color_override("font_color", GameTheme.TEXT)
+	info_row.add_child(hp_label)
+
 	return panel_node
 
 
@@ -652,7 +861,7 @@ static func _block_badge(value: int) -> PanelContainer:
 	row.add_theme_constant_override("separation", 4)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	badge.add_child(row)
-	var shield_tex := load("res://assets/external/kenney_icons/shield.png") as Texture2D
+	var shield_tex := load("res://assets/icons/icon_shield.svg") as Texture2D
 	if shield_tex != null:
 		var icon := TextureRect.new()
 		icon.texture = shield_tex
@@ -978,40 +1187,67 @@ static func flask_button(flasks: int, disabled: bool, on_press: Callable) -> But
 
 
 static func end_turn_button(disabled: bool, on_press: Callable) -> Button:
-	# 结束回合：主 CTA（金色，右下固定，hover/disabled/快捷键提示）
+	# 结束回合：底部中央主 CTA（深红底 + 金边，hover 放大发光）
 	var btn := Button.new()
 	btn.text = "结束回合  [E]"
-	btn.custom_minimum_size = Vector2(170, 54)
-	btn.add_theme_font_size_override("font_size", 20)
+	btn.custom_minimum_size = Vector2(220, 64)
+	btn.add_theme_font_size_override("font_size", 24)
 	var end_font := GameTheme.display_font()
 	if end_font != null:
 		btn.add_theme_font_override("font", end_font)
 	btn.disabled = disabled
 	btn.tooltip_text = "结束当前回合（空格 / E）"
 	btn.pressed.connect(on_press)
+	btn.resized.connect(func() -> void:
+		btn.pivot_offset = btn.size * 0.5
+	)
+
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color("#3a2d10")
+	style.bg_color = Color("#5c1e1e")
 	style.border_color = GameTheme.GOLD
 	style.set_border_width_all(3)
 	style.corner_radius_top_left = 8
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_left = 8
 	style.corner_radius_bottom_right = 8
-	style.shadow_color = Color(0.88, 0.75, 0.4, 0.25)
-	style.shadow_size = 8
+	style.shadow_color = Color(0.88, 0.75, 0.4, 0.35)
+	style.shadow_size = 10
+	style.shadow_offset = Vector2(0, 3)
 	btn.add_theme_stylebox_override("normal", style)
 	var hover := style.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#4a3a15")
+	hover.bg_color = Color("#7a2a2a")
 	hover.border_color = Color("#f5d877")
+	hover.shadow_color = Color(0.95, 0.85, 0.5, 0.5)
+	hover.shadow_size = 14
 	btn.add_theme_stylebox_override("hover", hover)
 	var pressed := style.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color("#2e240d")
+	pressed.bg_color = Color("#421616")
 	btn.add_theme_stylebox_override("pressed", pressed)
 	var disabled_style := style.duplicate() as StyleBoxFlat
 	disabled_style.bg_color = Color("#241f1a")
 	disabled_style.border_color = GameTheme.BORDER
 	disabled_style.shadow_size = 0
 	btn.add_theme_stylebox_override("disabled", disabled_style)
+
+	# hover 缩放反馈（以中心为轴，避免布局跳动）
+	btn.mouse_entered.connect(func() -> void:
+		if btn.has_meta("_end_turn_hover_tween"):
+			var t: Tween = btn.get_meta("_end_turn_hover_tween")
+			if t.is_valid():
+				t.kill()
+		var tw := btn.create_tween()
+		btn.set_meta("_end_turn_hover_tween", tw)
+		tw.tween_property(btn, "scale", Vector2(1.05, 1.05), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	)
+	btn.mouse_exited.connect(func() -> void:
+		if btn.has_meta("_end_turn_hover_tween"):
+			var t: Tween = btn.get_meta("_end_turn_hover_tween")
+			if t.is_valid():
+				t.kill()
+		var tw := btn.create_tween()
+		btn.set_meta("_end_turn_hover_tween", tw)
+		tw.tween_property(btn, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	)
 	return btn
 
 

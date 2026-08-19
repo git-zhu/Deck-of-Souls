@@ -166,6 +166,15 @@ static func card_reward_button(card: CardData, on_press: Callable) -> Button:
 	meta.add_theme_color_override("font_color", accent.lightened(0.3))
 	col.add_child(meta)
 
+	if card.art != null:
+		var art_rect := TextureRect.new()
+		art_rect.texture = card.art
+		art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		art_rect.custom_minimum_size = Vector2(0, 100)
+		art_rect.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		col.add_child(art_rect)
+
 	var effect := Label.new()
 	effect.text = card.text
 	effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

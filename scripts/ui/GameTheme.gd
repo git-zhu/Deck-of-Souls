@@ -22,6 +22,16 @@ const TEXT := Color("#e8ddc7")
 const TEXT_MUTED := Color("#d8ccb4")
 const LOG_TEXT := Color("#d9ccb3")
 
+# 战斗语义色：金色=可交互/奖励，红色=敌人/伤害/警告，蓝色=玩家/防御/能量，绿色=治疗/增益
+const PLAYER_ACCENT := Color("#5a7d94")      # 玩家/能量：冷灰蓝
+const ENEMY_ACCENT := Color("#a34a3f")       # 敌人/伤害：砖红
+const DAMAGE_ACCENT := Color("#c45a4a")      # 伤害/警告：亮红
+const DEFENSE_ACCENT := Color("#4a8296")     # 防御/格挡：青蓝
+const BUFF_ACCENT := Color("#5a8f5a")        # 增益：森林绿
+const DEBUFF_ACCENT := Color("#7a5a8f")      # 减益：暗紫
+const CORRUPT_ACCENT := Color("#4a6b3c")     # 腐败：暗绿
+const NUMBER_HIGHLIGHT := Color("#f0cf6a")   # 数字高亮：保留金色
+
 const MAX_LOG_LINES := 12
 
 
@@ -124,15 +134,17 @@ static func card_type_meta(card_type: String) -> Dictionary:
 static func intent_color(kind: String) -> Color:
 	match kind:
 		"attack", "attack_block", "attack_rot":
-			return Color("#e07a6a")
+			return ENEMY_ACCENT
 		"block":
-			return Color("#e6c56d")
+			return DEFENSE_ACCENT
 		"buff", "strength":
-			return Color("#b08ce0")
-		"debuff", "rot":
-			return Color("#7ab87a")
+			return BUFF_ACCENT
+		"debuff":
+			return DEBUFF_ACCENT
+		"rot":
+			return CORRUPT_ACCENT
 		_:
-			return Color("#e6c56d")
+			return GOLD
 
 
 static func card_disabled_modulate() -> Color:
@@ -144,7 +156,7 @@ static func card_disabled_modulate() -> Color:
 
 # 攻击 / 防御 / 技能 / 武器 / 治疗 / 道具
 const CARD_ATTACK := Color("#d64545")      # 红色：攻击
-const CARD_DEFENSE := Color("#4fc3c9")     # 青色：防御/护甲
+const CARD_DEFENSE := Color("#4a8296")     # 青蓝：防御/护甲
 const CARD_SKILL := Color("#b06ad4")       # 紫色：战技/技能
 const CARD_WEAPON := Color("#d4a13c")      # 金色：武器
 const CARD_HEAL := Color("#5ab86a")        # 绿色：治疗/圣杯瓶
@@ -197,14 +209,14 @@ static func intent_icon(_kind: String) -> String:
 static func status_color(status_id: String) -> Color:
 	match status_id:
 		"rot":
-			return Color("#7ab87a")
+			return CORRUPT_ACCENT
 		"bleed":
-			return Color("#e07a6a")
+			return ENEMY_ACCENT
 		"vulnerable":
-			return Color("#e6c56d")
+			return DEBUFF_ACCENT
 		"strength":
-			return Color("#b08ce0")
+			return BUFF_ACCENT
 		"stance":
-			return Color("#e6c56d")
+			return DEFENSE_ACCENT
 		_:
 			return TEXT_MUTED

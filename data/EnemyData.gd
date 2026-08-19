@@ -5,6 +5,7 @@ const MoveData = preload("res://data/MoveData.gd")
 
 @export_group("Basic")
 @export var name: String
+@export var portrait: Texture2D
 @export var max_hp: int = 30
 @export var stance: int = 10
 @export var souls: int = 10

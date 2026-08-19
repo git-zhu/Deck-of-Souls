@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="OriginData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="OriginData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://data/OriginData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/origins/prophet_portrait.png" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -12,6 +13,7 @@ flasks = 2
 stats = "集中 14 / 信仰 16 / 力量 11"
 equipment = "恢复、火焰啊、短矛、指头圣印记"
 note = "以祷告管理血线，火焰逼近，恢复拖长战斗。"
+portrait = ExtResource("2")
 deck = ["catch_flame", "catch_flame", "heal", "black_flame", "heater_shield", "longsword", "rotten_breath", "crimson_flask"]
 attr_vigor = 10
 attr_strength = 11

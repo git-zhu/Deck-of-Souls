@@ -1,13 +1,13 @@
-.godot/*
-!.godot/global_script_class_cache.cfg
-.import/
-*.import
-export.cfg
-export_presets.cfg
-*.tmp
-*.translation
-/nul
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# IDE / tooling
 .idea/
 .superpowers/
-.gstack/qa-*.log
-.gstack/qa-run-*.log
+.gstack/
+
+# OS / temporary artifacts
+/nul
+*.tmp
+export_presets.cfg

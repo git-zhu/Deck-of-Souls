@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://data/EnemyData.gd" id="1"]
 [ext_resource type="Script" path="res://data/MoveData.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/enemies/mohg_lovula_portrait.png" id="3"]
 
 [sub_resource type="Resource" id="MoveData_1"]
 script = ExtResource("2")
@@ -54,6 +55,7 @@ weight = 1
 
 [resource]
 script = ExtResource("1")
+portrait = ExtResource("3")
 name = "接肢贵族"
 max_hp = 130
 stance = 22

@@ -13,6 +13,7 @@ const CardEffectStep = preload("res://data/CardEffectStep.gd")
 @export var rarity: String = "common"
 @export var text: String
 @export var tone: Color = Color("#b9a37b")
+@export var art: Texture2D
 
 @export_group("Effects")
 @export var effects: Array[CardEffectStep] = []

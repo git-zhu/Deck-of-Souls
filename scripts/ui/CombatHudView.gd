@@ -9,11 +9,54 @@ const CombatController = preload("res://scripts/core/CombatController.gd")
 const DataRegistry = preload("res://scripts/core/DataRegistry.gd")
 const CardData = preload("res://data/CardData.gd")
 
-const PLAYER_PANEL_BG := Color("#1d1a15")
-const ENEMY_PANEL_BG := Color("#1d1714")
+const PLAYER_PANEL_BG := Color("#1c232b")  # 玩家侧：冷灰蓝
+const ENEMY_PANEL_BG := Color("#2b1e1a")   # 敌人侧：暖褐红
 const DropZone = preload("res://scripts/ui/DropZone.gd")
 const TargetingLine = preload("res://scripts/ui/TargetingLine.gd")
 const DragCard = preload("res://scripts/ui/DragCard.gd")
+
+
+class SelectionOverlay:
+	extends Control
+	const GameTheme = preload("res://scripts/ui/GameTheme.gd")
+	var _t: float = 0.0
+
+	func _ready() -> void:
+		set_anchors_preset(Control.PRESET_FULL_RECT)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _process(delta: float) -> void:
+		_t += delta
+		queue_redraw()
+
+	func _draw() -> void:
+		if size.x <= 0 or size.y <= 0:
+			return
+		var pulse := 0.75 + 0.25 * sin(_t * 4.0)
+		var gold := GameTheme.GOLD
+		var r := Rect2(Vector2.ZERO, size)
+
+		# 外发光
+		var glow := StyleBoxFlat.new()
+		glow.bg_color = Color(0, 0, 0, 0)
+		glow.border_color = Color(gold.r, gold.g, gold.b, 0.35 * pulse)
+		glow.set_border_width_all(5)
+		glow.set_corner_radius_all(10)
+		draw_style_box(glow, r.grow(4))
+
+		# 脉冲金边框
+		var border := StyleBoxFlat.new()
+		border.bg_color = Color(gold.r, gold.g, gold.b, 0.08 * pulse)
+		border.border_color = Color(gold.r, gold.g, gold.b, 0.95 * pulse)
+		border.set_border_width_all(3)
+		border.set_corner_radius_all(8)
+		draw_style_box(border, r)
+
+		# 底部箭头
+		var cx := size.x * 0.5
+		var by := size.y - 10.0
+		var tri := PackedVector2Array([Vector2(cx - 8, by - 8), Vector2(cx + 8, by - 8), Vector2(cx, by)])
+		draw_colored_polygon(tri, Color(gold.r, gold.g, gold.b, pulse))
 
 
 # 拖拽投放回调：把拖来的卡打到目标敌人（target_id = "enemy_0/enemy_1..."；"" = 默认选中目标）
@@ -33,7 +76,8 @@ static func build(
 	on_flask: Callable,
 	on_end_turn: Callable,
 	prev_hp: Dictionary = {},
-	on_show_pile: Callable = Callable()
+	on_show_pile: Callable = Callable(),
+	prev_status_snapshot: Dictionary = {}
 ) -> CombatHudRefs:
 	var refs := CombatHudRefs.new()
 
@@ -42,119 +86,52 @@ static func build(
 	main.add_theme_constant_override("separation", 8)
 	refs.root = main
 
+	# 全屏特效层：粒子、光球、状态飘字等视觉反馈的载体（top_level 避免被 VBox 布局影响）
+	var fx_layer := Control.new()
+	fx_layer.name = "FxLayer"
+	fx_layer.top_level = true
+	fx_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fx_layer.z_index = 50
+	refs.fx_layer = fx_layer
+	main.add_child(fx_layer)
+
 	# 拖拽瞄准线覆盖层（全屏，z 最高）
 	var aim_line := TargetingLine.new()
 	aim_line.set_anchors_preset(Control.PRESET_FULL_RECT)
 	aim_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	main.add_child(aim_line)
 	aim_line.move_to_front()
+	aim_line.z_index = 100
 
-	# ── 战斗实体状态区（Battle Stage）：玩家（左） + 敌方意图胶囊 & 敌人状态（右） ──
-	var top_row := HBoxContainer.new()
-	top_row.add_theme_constant_override("separation", 12)
-	top_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	main.add_child(top_row)
+	# ── 顶部极简信息条（Top Bar）：回合数 + 能量球居中 ──
+	var top_bar := HBoxContainer.new()
+	top_bar.add_theme_constant_override("separation", 14)
+	top_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	main.add_child(top_bar)
 
-	refs.player_panel = UiBuilders.compact_fighter_hud(
-		"褪色者",
-		run_state.hp,
-		run_state.max_hp,
-		combat.block,
-		{
-			"rot": run_state.player_rot,
-			"bleed": run_state.player_bleed,
-			"vulnerable": run_state.player_vulnerable,
-			"strength": run_state.player_strength,
-		},
-		PLAYER_PANEL_BG
-	)
-	refs.player_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	refs.player_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	top_row.add_child(refs.player_panel)
+	top_bar.add_child(UiBuilders.stat_capsule(str(combat.turn), "回合", GameTheme.GOLD))
 
-	# 中空弹性区：玩家/敌人状态贴边，交战指示器在下方 Action Zone 居中
-	var stage_spacer := Control.new()
-	stage_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top_row.add_child(stage_spacer)
-
-	# 右侧：敌人 HUD 组 —— 每个敌人头顶挂自己的意图胶囊（多敌人决策信息完整）
-	var enemy_area := HBoxContainer.new()
-	enemy_area.add_theme_constant_override("separation", 14)
-	enemy_area.size_flags_horizontal = Control.SIZE_SHRINK_END
-	enemy_area.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	top_row.add_child(enemy_area)
-
-	# 多敌人（≥3）压缩 HUD，避免横向溢出
-	var many := combat.enemies.size() >= 3
-
-	for ei in range(combat.enemies.size()):
-		var e: Dictionary = combat.enemies[ei]
-		var is_target := ei == combat.target_index
-
-		var e_col := VBoxContainer.new()
-		e_col.add_theme_constant_override("separation", 5)
-		e_col.size_flags_vertical = Control.SIZE_SHRINK_END
-		enemy_area.add_child(e_col)
-
-		# 敌人专属意图胶囊（仅选中目标保留"敌方意图"标签，其余省略冗余文案）
-		var e_intent: Dictionary = e.get("_intent", {})
-		var e_kind := str(e_intent.get("kind", ""))
-		var e_intent_panel := UiBuilders.intent_banner(e_kind, combat.intent_text_for(e), is_target)
-		e_intent_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		e_col.add_child(e_intent_panel)
-		if e_kind in ["attack", "attack_block", "attack_rot"]:
-			var pulse := e_intent_panel.create_tween().set_loops()
-			pulse.tween_property(e_intent_panel, "modulate", Color(1, 1, 1, 0.82), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			pulse.tween_property(e_intent_panel, "modulate", Color(1, 1, 1, 1), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			e_intent_panel.tree_exiting.connect(func() -> void:
-				if pulse != null and pulse.is_valid():
-					pulse.kill()
-			)
-
-		var e_panel := UiBuilders.compact_fighter_hud(
-			str(e.name),
-			int(e.hp),
-			int(e.max_hp),
-			int(e.block),
-			{
-				"rot": int(e.rot),
-				"bleed": int(e.bleed),
-				"vulnerable": int(e.vulnerable),
-				"strength": int(e.strength),
-				"stance": int(e.stance_now),
-				"break_open": 1 if bool(e.get("break_open", false)) else 0,
-			},
-			ENEMY_PANEL_BG,
-			true,
-			int(e.stance_now),
-			int(e.stance_max)
+	var orb := UiBuilders.energy_orb(combat.ember, combat.max_ember)
+	top_bar.add_child(orb)
+	# 能量耗尽时脉动提示（暗示"可以结束回合了"）；出牌过程中的常态不再闪烁
+	if combat.ember <= 0:
+		var orb_pulse := orb.create_tween().set_loops()
+		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 0.75), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		orb.tree_exiting.connect(func() -> void:
+			if orb_pulse != null and orb_pulse.is_valid():
+				orb_pulse.kill()
 		)
-		if many:
-			e_panel.custom_minimum_size = Vector2(180, 108)
-		e_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		if is_target:
-			e_panel.modulate = Color(1.06, 1.0, 0.85, 1.0)
-		e_col.add_child(e_panel)
-		refs.enemy_panels[ei] = e_panel
-		# 每个敌人一个投放目标（target_id = "enemy_i"，供 Main 指定目标出牌）
-		var zone := DropZone.new()
-		zone.setup("enemy_%d" % ei, _make_drop_handler(on_play_card))
-		zone.set_anchors_preset(Control.PRESET_FULL_RECT)
-		e_panel.add_child(zone)
-		zone.move_to_front()
-		if ei == 0:
-			refs.enemy_panel = e_panel
-		# 注册瞄准线锚点（敌人 HUD 中心，布局后刷新坐标）
-		aim_line.zone_centers["enemy_%d" % ei] = {"center": Vector2.ZERO, "radius": 70.0}
 
-	# ── 中区：日志（默认折叠）+ 战斗特效区（回合横幅/飘字的演出空间） ──
+	# ── 中区：日志（默认折叠）+ 战斗舞台（Stage Area）──
 	var mid_area := HBoxContainer.new()
 	mid_area.add_theme_constant_override("separation", 12)
 	mid_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	mid_area.custom_minimum_size = Vector2(0, 110)
 	main.add_child(mid_area)
 
-	# 日志贴左（用户方案）：竖排窄条，低视觉权重
+	# 日志贴左（默认折叠）
 	var log_left := VBoxContainer.new()
 	log_left.custom_minimum_size = Vector2(200, 0)
 	log_left.add_theme_constant_override("separation", 4)
@@ -178,43 +155,141 @@ static func build(
 	refs.log_box.text = log_bbcode
 	log_left.add_child(refs.log_box)
 
-	# 战斗特效区：回合横幅与伤害飘字的演出空间（不再放装饰性 P/E 圆牌与镀金框）
+	# 战斗舞台：敌人列于上方，玩家位于下方，均以大幅立绘为主体
 	var stage_wrap := Control.new()
 	stage_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	mid_area.add_child(stage_wrap)
 
-	# 战斗区域投放目标（拖到舞台中央也可出牌）
+	var stage_root := VBoxContainer.new()
+	stage_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	stage_root.add_theme_constant_override("separation", 0)
+	stage_root.alignment = BoxContainer.ALIGNMENT_CENTER
+	stage_wrap.add_child(stage_root)
+
+	# 敌人立绘行
+	var enemy_row := HBoxContainer.new()
+	enemy_row.add_theme_constant_override("separation", 20)
+	enemy_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	enemy_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	stage_root.add_child(enemy_row)
+
+	var many := combat.enemies.size() >= 3
+	var enemy_base_size := Vector2(150, 210) if many else Vector2(180, 240)
+
+	for ei in range(combat.enemies.size()):
+		var e: Dictionary = combat.enemies[ei]
+		var is_target := ei == combat.target_index
+
+		var e_intent: Dictionary = e.get("_intent", {})
+		var intent := {
+			"kind": str(e_intent.get("kind", "")),
+			"text": combat.intent_text_for(e),
+		}
+
+		var e_panel := UiBuilders.battle_entity_panel(
+			str(e.name),
+			int(e.hp),
+			int(e.max_hp),
+			int(e.block),
+			{
+				"rot": int(e.rot),
+				"bleed": int(e.bleed),
+				"vulnerable": int(e.vulnerable),
+				"strength": int(e.strength),
+				"stance": int(e.stance_now),
+				"break_open": 1 if bool(e.get("break_open", false)) else 0,
+			},
+			_load_portrait(e.get("portrait_path", "")),
+			true,
+			int(e.stance_now),
+			int(e.stance_max),
+			intent
+		)
+		e_panel.custom_minimum_size = enemy_base_size
+		e_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		e_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		enemy_row.add_child(e_panel)
+
+		if is_target:
+			var sel := SelectionOverlay.new()
+			e_panel.add_child(sel)
+			sel.move_to_front()
+		refs.enemy_panels[ei] = e_panel
+		if ei == 0:
+			refs.enemy_panel = e_panel
+
+		# 每个敌人独立投放目标（target_id = "enemy_i"）
+		var zone := DropZone.new()
+		zone.setup("enemy_%d" % ei, _make_drop_handler(on_play_card))
+		zone.set_anchors_preset(Control.PRESET_FULL_RECT)
+		e_panel.add_child(zone)
+		zone.move_to_front()
+
+		# 攻击意图横幅额外脉动
+		if intent.kind in ["attack", "attack_block", "attack_rot"]:
+			var intent_node = e_panel.get_meta("_intent_banner", null) as Control
+			if intent_node != null:
+				var pulse := intent_node.create_tween().set_loops()
+				pulse.tween_property(intent_node, "modulate", Color(1, 1, 1, 0.82), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+				pulse.tween_property(intent_node, "modulate", Color(1, 1, 1, 1), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+				intent_node.tree_exiting.connect(func() -> void:
+					if pulse != null and pulse.is_valid():
+						pulse.kill()
+				)
+
+		# 注册瞄准线锚点（敌人立绘中心，布局后刷新坐标）
+		aim_line.zone_centers["enemy_%d" % ei] = {"center": Vector2.ZERO, "radius": minf(enemy_base_size.x, enemy_base_size.y) * 0.38}
+
+	# 弹性空间：把玩家推到底部，同时作为舞台中央投放区
+	var stage_drop_gap := Control.new()
+	stage_drop_gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage_drop_gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stage_root.add_child(stage_drop_gap)
+
 	var stage_zone := DropZone.new()
 	stage_zone.setup("", _make_drop_handler(on_play_card))
 	stage_zone.set_anchors_preset(Control.PRESET_FULL_RECT)
-	stage_wrap.add_child(stage_zone)
-	stage_zone.move_to_front()
+	stage_drop_gap.add_child(stage_zone)
 
-	# ── 回合/资源控制条（Turn Control Bar）：回合/抽牌/弃牌/消耗等宽等高胶囊 + 能量球居中 ──
-	var resource_row := HBoxContainer.new()
-	resource_row.add_theme_constant_override("separation", 10)
-	resource_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	main.add_child(resource_row)
+	# 玩家立绘行
+	var player_row := HBoxContainer.new()
+	player_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	player_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	stage_root.add_child(player_row)
 
-	resource_row.add_child(UiBuilders.stat_capsule(str(combat.turn), "回合", GameTheme.GOLD))
+	var player_portrait := _load_portrait(run_state.player_portrait_path)
+	refs.player_panel = UiBuilders.battle_entity_panel(
+		"褪色者",
+		run_state.hp,
+		run_state.max_hp,
+		combat.block,
+		{
+			"rot": run_state.player_rot,
+			"bleed": run_state.player_bleed,
+			"vulnerable": run_state.player_vulnerable,
+			"strength": run_state.player_strength,
+		},
+		player_portrait,
+		false,
+		-1,
+		-1,
+		{}
+	)
+	refs.player_panel.custom_minimum_size = Vector2(200, 280)
+	refs.player_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	refs.player_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	player_row.add_child(refs.player_panel)
 
-	var orb := UiBuilders.energy_orb(combat.ember, combat.max_ember)
-	resource_row.add_child(orb)
-	# 能量耗尽时脉动提示（暗示"可以结束回合了"）；出牌过程中的常态不再闪烁
-	if combat.ember <= 0:
-		var orb_pulse := orb.create_tween().set_loops()
-		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 0.75), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		orb.tree_exiting.connect(func() -> void:
-			if orb_pulse != null and orb_pulse.is_valid():
-				orb_pulse.kill()
-		)
+	# ── 底部操作区：手牌行（两侧堆叠）+ 中央结束回合 CTA ──
+	var bottom_area := VBoxContainer.new()
+	bottom_area.add_theme_constant_override("separation", 6)
+	bottom_area.alignment = BoxContainer.ALIGNMENT_CENTER
+	main.add_child(bottom_area)
 
-	# ── 底部操作行：圣杯瓶 + 手牌 + 结束回合（主 CTA） ──
-	var bottom_row := HBoxContainer.new()
-	bottom_row.add_theme_constant_override("separation", 10)
-	main.add_child(bottom_row)
+	var hand_band := HBoxContainer.new()
+	hand_band.add_theme_constant_override("separation", 8)
+	bottom_area.add_child(hand_band)
 
 	refs.flask_button = UiBuilders.flask_button(
 		run_state.flasks,
@@ -222,16 +297,17 @@ static func build(
 		on_flask
 	)
 	refs.flask_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bottom_row.add_child(refs.flask_button)
+	hand_band.add_child(refs.flask_button)
 
-	# 抽牌堆：手牌左侧底角（品类惯例；中性色，不借卡牌类型语义；点击查看）
+	# 抽牌堆：手牌左侧底角（品类惯例；缩小，不抢 CTA 焦点）
 	var draw_badge := UiBuilders.pile_badge(
-		"res://assets/external/kenney_icons/cards_take.png",
+		"res://assets/icons/icon_deck.svg",
 		str(run_state.draw_pile.size()), "抽牌"
 	)
+	draw_badge.custom_minimum_size = Vector2(52, 44)
 	if on_show_pile.is_valid():
 		draw_badge.pressed.connect(on_show_pile.bind("draw"))
-	bottom_row.add_child(draw_badge)
+	hand_band.add_child(draw_badge)
 
 	var hand_scroll := ScrollContainer.new()
 	# 悬停抬头空间：卡片放大 1.25× 时向上展开约 0.25×card_h，需在滚动区上方预留足够空间
@@ -242,7 +318,7 @@ static func build(
 	# 关键修复：ScrollContainer 默认 clip_contents=true 会把放大后的卡牌顶部裁掉，
 	# 关闭裁剪让放大卡完整浮出（绘制层级在资源条之上，见 main 子节点顺序）
 	hand_scroll.clip_contents = false
-	bottom_row.add_child(hand_scroll)
+	hand_band.add_child(hand_scroll)
 	hand_scroll.gui_input.connect(func(ev: InputEvent) -> void:
 		if ev is InputEventMouseButton:
 			var mb := ev as InputEventMouseButton
@@ -256,7 +332,7 @@ static func build(
 
 	refs.hand_row = HBoxContainer.new()
 	# 负间距叠放：StS 式扇形手牌（旋转/弧线由每张牌的 slot 独立承载）
-	refs.hand_row.add_theme_constant_override("separation", -22)
+	refs.hand_row.add_theme_constant_override("separation", -11)
 	refs.hand_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	# 手牌行填满滚动区高度 + 卡片底对齐：悬停放大向上展开时落在抬头空间内，不遮挡回合控制条
 	refs.hand_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -297,35 +373,45 @@ static func build(
 			card_btn.pivot_offset = Vector2(card_w * 0.5, card_h)
 			card_btn.rotation_degrees = t * step_deg
 			card_btn.position = Vector2(0.0, 3.0 * t * t)
-			_wire_hover_preview(card_btn, card_data, preview_host)
+			card_btn.set_meta("_fan_y", card_btn.position.y)
+			_wire_hover_preview(card_btn, card_data, refs.hand_row, preview_host)
 			if card_btn is DragCard:
 				var dc := card_btn as DragCard
+				var drag_card := card_data
 				dc.drag_started.connect(func(_idx: int, from_g: Vector2) -> void:
 					aim_line.begin(from_g)
+					aim_line.set_card_preview(drag_card)
 				)
 				dc.drag_ended.connect(func() -> void:
 					aim_line.end()
+					aim_line.set_card_preview(null)
 				)
 
-	# 弃牌/消耗堆：手牌右侧底角（点击查看）
+	# 弃牌/消耗堆：手牌右侧底角（点击查看；缩小）
 	var discard_badge := UiBuilders.pile_badge(
-		"res://assets/external/kenney_icons/card_down.png",
+		"res://assets/icons/icon_discard.svg",
 		str(run_state.discard_pile.size()), "弃牌"
 	)
+	discard_badge.custom_minimum_size = Vector2(52, 44)
 	if on_show_pile.is_valid():
 		discard_badge.pressed.connect(on_show_pile.bind("discard"))
-	bottom_row.add_child(discard_badge)
+	hand_band.add_child(discard_badge)
 	var exhaust_badge := UiBuilders.pile_badge(
-		"res://assets/external/kenney_icons/card_remove.png",
+		"res://assets/icons/icon_exhaust.svg",
 		str(run_state.exhaust_pile.size()), "消耗"
 	)
+	exhaust_badge.custom_minimum_size = Vector2(52, 44)
 	if on_show_pile.is_valid():
 		exhaust_badge.pressed.connect(on_show_pile.bind("exhaust"))
-	bottom_row.add_child(exhaust_badge)
+	hand_band.add_child(exhaust_badge)
+
+	# 结束回合 CTA：手牌正下方、与能量球同轴
+	var cta_band := HBoxContainer.new()
+	cta_band.alignment = BoxContainer.ALIGNMENT_CENTER
+	bottom_area.add_child(cta_band)
 
 	refs.end_turn_button = UiBuilders.end_turn_button(combat.combat_over, on_end_turn)
-	refs.end_turn_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bottom_row.add_child(refs.end_turn_button)
+	cta_band.add_child(refs.end_turn_button)
 
 	# 中区日志折叠开关（默认折叠：交战区居中，日志按需展开）
 	refs.log_box.set_meta("log_expanded", false)
@@ -350,27 +436,82 @@ static func build(
 	main.add_child(bottom_pad)
 
 	# 战斗反馈：血条从上一帧数值过渡 + 受伤面板红闪（prev_hp 由 Main 快照提供）
-	_animate_hp(refs.player_panel, int(prev_hp.get("player", -1)), run_state.hp)
+	_animate_hp(refs, refs.player_panel, int(prev_hp.get("player", -1)), run_state.hp, false)
 	for ei in refs.enemy_panels:
 		if ei < combat.enemies.size():
 			var e: Dictionary = combat.enemies[ei]
-			_animate_hp(refs.enemy_panels[ei], int(prev_hp.get("enemy_%d" % ei, -1)), int(e.hp))
+			var broken := bool(e.get("break_open", false))
+			_animate_hp(refs, refs.enemy_panels[ei], int(prev_hp.get("enemy_%d" % ei, -1)), int(e.hp), broken)
+
+	# 状态变化：等一帧布局完成后再弹出小型图标飘字
+	_spawn_status_popups(refs, prev_status_snapshot, run_state, combat)
 
 	return refs
 
 
-static func _wire_hover_preview(card_btn: Button, card: CardData, host: Control) -> void:
-	# 悬停 → 显示检视大卡；离开/拖拽 → 收起（DragCard 内部另有 lift，二者互不冲突）
+static func _wire_hover_preview(card_btn: Button, card: CardData, hand_row: HBoxContainer, host: Control) -> void:
+	# 悬停 → 显示检视大卡 + 本卡垂直抬起 + 相邻卡推开；离开/拖拽 → 收起
+	var base_y: float = card_btn.get_meta("_fan_y", card_btn.position.y)
+	var lift_y := base_y - 28.0
 	card_btn.mouse_entered.connect(func() -> void:
+		_kill_hover_y_tween(card_btn)
+		var tw := card_btn.create_tween()
+		card_btn.set_meta("_hover_y_tween", tw)
+		tw.tween_property(card_btn, "position:y", lift_y, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		_show_card_preview(host, card, card_btn)
+		_push_neighbors(card_btn, hand_row, true)
 	)
 	card_btn.mouse_exited.connect(func() -> void:
+		_kill_hover_y_tween(card_btn)
+		var tw := card_btn.create_tween()
+		card_btn.set_meta("_hover_y_tween", tw)
+		tw.tween_property(card_btn, "position:y", base_y, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		host.visible = false
+		_push_neighbors(card_btn, hand_row, false)
 	)
 	if card_btn is DragCard:
 		(card_btn as DragCard).drag_started.connect(func(_idx: int, _from: Vector2) -> void:
 			host.visible = false
+			_push_neighbors(card_btn, hand_row, false)
 		)
+
+
+static func _kill_hover_y_tween(card_btn: Control) -> void:
+	if card_btn.has_meta("_hover_y_tween"):
+		var t: Tween = card_btn.get_meta("_hover_y_tween") as Tween
+		if t != null and t.is_valid():
+			t.kill()
+
+
+static func _push_neighbors(card_btn: Control, hand_row: HBoxContainer, push: bool) -> void:
+	var slot := card_btn.get_parent() as Control
+	if slot == null:
+		return
+	var idx := slot.get_index()
+	var push_amount := 18.0
+	for di: int in [-1, 1]:
+		var ni := idx + di
+		if ni < 0 or ni >= hand_row.get_child_count():
+			continue
+		var neighbor_slot := hand_row.get_child(ni) as Control
+		if neighbor_slot == null or neighbor_slot.get_child_count() == 0:
+			continue
+		var neighbor_card := neighbor_slot.get_child(0) as Control
+		# 若邻居正被其他悬停卡推开，离开时不强行复位
+		if not push and neighbor_card is Button and (neighbor_card as Button).is_hovered():
+			continue
+		var target_x := float(di) * push_amount if push else 0.0
+		_kill_hover_x_tween(neighbor_card)
+		var tw := neighbor_card.create_tween()
+		neighbor_card.set_meta("_hover_x_tween", tw)
+		tw.tween_property(neighbor_card, "position:x", target_x, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+static func _kill_hover_x_tween(card: Control) -> void:
+	if card.has_meta("_hover_x_tween"):
+		var t: Tween = card.get_meta("_hover_x_tween") as Tween
+		if t != null and t.is_valid():
+			t.kill()
 
 
 static func _show_card_preview(host: Control, card: CardData, source: Control) -> void:
@@ -385,13 +526,12 @@ static func _show_card_preview(host: Control, card: CardData, source: Control) -
 	host.add_child(preview)
 	preview.set_anchors_preset(Control.PRESET_FULL_RECT)
 	host.size = Vector2(UiBuilders.PREVIEW_W, UiBuilders.PREVIEW_H)
-	# 定位：悬停卡正上方居中（底边距卡顶 10px），水平方向夹在屏幕内
-	var src_rect := source.get_global_rect()
-	var vp_w: float = host.get_viewport_rect().size.x
-	var px := clampf(src_rect.get_center().x - UiBuilders.PREVIEW_W * 0.5, 12.0, vp_w - UiBuilders.PREVIEW_W - 12.0)
-	var py := src_rect.position.y - UiBuilders.PREVIEW_H - 10.0
-	if py < 8.0:
-		py = 8.0
+	# 定位：固定在屏幕中下方/手牌上方，不再跟随扇形角度偏移
+	var vp := host.get_viewport_rect().size
+	var px := (vp.x - UiBuilders.PREVIEW_W) * 0.5
+	var py := vp.y - UiBuilders.PREVIEW_H - 50.0
+	px = clampf(px, 12.0, vp.x - UiBuilders.PREVIEW_W - 12.0)
+	py = clampf(py, 8.0, vp.y - UiBuilders.PREVIEW_H - 8.0)
 	host.position = Vector2(px, py)
 	host.visible = true
 
@@ -406,8 +546,12 @@ static func _find_progress_bar(node: Node) -> ProgressBar:
 	return null
 
 
-static func _animate_hp(panel: PanelContainer, prev: int, cur: int) -> void:
-	# 血条过渡动画 + 受伤红闪：prev < 0 表示无上一帧数据（首次渲染），直接呈现
+const DAMAGE_TIER_SMALL := 5
+const DAMAGE_TIER_HEAVY := 10
+
+
+static func _animate_hp(refs: CombatHudRefs, panel: PanelContainer, prev: int, cur: int, is_break_open: bool) -> void:
+	# 血条过渡动画 + 分层打击反馈：prev < 0 表示无上一帧数据（首次渲染），直接呈现
 	if panel == null or prev < 0:
 		return
 	var bar := _find_progress_bar(panel)
@@ -420,18 +564,326 @@ static func _animate_hp(panel: PanelContainer, prev: int, cur: int) -> void:
 				tw.kill()
 		)
 	if prev > cur:
-		_hit_flash(panel)
+		var dmg := prev - cur
+		var tier := _damage_tier(dmg, is_break_open)
+		match tier:
+			"heavy":
+				_hit_flash(panel, dmg, is_break_open)
+				_shake_panel(panel, 5.5, 0.18)
+				_shake_screen(refs, 7.0, 0.22)
+				_freeze_panel(panel, 0.08)
+				_spawn_damage_particles(refs, panel, dmg, is_break_open)
+			"medium":
+				_hit_flash(panel, dmg, is_break_open)
+				_shake_panel(panel, 4.0, 0.14)
+			_:
+				# 小伤害：轻微红闪（数字飘字由 Main 侧 fx 事件统一处理）
+				_hit_flash(panel, dmg, is_break_open)
+	elif prev < cur:
+		var healed := cur - prev
+		_heal_glow(refs, panel, healed)
 
 
-static func _hit_flash(panel: PanelContainer) -> void:
+static func _damage_tier(dmg: int, is_break_open: bool) -> String:
+	if dmg >= DAMAGE_TIER_HEAVY or is_break_open:
+		return "heavy"
+	if dmg >= DAMAGE_TIER_SMALL:
+		return "medium"
+	return "small"
+
+
+static func _hit_flash(panel: PanelContainer, dmg: int = 0, is_break_open: bool = false) -> void:
 	var base: Color = panel.modulate
 	var tw := panel.create_tween()
-	tw.tween_property(panel, "modulate", Color(1.5, 0.55, 0.45), 0.06)
-	tw.tween_property(panel, "modulate", base, 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if dmg >= DAMAGE_TIER_HEAVY or is_break_open:
+		# 重击 / 崩解：更亮更长的定格红闪
+		tw.tween_property(panel, "modulate", Color(1.85, 0.72, 0.62), 0.04)
+		tw.chain().tween_interval(0.08)
+		tw.tween_property(panel, "modulate", Color(1.35, 0.48, 0.38), 0.12)
+		tw.tween_property(panel, "modulate", base, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	elif dmg >= DAMAGE_TIER_SMALL:
+		tw.tween_property(panel, "modulate", Color(1.6, 0.55, 0.45), 0.06)
+		tw.tween_property(panel, "modulate", base, 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	else:
+		tw.tween_property(panel, "modulate", Color(1.35, 0.6, 0.5), 0.06)
+		tw.tween_property(panel, "modulate", base, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	panel.tree_exiting.connect(func() -> void:
 		if tw != null and tw.is_valid():
 			tw.kill()
 	)
+
+
+static func _heal_glow(refs: CombatHudRefs, panel: PanelContainer, amount: int = 0) -> void:
+	var base: Color = panel.modulate
+	var tw := panel.create_tween()
+	tw.tween_property(panel, "modulate", Color(0.75, 1.15, 0.8), 0.12)
+	tw.tween_property(panel, "modulate", base, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	panel.tree_exiting.connect(func() -> void:
+		if tw != null and tw.is_valid():
+			tw.kill()
+	)
+	if refs.fx_layer != null and amount > 0:
+		var orb_count := mini(4, 1 + amount / 8)
+		_spawn_heal_orbs(refs, panel, orb_count)
+
+
+static func _shake_panel(panel: PanelContainer, amount: float, duration: float) -> void:
+	if panel == null:
+		return
+	var base := panel.position
+	var tw := panel.create_tween()
+	var steps := int(max(3.0, duration * 30.0))
+	var step_dt := duration / float(steps)
+	for i in range(steps):
+		var offset := Vector2(
+			randf_range(-amount, amount),
+			randf_range(-amount, amount)
+		)
+		tw.tween_property(panel, "position", base + offset, step_dt)
+	tw.tween_property(panel, "position", base, step_dt)
+	panel.tree_exiting.connect(func() -> void:
+		if tw != null and tw.is_valid():
+			tw.kill()
+	)
+
+
+static func _shake_screen(refs: CombatHudRefs, amount: float, duration: float) -> void:
+	# 对整个战斗 HUD + 特效层同步施加随机位移，模拟屏幕震动
+	if refs.root == null or refs.fx_layer == null:
+		return
+	var base_root := refs.root.position
+	var base_fx := refs.fx_layer.position
+	var steps := int(max(5.0, duration * 45.0))
+	var step_dt := duration / float(steps)
+	var tw_root := refs.root.create_tween()
+	var tw_fx := refs.fx_layer.create_tween()
+	for i in range(steps):
+		var offset := Vector2(
+			randf_range(-amount, amount),
+			randf_range(-amount, amount)
+		)
+		tw_root.tween_property(refs.root, "position", base_root + offset, step_dt)
+		tw_fx.tween_property(refs.fx_layer, "position", base_fx + offset, step_dt)
+	tw_root.tween_property(refs.root, "position", base_root, step_dt)
+	tw_fx.tween_property(refs.fx_layer, "position", base_fx, step_dt)
+	refs.root.tree_exiting.connect(func() -> void:
+		if tw_root != null and tw_root.is_valid():
+			tw_root.kill()
+		if tw_fx != null and tw_fx.is_valid():
+			tw_fx.kill()
+	)
+
+
+static func _freeze_panel(panel: PanelContainer, duration: float) -> void:
+	# 目标定格：短暂时停感的放大回弹
+	if panel == null:
+		return
+	var tw := panel.create_tween()
+	tw.tween_property(panel, "scale", Vector2(1.04, 1.04), duration * 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(panel, "scale", Vector2.ONE, duration * 0.5).set_delay(duration * 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	panel.tree_exiting.connect(func() -> void:
+		if tw != null and tw.is_valid():
+			tw.kill()
+	)
+
+
+static func _spawn_damage_particles(refs: CombatHudRefs, panel: Control, dmg: int, is_break_open: bool) -> void:
+	# 碎片 / 血迹粒子：用 ColorRect 小方块模拟，无需外部资源
+	if refs.fx_layer == null or panel == null:
+		return
+	var tree := panel.get_tree()
+	if tree == null:
+		return
+	await tree.process_frame
+	if not is_instance_valid(panel) or panel.get_parent() == null or refs.fx_layer.get_parent() == null:
+		return
+	var center := panel.global_position + panel.size * 0.5
+	var base_color := Color("#c0392b") if is_break_open else GameTheme.DAMAGE_ACCENT
+	var count := 12 if is_break_open else mini(8, 3 + dmg / 3)
+	var spread := 56.0 if is_break_open else 38.0
+	for i in range(count):
+		var p := ColorRect.new()
+		var shade := base_color.lightened(randf_range(-0.1, 0.25))
+		p.color = shade
+		var sz := randf_range(3.0, 7.0)
+		p.size = Vector2(sz, sz)
+		p.global_position = center - p.size * 0.5
+		p.rotation = randf() * TAU
+		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		refs.fx_layer.add_child(p)
+		var dir := Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)).normalized()
+		var dist := randf_range(20.0, spread)
+		var dur := randf_range(0.35, 0.75)
+		var tw := p.create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(p, "global_position", center + dir * dist - p.size * 0.5, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(p, "rotation", p.rotation + randf_range(-PI, PI), dur)
+		tw.tween_property(p, "modulate:a", 0.0, dur * 0.8).set_delay(dur * 0.2)
+		tw.chain().tween_callback(p.queue_free)
+
+
+static func _spawn_heal_orbs(refs: CombatHudRefs, panel: Control, count: int) -> void:
+	# 治疗：向上漂浮的绿色光球，方向 / 颜色与伤害形成双重区分
+	if refs.fx_layer == null or panel == null:
+		return
+	var tree := panel.get_tree()
+	if tree == null:
+		return
+	await tree.process_frame
+	if not is_instance_valid(panel) or panel.get_parent() == null or refs.fx_layer.get_parent() == null:
+		return
+	var start := panel.global_position + Vector2(panel.size.x * 0.5, panel.size.y * 0.65)
+	for i in range(count):
+		var orb := PanelContainer.new()
+		orb.size = Vector2(10, 10)
+		var style := StyleBoxFlat.new()
+		style.bg_color = GameTheme.BUFF_ACCENT.lightened(randf_range(0.05, 0.25))
+		style.set_corner_radius_all(5)
+		style.shadow_color = Color(GameTheme.BUFF_ACCENT.r, GameTheme.BUFF_ACCENT.g, GameTheme.BUFF_ACCENT.b, 0.45)
+		style.shadow_size = 4
+		orb.add_theme_stylebox_override("panel", style)
+		orb.global_position = start + Vector2(randf_range(-12, 12), randf_range(-6, 6))
+		orb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		refs.fx_layer.add_child(orb)
+		var tw := orb.create_tween()
+		tw.set_parallel(true)
+		var drift := Vector2(randf_range(-24, 24), -randf_range(48, 78))
+		tw.tween_property(orb, "global_position", orb.global_position + drift, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(orb, "modulate:a", 0.0, 1.0).set_delay(0.35)
+		tw.chain().tween_callback(orb.queue_free)
+
+
+static func _spawn_status_popups(refs: CombatHudRefs, prev_snapshot: Dictionary, run_state: RunState, combat: CombatController) -> void:
+	# 等布局完成、面板有真实坐标后再生成状态图标飘字
+	if refs.fx_layer == null:
+		return
+	var tree := refs.fx_layer.get_tree()
+	if tree == null:
+		return
+	await tree.process_frame
+	if not is_instance_valid(refs.fx_layer) or refs.fx_layer.get_parent() == null:
+		return
+
+	var player_prev: Dictionary = prev_snapshot.get("player", {}) as Dictionary
+	# 首次渲染无快照，跳过（避免把初始状态当成“获得”）
+	if not player_prev.is_empty():
+		var player_cur := {
+			"rot": run_state.player_rot,
+			"bleed": run_state.player_bleed,
+			"vulnerable": run_state.player_vulnerable,
+			"strength": run_state.player_strength,
+		}
+		_compare_status_and_popup(refs, refs.player_panel, player_prev, player_cur)
+
+	for ei in refs.enemy_panels:
+		if ei >= combat.enemies.size():
+			continue
+		var e: Dictionary = combat.enemies[ei]
+		var prev: Dictionary = prev_snapshot.get("enemy_%d" % ei, {}) as Dictionary
+		if prev.is_empty():
+			continue
+		var cur := {
+			"rot": int(e.rot),
+			"bleed": int(e.bleed),
+			"vulnerable": int(e.vulnerable),
+			"strength": int(e.strength),
+			"break_open": 1 if bool(e.get("break_open", false)) else 0,
+		}
+		_compare_status_and_popup(refs, refs.enemy_panels[ei], prev, cur)
+
+
+static func _compare_status_and_popup(refs: CombatHudRefs, panel: PanelContainer, prev: Dictionary, cur: Dictionary) -> void:
+	if panel == null or refs.fx_layer == null:
+		return
+	for key in cur:
+		var prev_val: int = int(prev.get(key, 0))
+		var cur_val: int = int(cur.get(key, 0))
+		var delta := cur_val - prev_val
+		if delta > 0:
+			_spawn_status_popup(refs, panel, str(key), delta)
+
+
+static func _status_popup_meta(status_id: String) -> Dictionary:
+	match status_id:
+		"rot":
+			return {"name": "腐败", "icon": "res://assets/icons/icon_flame.svg", "color": GameTheme.status_color("rot")}
+		"bleed":
+			return {"name": "出血", "icon": "res://assets/icons/icon_sword.svg", "color": GameTheme.status_color("bleed")}
+		"vulnerable":
+			return {"name": "易伤", "icon": "res://assets/icons/icon_skull.svg", "color": GameTheme.status_color("vulnerable")}
+		"strength":
+			return {"name": "力量", "icon": "res://assets/icons/icon_arrow_right.svg", "color": GameTheme.status_color("strength")}
+		"break_open":
+			return {"name": "破绽", "icon": "res://assets/icons/icon_sword.svg", "color": GameTheme.GOLD}
+		_:
+			return {"name": status_id, "icon": "", "color": GameTheme.TEXT_MUTED}
+
+
+static func _spawn_status_popup(refs: CombatHudRefs, panel: Control, status_id: String, delta: int) -> void:
+	if refs.fx_layer == null or panel == null:
+		return
+	if not is_instance_valid(panel) or panel.get_parent() == null:
+		return
+	var meta := _status_popup_meta(status_id)
+	var color: Color = meta.color
+	var is_buff := status_id == "strength"
+
+	var popup := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = color.darkened(0.55)
+	style.border_color = color.lightened(0.2)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(5)
+	style.shadow_color = Color(0, 0, 0, 0.45)
+	style.shadow_size = 3
+	style.shadow_offset = Vector2(0, 1)
+	popup.add_theme_stylebox_override("panel", style)
+	popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 3)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	popup.add_child(row)
+
+	var icon_path: String = meta.icon
+	if icon_path != "":
+		var tex := load(icon_path) as Texture2D
+		if tex != null:
+			var icon := TextureRect.new()
+			icon.texture = tex
+			icon.custom_minimum_size = Vector2(12, 12)
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.modulate = color.lightened(0.35)
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			row.add_child(icon)
+
+	var label := Label.new()
+	label.text = "%s +%d" % [meta.name, delta]
+	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_color_override("font_color", color.lightened(0.35))
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(label)
+
+	refs.fx_layer.add_child(popup)
+	popup.size = popup.get_minimum_size()
+	var start := panel.global_position + Vector2(panel.size.x * 0.5 - popup.size.x * 0.5, panel.size.y * 0.15)
+	popup.global_position = start
+
+	var tw := popup.create_tween()
+	tw.set_parallel(true)
+	var rise := -randf_range(38, 58)
+	var drift := randf_range(-12, 12) if is_buff else 0.0
+	tw.tween_property(popup, "global_position", start + Vector2(drift, rise), 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(popup, "modulate:a", 0.0, 0.7).set_delay(0.25)
+	tw.chain().tween_callback(popup.queue_free)
+
+
+static func _load_portrait(path: String) -> Texture2D:
+	if path == "":
+		return null
+	var tex := load(path) as Texture2D
+	return tex
 
 
 static func _refresh_aim_anchors(aim_line: TargetingLine, panels: Dictionary) -> void:
