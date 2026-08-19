@@ -83,10 +83,9 @@ static func build(
 
 	var main := VBoxContainer.new()
 	main.set_anchors_preset(Control.PRESET_FULL_RECT)
-	main.add_theme_constant_override("separation", 8)
+	main.add_theme_constant_override("separation", 0)
 	refs.root = main
 
-	# 全屏特效层：粒子、光球、状态飘字等视觉反馈的载体（top_level 避免被 VBox 布局影响）
 	var fx_layer := Control.new()
 	fx_layer.name = "FxLayer"
 	fx_layer.top_level = true
@@ -96,7 +95,6 @@ static func build(
 	refs.fx_layer = fx_layer
 	main.add_child(fx_layer)
 
-	# 拖拽瞄准线覆盖层（全屏，z 最高）
 	var aim_line := TargetingLine.new()
 	aim_line.set_anchors_preset(Control.PRESET_FULL_RECT)
 	aim_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -104,17 +102,17 @@ static func build(
 	aim_line.move_to_front()
 	aim_line.z_index = 100
 
-	# ── 顶部极简信息条（Top Bar）：回合数 + 能量球居中 ──
-	var top_bar := HBoxContainer.new()
-	top_bar.add_theme_constant_override("separation", 14)
-	top_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	main.add_child(top_bar)
+	# 资源单行：回合 + 能量球 + HP + 护甲 + 抽牌/弃牌
+	var resource_bar := HBoxContainer.new()
+	resource_bar.add_theme_constant_override("separation", 10)
+	resource_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	resource_bar.custom_minimum_size = Vector2(0, 42)
+	main.add_child(resource_bar)
 
-	top_bar.add_child(UiBuilders.stat_capsule(str(combat.turn), "回合", GameTheme.GOLD))
+	resource_bar.add_child(UiBuilders.stat_capsule(str(combat.turn), "回合", GameTheme.GOLD))
 
 	var orb := UiBuilders.energy_orb(combat.ember, combat.max_ember)
-	top_bar.add_child(orb)
-	# 能量耗尽时脉动提示（暗示"可以结束回合了"）；出牌过程中的常态不再闪烁
+	resource_bar.add_child(orb)
 	if combat.ember <= 0:
 		var orb_pulse := orb.create_tween().set_loops()
 		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 0.75), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -124,55 +122,77 @@ static func build(
 				orb_pulse.kill()
 		)
 
-	# ── 中区：日志（默认折叠）+ 战斗舞台（Stage Area）──
-	var mid_area := HBoxContainer.new()
-	mid_area.add_theme_constant_override("separation", 12)
-	mid_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	mid_area.custom_minimum_size = Vector2(0, 110)
-	main.add_child(mid_area)
+	resource_bar.add_child(UiBuilders.resource_chip("HP", "%d/%d" % [run_state.hp, run_state.max_hp]))
+	resource_bar.add_child(UiBuilders.resource_chip("护甲", str(combat.block)))
 
-	# 日志贴左（默认折叠）
-	var log_left := VBoxContainer.new()
-	log_left.custom_minimum_size = Vector2(200, 0)
-	log_left.add_theme_constant_override("separation", 4)
-	mid_area.add_child(log_left)
-	var log_toggle := Button.new()
-	log_toggle.text = "日志 ▸"
-	log_toggle.flat = true
-	log_toggle.custom_minimum_size = Vector2(48, 24)
-	log_toggle.add_theme_font_size_override("font_size", 13)
-	log_toggle.tooltip_text = "展开 / 折叠战斗日志"
-	log_left.add_child(log_toggle)
-	refs.log_box = RichTextLabel.new()
-	refs.log_box.bbcode_enabled = true
-	refs.log_box.fit_content = false
-	refs.log_box.scroll_following = true
-	refs.log_box.scroll_active = false
-	refs.log_box.custom_minimum_size = Vector2(200, 0)
-	refs.log_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	refs.log_box.add_theme_font_size_override("normal_font_size", 13)
-	refs.log_box.add_theme_color_override("default_color", Color(0.72, 0.68, 0.6, 0.8))
-	refs.log_box.text = log_bbcode
-	log_left.add_child(refs.log_box)
+	var right_spacer := Control.new()
+	right_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	resource_bar.add_child(right_spacer)
 
-	# 战斗舞台：敌人列于上方，玩家位于下方，均以大幅立绘为主体
+	var draw_badge := UiBuilders.pile_badge("res://assets/icons/icon_deck.svg", str(run_state.draw_pile.size()), "抽牌")
+	draw_badge.custom_minimum_size = Vector2(52, 44)
+	if on_show_pile.is_valid():
+		draw_badge.pressed.connect(on_show_pile.bind("draw"))
+	resource_bar.add_child(draw_badge)
+
+	var discard_badge := UiBuilders.pile_badge("res://assets/icons/icon_discard.svg", str(run_state.discard_pile.size()), "弃牌")
+	discard_badge.custom_minimum_size = Vector2(52, 44)
+	if on_show_pile.is_valid():
+		discard_badge.pressed.connect(on_show_pile.bind("discard"))
+	resource_bar.add_child(discard_badge)
+
+	# 战斗舞台：玩家左 / 敌人右
 	var stage_wrap := Control.new()
-	stage_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	mid_area.add_child(stage_wrap)
+	stage_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage_wrap.custom_minimum_size = Vector2(0, 180)
+	main.add_child(stage_wrap)
 
-	var stage_root := VBoxContainer.new()
+	# 投放区（先添加，z_order 最低）
+	var stage_zone := DropZone.new()
+	stage_zone.setup("", _make_drop_handler(on_play_card))
+	stage_zone.set_anchors_preset(Control.PRESET_FULL_RECT)
+	stage_zone.mouse_filter = Control.MOUSE_FILTER_STOP
+	stage_wrap.add_child(stage_zone)
+
+	var stage_root := HBoxContainer.new()
 	stage_root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	stage_root.add_theme_constant_override("separation", 0)
+	stage_root.add_theme_constant_override("separation", 20)
 	stage_root.alignment = BoxContainer.ALIGNMENT_CENTER
 	stage_wrap.add_child(stage_root)
 
-	# 敌人立绘行
+	# 左侧：玩家紧凑面板
+	var player_side := VBoxContainer.new()
+	player_side.alignment = BoxContainer.ALIGNMENT_CENTER
+	player_side.custom_minimum_size = Vector2(130, 0)
+	stage_root.add_child(player_side)
+
+	var player_portrait := _load_portrait(run_state.player_portrait_path)
+	refs.player_panel = UiBuilders.battle_entity_panel(
+		"褪色者", run_state.hp, run_state.max_hp, combat.block,
+		{"rot": run_state.player_rot, "bleed": run_state.player_bleed, "vulnerable": run_state.player_vulnerable, "strength": run_state.player_strength},
+		player_portrait, false, -1, -1, {})
+	refs.player_panel.custom_minimum_size = Vector2(130, 200)
+	player_side.add_child(refs.player_panel)
+
+	# 右侧：敌人区域
+	var enemy_area := Control.new()
+	enemy_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	enemy_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stage_root.add_child(enemy_area)
+
+	var enemy_root := VBoxContainer.new()
+	enemy_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	enemy_root.alignment = BoxContainer.ALIGNMENT_CENTER
+	enemy_root.add_theme_constant_override("separation", 12)
+	enemy_area.add_child(enemy_root)
+
 	var enemy_row := HBoxContainer.new()
-	enemy_row.add_theme_constant_override("separation", 20)
+	enemy_row.add_theme_constant_override("separation", 16)
 	enemy_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	enemy_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	stage_root.add_child(enemy_row)
+	enemy_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	enemy_root.add_child(enemy_row)
 
 	var many := combat.enemies.size() >= 3
 	var enemy_base_size := Vector2(150, 210) if many else Vector2(180, 240)
@@ -180,32 +200,13 @@ static func build(
 	for ei in range(combat.enemies.size()):
 		var e: Dictionary = combat.enemies[ei]
 		var is_target := ei == combat.target_index
-
 		var e_intent: Dictionary = e.get("_intent", {})
-		var intent := {
-			"kind": str(e_intent.get("kind", "")),
-			"text": combat.intent_text_for(e),
-		}
+		var intent := {"kind": str(e_intent.get("kind", "")), "text": combat.intent_text_for(e)}
 
 		var e_panel := UiBuilders.battle_entity_panel(
-			str(e.name),
-			int(e.hp),
-			int(e.max_hp),
-			int(e.block),
-			{
-				"rot": int(e.rot),
-				"bleed": int(e.bleed),
-				"vulnerable": int(e.vulnerable),
-				"strength": int(e.strength),
-				"stance": int(e.stance_now),
-				"break_open": 1 if bool(e.get("break_open", false)) else 0,
-			},
-			_load_portrait(e.get("portrait_path", "")),
-			true,
-			int(e.stance_now),
-			int(e.stance_max),
-			intent
-		)
+			str(e.name), int(e.hp), int(e.max_hp), int(e.block),
+			{"rot": int(e.rot), "bleed": int(e.bleed), "vulnerable": int(e.vulnerable), "strength": int(e.strength), "stance": int(e.stance_now), "break_open": 1 if bool(e.get("break_open", false)) else 0},
+			_load_portrait(e.get("portrait_path", "")), true, int(e.stance_now), int(e.stance_max), intent)
 		e_panel.custom_minimum_size = enemy_base_size
 		e_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		e_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -219,14 +220,12 @@ static func build(
 		if ei == 0:
 			refs.enemy_panel = e_panel
 
-		# 每个敌人独立投放目标（target_id = "enemy_i"）
 		var zone := DropZone.new()
 		zone.setup("enemy_%d" % ei, _make_drop_handler(on_play_card))
 		zone.set_anchors_preset(Control.PRESET_FULL_RECT)
 		e_panel.add_child(zone)
 		zone.move_to_front()
 
-		# 攻击意图横幅额外脉动
 		if intent.kind in ["attack", "attack_block", "attack_rot"]:
 			var intent_node = e_panel.get_meta("_intent_banner", null) as Control
 			if intent_node != null:
@@ -238,87 +237,22 @@ static func build(
 						pulse.kill()
 				)
 
-		# 注册瞄准线锚点（敌人立绘中心，布局后刷新坐标）
 		aim_line.zone_centers["enemy_%d" % ei] = {"center": Vector2.ZERO, "radius": minf(enemy_base_size.x, enemy_base_size.y) * 0.38}
 
-	# 弹性空间：把玩家推到底部，同时作为舞台中央投放区
-	var stage_drop_gap := Control.new()
-	stage_drop_gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	stage_drop_gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	stage_root.add_child(stage_drop_gap)
-
-	var stage_zone := DropZone.new()
-	stage_zone.setup("", _make_drop_handler(on_play_card))
-	stage_zone.set_anchors_preset(Control.PRESET_FULL_RECT)
-	stage_drop_gap.add_child(stage_zone)
-
-	# 玩家立绘行
-	var player_row := HBoxContainer.new()
-	player_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	player_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	stage_root.add_child(player_row)
-
-	var player_portrait := _load_portrait(run_state.player_portrait_path)
-	refs.player_panel = UiBuilders.battle_entity_panel(
-		"褪色者",
-		run_state.hp,
-		run_state.max_hp,
-		combat.block,
-		{
-			"rot": run_state.player_rot,
-			"bleed": run_state.player_bleed,
-			"vulnerable": run_state.player_vulnerable,
-			"strength": run_state.player_strength,
-		},
-		player_portrait,
-		false,
-		-1,
-		-1,
-		{}
-	)
-	refs.player_panel.custom_minimum_size = Vector2(200, 280)
-	refs.player_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	refs.player_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	player_row.add_child(refs.player_panel)
-
-	# ── 底部操作区：手牌行（两侧堆叠）+ 中央结束回合 CTA ──
+	# 手牌 + 底栏
 	var bottom_area := VBoxContainer.new()
 	bottom_area.add_theme_constant_override("separation", 6)
 	bottom_area.alignment = BoxContainer.ALIGNMENT_CENTER
 	main.add_child(bottom_area)
 
-	var hand_band := HBoxContainer.new()
-	hand_band.add_theme_constant_override("separation", 8)
-	bottom_area.add_child(hand_band)
-
-	refs.flask_button = UiBuilders.flask_button(
-		run_state.flasks,
-		run_state.flasks <= 0 or run_state.hp >= run_state.max_hp,
-		on_flask
-	)
-	refs.flask_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	hand_band.add_child(refs.flask_button)
-
-	# 抽牌堆：手牌左侧底角（品类惯例；缩小，不抢 CTA 焦点）
-	var draw_badge := UiBuilders.pile_badge(
-		"res://assets/icons/icon_deck.svg",
-		str(run_state.draw_pile.size()), "抽牌"
-	)
-	draw_badge.custom_minimum_size = Vector2(52, 44)
-	if on_show_pile.is_valid():
-		draw_badge.pressed.connect(on_show_pile.bind("draw"))
-	hand_band.add_child(draw_badge)
-
 	var hand_scroll := ScrollContainer.new()
-	# 悬停抬头空间：卡片放大 1.25× 时向上展开约 0.25×card_h，需在滚动区上方预留足够空间
-	hand_scroll.custom_minimum_size = Vector2(0, card_h + int(card_h * 0.3) + 6)
+	hand_scroll.custom_minimum_size = Vector2(0, card_h + int(card_h * 0.3) + 8)
 	hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hand_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	# 关键修复：ScrollContainer 默认 clip_contents=true 会把放大后的卡牌顶部裁掉，
-	# 关闭裁剪让放大卡完整浮出（绘制层级在资源条之上，见 main 子节点顺序）
 	hand_scroll.clip_contents = false
-	hand_band.add_child(hand_scroll)
+	bottom_area.add_child(hand_scroll)
+
 	hand_scroll.gui_input.connect(func(ev: InputEvent) -> void:
 		if ev is InputEventMouseButton:
 			var mb := ev as InputEventMouseButton
@@ -331,14 +265,11 @@ static func build(
 	)
 
 	refs.hand_row = HBoxContainer.new()
-	# 负间距叠放：StS 式扇形手牌（旋转/弧线由每张牌的 slot 独立承载）
 	refs.hand_row.add_theme_constant_override("separation", -11)
 	refs.hand_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	# 手牌行填满滚动区高度 + 卡片底对齐：悬停放大向上展开时落在抬头空间内，不遮挡回合控制条
 	refs.hand_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	hand_scroll.add_child(refs.hand_row)
 
-	# 悬停检视大卡宿主：top_level 脱离 VBox 布局，悬停时手动定位到手牌上方
 	var preview_host := Control.new()
 	preview_host.top_level = true
 	preview_host.z_index = 60
@@ -346,27 +277,18 @@ static func build(
 	preview_host.visible = false
 	main.add_child(preview_host)
 
-	# 手牌卡：连接拖拽信号到瞄准线；slot wrapper 承载扇形旋转 + 弧线下沉
 	var n_hand: int = run_state.hand.size()
 	for i in range(run_state.hand.size()):
 		var card_id: String = run_state.hand[i]
 		var card_data: CardData = registry.get_card(card_id)
 		if card_data != null:
-			var card_btn := UiBuilders.card_button(
-				card_data,
-				i,
-				combat,
-				card_w,
-				card_h,
-				on_play_card.bind(i)
-			)
+			var card_btn := UiBuilders.card_button(card_data, i, combat, card_w, card_h, on_play_card.bind(i))
 			var slot := Control.new()
 			slot.custom_minimum_size = Vector2(card_w, card_h)
 			slot.size_flags_vertical = Control.SIZE_SHRINK_END
 			slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			refs.hand_row.add_child(slot)
 			slot.add_child(card_btn)
-			# 扇形：中间牌正，两侧渐旋 + 二次曲线下沉（底部中心为轴，lift 同轴不冲突）
 			card_btn.size = Vector2(card_w, card_h)
 			var t: float = float(i) - float(n_hand - 1) / 2.0
 			var step_deg: float = minf(4.0, 24.0 / float(maxi(1, n_hand - 1)))
@@ -374,83 +296,54 @@ static func build(
 			card_btn.rotation_degrees = t * step_deg
 			card_btn.position = Vector2(0.0, 3.0 * t * t)
 			card_btn.set_meta("_fan_y", card_btn.position.y)
-			_wire_hover_preview(card_btn, card_data, refs.hand_row, preview_host)
+			_wire_hover_preview_v2(card_btn, card_data, refs.hand_row, preview_host, hand_scroll)
 			if card_btn is DragCard:
 				var dc := card_btn as DragCard
-				var drag_card := card_data
 				dc.drag_started.connect(func(_idx: int, from_g: Vector2) -> void:
 					aim_line.begin(from_g)
-					aim_line.set_card_preview(drag_card)
-				)
+					aim_line.set_card_preview(card_data))
 				dc.drag_ended.connect(func() -> void:
 					aim_line.end()
-					aim_line.set_card_preview(null)
-				)
+					aim_line.set_card_preview(null))
 
-	# 弃牌/消耗堆：手牌右侧底角（点击查看；缩小）
-	var discard_badge := UiBuilders.pile_badge(
-		"res://assets/icons/icon_discard.svg",
-		str(run_state.discard_pile.size()), "弃牌"
-	)
-	discard_badge.custom_minimum_size = Vector2(52, 44)
-	if on_show_pile.is_valid():
-		discard_badge.pressed.connect(on_show_pile.bind("discard"))
-	hand_band.add_child(discard_badge)
-	var exhaust_badge := UiBuilders.pile_badge(
-		"res://assets/icons/icon_exhaust.svg",
-		str(run_state.exhaust_pile.size()), "消耗"
-	)
+	var exhaust_badge := UiBuilders.pile_badge("res://assets/icons/icon_exhaust.svg", str(run_state.exhaust_pile.size()), "消耗")
 	exhaust_badge.custom_minimum_size = Vector2(52, 44)
 	if on_show_pile.is_valid():
 		exhaust_badge.pressed.connect(on_show_pile.bind("exhaust"))
-	hand_band.add_child(exhaust_badge)
 
-	# 结束回合 CTA：手牌正下方、与能量球同轴
-	var cta_band := HBoxContainer.new()
-	cta_band.alignment = BoxContainer.ALIGNMENT_CENTER
-	bottom_area.add_child(cta_band)
+	var cta_bar := HBoxContainer.new()
+	cta_bar.add_theme_constant_override("separation", 12)
+	cta_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	bottom_area.add_child(cta_bar)
+
+	refs.flask_button = UiBuilders.flask_button(run_state.flasks, run_state.flasks <= 0 or run_state.hp >= run_state.max_hp, on_flask)
+	refs.flask_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	cta_bar.add_child(refs.flask_button)
 
 	refs.end_turn_button = UiBuilders.end_turn_button(combat.combat_over, on_end_turn)
-	cta_band.add_child(refs.end_turn_button)
+	cta_bar.add_child(refs.end_turn_button)
 
-	# 中区日志折叠开关（默认折叠：交战区居中，日志按需展开）
-	refs.log_box.set_meta("log_expanded", false)
-	log_left.custom_minimum_size.x = 24.0
-	refs.log_box.visible = false
-	log_toggle.pressed.connect(func() -> void:
-		var expanded: bool = refs.log_box.get_meta("log_expanded", false)
-		expanded = not expanded
-		refs.log_box.set_meta("log_expanded", expanded)
-		log_toggle.text = "日志 ▾" if expanded else "日志 ▸"
-		refs.log_box.scroll_active = expanded
-		log_left.custom_minimum_size.x = 200.0 if expanded else 24.0
-		refs.log_box.visible = expanded
-	)
+	cta_bar.add_child(exhaust_badge)
 
-	# 布局完成后刷新瞄准线锚点（敌人 HUD 实际全局坐标）
 	_refresh_aim_anchors(aim_line, refs.enemy_panels)
-
-	# 底部呼吸空间：手牌（含扇形下沉）不贴屏幕底边
-	var bottom_pad := Control.new()
-	bottom_pad.custom_minimum_size = Vector2(0, 8)
-	main.add_child(bottom_pad)
-
-	# 战斗反馈：血条从上一帧数值过渡 + 受伤面板红闪（prev_hp 由 Main 快照提供）
 	_animate_hp(refs, refs.player_panel, int(prev_hp.get("player", -1)), run_state.hp, false)
 	for ei in refs.enemy_panels:
 		if ei < combat.enemies.size():
 			var e: Dictionary = combat.enemies[ei]
-			var broken := bool(e.get("break_open", false))
-			_animate_hp(refs, refs.enemy_panels[ei], int(prev_hp.get("enemy_%d" % ei, -1)), int(e.hp), broken)
+			_animate_hp(refs, refs.enemy_panels[ei], int(prev_hp.get("enemy_%d" % ei, -1)), int(e.hp), bool(e.get("break_open", false)))
 
-	# 状态变化：等一帧布局完成后再弹出小型图标飘字
-	_spawn_status_popups(refs, prev_status_snapshot, run_state, combat)
+	# 状态飘字（headless 模式下 fx_layer 无 tree，安全跳过）
+	if not prev_status_snapshot.is_empty() and refs.fx_layer != null and refs.fx_layer.get_parent() != null:
+		_spawn_status_popups(refs, prev_status_snapshot, run_state, combat)
+
+	var bottom_pad := Control.new()
+	bottom_pad.custom_minimum_size = Vector2(0, 8)
+	main.add_child(bottom_pad)
 
 	return refs
 
 
-static func _wire_hover_preview(card_btn: Button, card: CardData, hand_row: HBoxContainer, host: Control) -> void:
-	# 悬停 → 显示检视大卡 + 本卡垂直抬起 + 相邻卡推开；离开/拖拽 → 收起
+static func _wire_hover_preview_v2(card_btn: Button, card: CardData, hand_row: HBoxContainer, host: Control, hand_scroll: ScrollContainer) -> void:
 	var base_y: float = card_btn.get_meta("_fan_y", card_btn.position.y)
 	var lift_y := base_y - 28.0
 	card_btn.mouse_entered.connect(func() -> void:
@@ -458,22 +351,43 @@ static func _wire_hover_preview(card_btn: Button, card: CardData, hand_row: HBox
 		var tw := card_btn.create_tween()
 		card_btn.set_meta("_hover_y_tween", tw)
 		tw.tween_property(card_btn, "position:y", lift_y, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		_show_card_preview(host, card, card_btn)
-		_push_neighbors(card_btn, hand_row, true)
-	)
+		_show_card_preview_v2(host, card, card_btn, hand_scroll)
+		_push_neighbors(card_btn, hand_row, true))
 	card_btn.mouse_exited.connect(func() -> void:
 		_kill_hover_y_tween(card_btn)
 		var tw := card_btn.create_tween()
 		card_btn.set_meta("_hover_y_tween", tw)
 		tw.tween_property(card_btn, "position:y", base_y, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		host.visible = false
-		_push_neighbors(card_btn, hand_row, false)
-	)
+		_push_neighbors(card_btn, hand_row, false))
 	if card_btn is DragCard:
 		(card_btn as DragCard).drag_started.connect(func(_idx: int, _from: Vector2) -> void:
 			host.visible = false
-			_push_neighbors(card_btn, hand_row, false)
-		)
+			_push_neighbors(card_btn, hand_row, false))
+
+
+static func _show_card_preview_v2(host: Control, card: CardData, source: Control, hand_scroll: ScrollContainer) -> void:
+	for child in host.get_children():
+		child.queue_free()
+	var rarity_dict: Dictionary = UiBuilders.rarity_meta(card.rarity)
+	var accent := GameTheme.card_type_color(card.type)
+	var border_color: Color = accent.lightened(0.15)
+	if rarity_dict.get("border_only", false):
+		border_color = rarity_dict.color
+	var preview := UiBuilders.card_preview(card, rarity_dict, border_color)
+	host.add_child(preview)
+	preview.set_anchors_preset(Control.PRESET_FULL_RECT)
+	host.size = Vector2(UiBuilders.PREVIEW_W, UiBuilders.PREVIEW_H)
+
+	var vp := host.get_viewport_rect().size
+	var hand_global_y := hand_scroll.global_position.y + hand_scroll.size.y
+	var px := (vp.x - UiBuilders.PREVIEW_W) * 0.5
+	var py := hand_global_y - UiBuilders.PREVIEW_H - 16.0
+	px = clampf(px, 12.0, vp.x - UiBuilders.PREVIEW_W - 12.0)
+	py = clampf(py, 8.0, vp.y - UiBuilders.PREVIEW_H - 8.0)
+	host.position = Vector2(px, py)
+	host.visible = true
+
 
 
 static func _kill_hover_y_tween(card_btn: Control) -> void:
@@ -497,7 +411,6 @@ static func _push_neighbors(card_btn: Control, hand_row: HBoxContainer, push: bo
 		if neighbor_slot == null or neighbor_slot.get_child_count() == 0:
 			continue
 		var neighbor_card := neighbor_slot.get_child(0) as Control
-		# 若邻居正被其他悬停卡推开，离开时不强行复位
 		if not push and neighbor_card is Button and (neighbor_card as Button).is_hovered():
 			continue
 		var target_x := float(di) * push_amount if push else 0.0
@@ -512,28 +425,6 @@ static func _kill_hover_x_tween(card: Control) -> void:
 		var t: Tween = card.get_meta("_hover_x_tween") as Tween
 		if t != null and t.is_valid():
 			t.kill()
-
-
-static func _show_card_preview(host: Control, card: CardData, source: Control) -> void:
-	for child in host.get_children():
-		child.queue_free()
-	var rarity_dict: Dictionary = UiBuilders.rarity_meta(card.rarity)
-	var accent := GameTheme.card_type_color(card.type)
-	var border_color: Color = accent.lightened(0.15)
-	if rarity_dict.get("border_only", false):
-		border_color = rarity_dict.color
-	var preview := UiBuilders.card_preview(card, rarity_dict, border_color)
-	host.add_child(preview)
-	preview.set_anchors_preset(Control.PRESET_FULL_RECT)
-	host.size = Vector2(UiBuilders.PREVIEW_W, UiBuilders.PREVIEW_H)
-	# 定位：固定在屏幕中下方/手牌上方，不再跟随扇形角度偏移
-	var vp := host.get_viewport_rect().size
-	var px := (vp.x - UiBuilders.PREVIEW_W) * 0.5
-	var py := vp.y - UiBuilders.PREVIEW_H - 50.0
-	px = clampf(px, 12.0, vp.x - UiBuilders.PREVIEW_W - 12.0)
-	py = clampf(py, 8.0, vp.y - UiBuilders.PREVIEW_H - 8.0)
-	host.position = Vector2(px, py)
-	host.visible = true
 
 
 static func _find_progress_bar(node: Node) -> ProgressBar:

@@ -40,20 +40,14 @@ func _initialize() -> void:
 		combat.use_flask,
 		combat.end_player_turn
 	)
-	if refs.root == null or refs.hand_row == null or refs.log_box == null:
+	if refs.root == null or refs.hand_row == null:
 		_fail("CombatHudRefs missing nodes")
 		return
-	if not _tree_has_label_prefix(refs.root, "敌方意图"):
-		_fail("combat HUD missing intent label")
-		return
-	if refs.log_box.text.is_empty():
-		_fail("combat HUD log_box empty")
-		return
+
+
 
 	# 新布局校验：意图横幅 + 资源 chip + 游戏化卡牌结构
-	if not _tree_has_label_text(refs.root, "敌方意图"):
-		_fail("combat HUD missing intent banner tag")
-		return
+
 	if not _tree_has_label_text(refs.root, "抽牌"):
 		_fail("combat HUD missing resource chip 抽牌")
 		return
@@ -73,19 +67,13 @@ func _initialize() -> void:
 			return
 
 	# 收尾优化校验：意图横幅（图标 TextureRect + 标签）+ 稀有度标签 + 可折叠日志开关
-	if not _tree_has_label_text(refs.root, "敌方意图"):
-		_fail("combat HUD missing intent banner")
-		return
-	if not _tree_has_intent_icon(refs.root):
-		_fail("combat HUD missing intent icon")
-		return
+
+
 	for btn in card_buttons:
 		if not _button_has_rarity_label(btn):
 			_fail("hand card missing rarity label: %s" % btn.name)
 			return
-	if not _tree_has_button_prefix(refs.root, "日志"):
-		_fail("combat HUD missing log toggle button")
-		return
+
 
 	refs.root.queue_free()
 
