@@ -2,7 +2,7 @@ extends Control
 
 enum GameScreen { TITLE, ORIGIN, MAP, COMBAT, REWARD, GAME_OVER, VICTORY }
 
-const CARD_W := 110.0
+const CARD_W := 120.0
 const CARD_H := 142.0
 const STARTER_DECK := [
 	"longsword", "longsword", "longsword",
@@ -475,7 +475,7 @@ func _render_combat() -> void:
 	_show_ai_overlay("combat")
 	combat_layer.visible = true
 	_clear(combat_layer)
-	_build_header()
+	_build_header(false)
 	var refs := CombatHudView.build(
 		run_state,
 		combat,
@@ -643,13 +643,14 @@ func _fx_host(refs: CombatHudRefs, target: String) -> Control:
 	return null
 
 
-func _build_header() -> void:
+func _build_header(show_hp_flask: bool = true) -> void:
 	var refs := RunHeaderView.build(
 		header,
 		run_state,
 		registry,
 		_show_deck_view,
-		_show_pause_menu
+		_show_pause_menu,
+		show_hp_flask
 	)
 	deck_button = refs["deck"]
 	menu_button = refs["menu"]

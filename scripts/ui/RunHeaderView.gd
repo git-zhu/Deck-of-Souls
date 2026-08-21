@@ -11,39 +11,60 @@ static func build(
 	run_state: RunState,
 	registry: DataRegistry,
 	_on_deck_view: Callable,
-	on_pause_menu: Callable
+	on_pause_menu: Callable,
+	show_hp_flask: bool = true
 ) -> Dictionary:
 	for child in header.get_children():
 		child.queue_free()
 
-	# ── 左：玩家资源（生命 / 圣杯瓶 / 卢恩 / 牌组…）Flex 水平垂直居中，间距统一 12 ──
+	# ── 左：玩家资源（生命 / 圣杯瓶 / 卢恩 / 护符…）Flex 水平垂直居中，间距统一 12 ──
 	var left := HBoxContainer.new()
 	left.add_theme_constant_override("separation", 12)
 	left.set_anchors_preset(Control.PRESET_CENTER_LEFT)
 	left.grow_horizontal = Control.GROW_DIRECTION_END
 	header.add_child(left)
 
-	left.add_child(UiBuilders.header_chip(
-		"res://assets/icons/icon_health.svg",
-		"生命 %d/%d" % [run_state.hp, run_state.max_hp], "生命"
-	))
-	left.add_child(UiBuilders.header_chip(
-		"res://assets/icons/icon_flask.svg",
-		"圣杯瓶 %d/%d" % [run_state.flasks, run_state.max_flasks], "圣杯瓶"
-	))
+	if show_hp_flask:
+		left.add_child(UiBuilders.header_chip(
+			"res://assets/icons/icon_health.svg",
+			"生命 %d/%d" % [run_state.hp, run_state.max_hp], "生命"
+		))
+		left.add_child(UiBuilders.header_chip(
+			"res://assets/icons/icon_flask.svg",
+			"圣杯瓶 %d/%d" % [run_state.flasks, run_state.max_flasks], "圣杯瓶"
+		))
+		# 战斗资源与局内成长资源之间的视觉分隔
+		var sep := PanelContainer.new()
+		sep.custom_minimum_size = Vector2(1, 20)
+		sep.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var sep_style := StyleBoxFlat.new()
+		sep_style.bg_color = GameTheme.BORDER
+		sep.add_theme_stylebox_override("panel", sep_style)
+		left.add_child(sep)
+
+	# ── 局内成长资源：与右侧「查看牌组」互补，不重复展示牌组数量 ──
 	left.add_child(UiBuilders.header_chip(
 		"res://assets/icons/icon_soul.svg",
 		"卢恩 %d" % run_state.souls, "卢恩"
 	))
+
 	if run_state.relics.size() > 0:
+		var relic_tooltip := "护符（点击查看详情）："
+		for relic_id in run_state.relics:
+			var relic := registry.get_relic(relic_id)
+			if relic != null:
+				relic_tooltip += "\n• %s：%s" % [relic.name, relic.body]
 		left.add_child(UiBuilders.header_chip(
 			"res://assets/icons/icon_relic.svg",
-			"护符 %d" % run_state.relics.size(), "护符"
+			"护符 %d" % run_state.relics.size(), relic_tooltip
 		))
 	if run_state.memory_stones > 0:
+		var ms_tooltip := "记忆石 %d/%d\n每颗：起始手牌 +1\n当前加成：+%d" % [
+			run_state.memory_stones, RunState.MAX_MEMORY_STONES, run_state.memory_stones
+		]
 		left.add_child(UiBuilders.header_chip(
 			"res://assets/icons/icon_memory_stone.svg",
-			"记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES], "记忆石"
+			"记忆石 %d/%d" % [run_state.memory_stones, RunState.MAX_MEMORY_STONES], ms_tooltip
 		))
 	# I4/I6/I8 仪式状态芯片：大卢恩 / 引火 / 癫火
 	var inert_runes := 0
@@ -53,15 +74,28 @@ static func build(
 			inert_runes += 1
 		elif str(run_state.great_runes[rk]) not in ["refused"]:
 			active_runes += 1
+	var rune_tooltip := ""
+	for rk in run_state.great_runes.keys():
+		var state := str(run_state.great_runes[rk])
+		var rune := registry.get_relic(rk)
+		var rune_name: String = rune.name if rune != null else rk
+		if state == "":
+			rune_tooltip += "\n• %s：待朝圣激活" % rune_name
+		elif state == "refused":
+			rune_tooltip += "\n• %s：已拒绝" % rune_name
+		else:
+			var bound_relic := registry.get_relic(state)
+			var effect: String = bound_relic.body if bound_relic != null else ""
+			rune_tooltip += "\n• %s：已激活\n  %s" % [rune_name, effect]
 	if inert_runes > 0:
 		left.add_child(UiBuilders.header_chip(
 			"res://assets/icons/icon_relic.svg",
-			"大卢恩 %d（待朝圣）" % inert_runes, "大卢恩"
+			"大卢恩 %d（待朝圣）" % inert_runes, "大卢恩" + rune_tooltip
 		))
 	elif active_runes > 0:
 		left.add_child(UiBuilders.header_chip(
 			"res://assets/icons/icon_relic.svg",
-			"大卢恩 %d（已激活）" % active_runes, "大卢恩"
+			"大卢恩 %d（已激活）" % active_runes, "大卢恩" + rune_tooltip
 		))
 	if run_state.kindling != "":
 		left.add_child(UiBuilders.header_chip(
@@ -71,10 +105,7 @@ static func build(
 		left.add_child(UiBuilders.header_chip(
 			"res://assets/icons/icon_flame.svg", "癫火", "禁忌"
 		))
-	left.add_child(UiBuilders.header_chip(
-		"res://assets/icons/icon_deck.svg",
-		"牌组 %d" % run_state.deck.size(), "牌组"
-	))
+	# 牌组数量已整合到右侧「查看牌组」按钮，顶栏不再重复展示
 
 	# ── 中：场景名称/进度（完美居中，如「宁姆格福踏标 · 1/4」） ──
 	var center := CenterContainer.new()

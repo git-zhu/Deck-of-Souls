@@ -685,17 +685,17 @@ static func compact_fighter_hud(
 			continue
 		match str(key):
 			"rot":
-				chips.add_child(status_chip("腐败 %d" % val, GameTheme.status_color("rot"), "res://assets/icons/icon_flame.svg"))
+				chips.add_child(status_chip("腐败", val, GameTheme.status_color("rot"), "res://assets/icons/icon_flame.svg"))
 			"bleed":
-				chips.add_child(status_chip("出血 %d" % val, GameTheme.status_color("bleed"), "res://assets/icons/icon_sword.svg"))
+				chips.add_child(status_chip("出血", val, GameTheme.status_color("bleed"), "res://assets/icons/icon_sword.svg"))
 			"vulnerable":
-				chips.add_child(status_chip("易伤 %d" % val, GameTheme.status_color("vulnerable"), "res://assets/icons/icon_skull.svg"))
+				chips.add_child(status_chip("易伤", val, GameTheme.status_color("vulnerable"), "res://assets/icons/icon_skull.svg"))
 			"strength":
-				chips.add_child(status_chip("力量 %d" % val, GameTheme.status_color("strength"), "res://assets/icons/icon_arrow_right.svg"))
+				chips.add_child(status_chip("力量", val, GameTheme.status_color("strength"), "res://assets/icons/icon_arrow_right.svg"))
 			"stance":
-				chips.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance"), "res://assets/icons/icon_shield.svg"))
+				chips.add_child(status_chip("姿态", val, GameTheme.status_color("stance"), "res://assets/icons/icon_shield.svg"))
 			"break_open":
-				chips.add_child(status_chip("破绽！", Color("#ffd24a"), "res://assets/icons/icon_sword.svg"))
+				chips.add_child(status_chip("破绽", val, Color("#ffd24a"), "res://assets/icons/icon_sword.svg"))
 	return panel_node
 
 
@@ -759,17 +759,17 @@ static func battle_entity_panel(
 			continue
 		match str(key):
 			"rot":
-				chip_row.add_child(status_chip("腐败 %d" % val, GameTheme.status_color("rot"), "res://assets/icons/icon_flame.svg"))
+				chip_row.add_child(status_chip("腐败", val, GameTheme.status_color("rot"), "res://assets/icons/icon_flame.svg"))
 			"bleed":
-				chip_row.add_child(status_chip("出血 %d" % val, GameTheme.status_color("bleed"), "res://assets/icons/icon_sword.svg"))
+				chip_row.add_child(status_chip("出血", val, GameTheme.status_color("bleed"), "res://assets/icons/icon_sword.svg"))
 			"vulnerable":
-				chip_row.add_child(status_chip("易伤 %d" % val, GameTheme.status_color("vulnerable"), "res://assets/icons/icon_skull.svg"))
+				chip_row.add_child(status_chip("易伤", val, GameTheme.status_color("vulnerable"), "res://assets/icons/icon_skull.svg"))
 			"strength":
-				chip_row.add_child(status_chip("力量 %d" % val, GameTheme.status_color("strength"), "res://assets/icons/icon_arrow_right.svg"))
+				chip_row.add_child(status_chip("力量", val, GameTheme.status_color("strength"), "res://assets/icons/icon_arrow_right.svg"))
 			"stance":
-				chip_row.add_child(status_chip("姿态 %d/%d" % [val, stance_max], GameTheme.status_color("stance"), "res://assets/icons/icon_shield.svg"))
+				chip_row.add_child(status_chip("姿态", val, GameTheme.status_color("stance"), "res://assets/icons/icon_shield.svg"))
 			"break_open":
-				chip_row.add_child(status_chip("破绽！", Color("#ffd24a"), "res://assets/icons/icon_sword.svg"))
+				chip_row.add_child(status_chip("破绽", val, Color("#ffd24a"), "res://assets/icons/icon_sword.svg"))
 
 	# 立绘区
 	var portrait_container := PanelContainer.new()
@@ -880,9 +880,10 @@ static func _block_badge(value: int) -> PanelContainer:
 	return badge
 
 
-static func status_chip(text: String, color: Color, icon_path: String = "") -> PanelContainer:
-	# 状态 chip：图标（若有）+ 数值，StS 式 buff/debuff 视觉
+static func status_chip(status_name: String, value: int, color: Color, icon_path: String = "") -> PanelContainer:
+	# 状态 chip：图标 + 数字（名称放进 tooltip），减少面板顶部拥挤
 	var chip := PanelContainer.new()
+	chip.tooltip_text = "%s %d" % [status_name, value]
 	var style := StyleBoxFlat.new()
 	style.bg_color = color.darkened(0.55)
 	style.border_color = color
@@ -913,8 +914,8 @@ static func status_chip(text: String, color: Color, icon_path: String = "") -> P
 			row.add_child(icon)
 
 	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", 12)
+	label.text = str(value)
+	label.add_theme_font_size_override("font_size", 13)
 	label.add_theme_color_override("font_color", color.lightened(0.35))
 	row.add_child(label)
 	return chip
@@ -974,18 +975,18 @@ static func intent_banner(intent_kind: String, intent_text: String, show_tag: bo
 	return panel_node
 
 
-static func energy_orb(ember: int, max_ember: int) -> PanelContainer:
+static func energy_orb(ember: int, max_ember: int, turn: int = -1) -> PanelContainer:
 	# StS 式能量球：金色圆环 + 大号能量数值 —— 每回合的门槛资源，视觉权重最大
 	var orb := PanelContainer.new()
-	orb.custom_minimum_size = Vector2(58, 58)
+	orb.custom_minimum_size = Vector2(62, 62)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color("#3a2d10")
 	style.border_color = GameTheme.GOLD
 	style.set_border_width_all(3)
-	style.corner_radius_top_left = 29
-	style.corner_radius_top_right = 29
-	style.corner_radius_bottom_left = 29
-	style.corner_radius_bottom_right = 29
+	style.corner_radius_top_left = 31
+	style.corner_radius_top_right = 31
+	style.corner_radius_bottom_left = 31
+	style.corner_radius_bottom_right = 31
 	style.shadow_color = Color(0.88, 0.75, 0.4, 0.3)
 	style.shadow_size = 7
 	orb.add_theme_stylebox_override("panel", style)
@@ -1006,34 +1007,60 @@ static func energy_orb(ember: int, max_ember: int) -> PanelContainer:
 	cap.add_theme_font_size_override("font_size", 11)
 	cap.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
 	v.add_child(cap)
+	if turn >= 0:
+		var turn_label := Label.new()
+		turn_label.text = "T%d" % turn
+		turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		turn_label.add_theme_font_size_override("font_size", 10)
+		turn_label.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+		v.add_child(turn_label)
 	return orb
 
 
-static func pile_badge(icon_path: String, value_text: String, label_text: String) -> Button:
-	# 抽牌/弃牌/消耗堆：中性色可点击徽标（查看堆内卡牌；不借用卡牌类型语义色）
+static func pile_badge(icon_path: String, value_text: String, label_text: String, back_color: Color = Color("#1c1812")) -> Button:
+	# 抽牌/弃牌/消耗堆：类卡牌背面视觉 + 角标数字（更像真实牌堆）
 	var badge := Button.new()
 	badge.text = ""
-	badge.custom_minimum_size = Vector2(66, 54)
+	badge.custom_minimum_size = Vector2(66, 58)
 	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	badge.tooltip_text = "查看%s" % label_text
+
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color("#1c1812")
-	style.border_color = GameTheme.BORDER
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(8)
+	style.bg_color = back_color.darkened(0.55)
+	style.border_color = back_color.lightened(0.15)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(6)
 	style.content_margin_left = 6
 	style.content_margin_right = 6
-	style.content_margin_top = 3
-	style.content_margin_bottom = 3
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	style.shadow_color = Color(0, 0, 0, 0.45)
+	style.shadow_size = 4
+	style.shadow_offset = Vector2(0, 2)
 	badge.add_theme_stylebox_override("normal", style)
 	var hover := style.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#26211a")
-	hover.border_color = GameTheme.GOLD.darkened(0.3)
+	hover.bg_color = back_color.darkened(0.4)
+	hover.border_color = GameTheme.GOLD.darkened(0.2)
 	badge.add_theme_stylebox_override("hover", hover)
 	var pressed := style.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color("#14110d")
+	pressed.bg_color = back_color.darkened(0.7)
 	badge.add_theme_stylebox_override("pressed", pressed)
 	badge.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+	# 卡牌背纹：两条细竖线
+	var back_overlay := Control.new()
+	back_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	back_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	back_overlay.z_index = -1
+	badge.add_child(back_overlay)
+	back_overlay.draw.connect(func() -> void:
+		var r := back_overlay.get_rect()
+		var c1 := back_color.darkened(0.25)
+		var c2 := back_color.lightened(0.08)
+		back_overlay.draw_rect(Rect2(r.position + Vector2(r.size.x * 0.25 - 2, r.size.y * 0.15), Vector2(4, r.size.y * 0.7)), c1, true)
+		back_overlay.draw_rect(Rect2(r.position + Vector2(r.size.x * 0.75 - 2, r.size.y * 0.15), Vector2(4, r.size.y * 0.7)), c2, true)
+	)
+
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_theme_constant_override("separation", 1)
@@ -1051,12 +1078,12 @@ static func pile_badge(icon_path: String, value_text: String, label_text: String
 		icon.custom_minimum_size = Vector2(16, 16)
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.modulate = GameTheme.TEXT_MUTED
+		icon.modulate = back_color.lightened(0.5)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(icon)
 	var value := Label.new()
 	value.text = value_text
-	value.add_theme_font_size_override("font_size", 17)
+	value.add_theme_font_size_override("font_size", 18)
 	value.add_theme_color_override("font_color", GameTheme.TEXT)
 	value.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(value)
@@ -1190,8 +1217,8 @@ static func end_turn_button(disabled: bool, on_press: Callable) -> Button:
 	# 结束回合：底部中央主 CTA（深红底 + 金边，hover 放大发光）
 	var btn := Button.new()
 	btn.text = "结束回合  [E]"
-	btn.custom_minimum_size = Vector2(220, 64)
-	btn.add_theme_font_size_override("font_size", 24)
+	btn.custom_minimum_size = Vector2(200, 60)
+	btn.add_theme_font_size_override("font_size", 22)
 	var end_font := GameTheme.display_font()
 	if end_font != null:
 		btn.add_theme_font_override("font", end_font)

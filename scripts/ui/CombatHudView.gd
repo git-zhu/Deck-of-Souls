@@ -65,6 +65,24 @@ static func _make_drop_handler(on_play_card: Callable) -> Callable:
 		on_play_card.call(card_index, target_id)
 
 
+# 把 PanelContainer 包进一个非容器 Control，震动/缩放只影响 wrapper，
+# 不破坏父容器（HBoxContainer/VBoxContainer）自动布局，避免多敌人重叠。
+static func _wrap_panel_for_shake(panel: PanelContainer) -> Control:
+	if panel == null:
+		return null
+	var wrapper := Control.new()
+	wrapper.custom_minimum_size = panel.custom_minimum_size
+	wrapper.size_flags_horizontal = panel.size_flags_horizontal
+	wrapper.size_flags_vertical = panel.size_flags_vertical
+	panel.custom_minimum_size = Vector2.ZERO
+	panel.size_flags_horizontal = Control.SIZE_FILL
+	panel.size_flags_vertical = Control.SIZE_FILL
+	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrapper.add_child(panel)
+	panel.set_meta("_shake_wrapper", wrapper)
+	return wrapper
+
+
 static func build(
 	run_state: RunState,
 	combat: CombatController,
@@ -81,10 +99,14 @@ static func build(
 ) -> CombatHudRefs:
 	var refs := CombatHudRefs.new()
 
+	var wrapper := Control.new()
+	wrapper.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrapper.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	var main := VBoxContainer.new()
 	main.set_anchors_preset(Control.PRESET_FULL_RECT)
 	main.add_theme_constant_override("separation", 0)
-	refs.root = main
+	wrapper.add_child(main)
 
 	var fx_layer := Control.new()
 	fx_layer.name = "FxLayer"
@@ -102,46 +124,7 @@ static func build(
 	aim_line.move_to_front()
 	aim_line.z_index = 100
 
-	# 资源单行：回合 + 能量球 + HP + 护甲 + 抽牌/弃牌
-	var resource_bar := HBoxContainer.new()
-	resource_bar.add_theme_constant_override("separation", 10)
-	resource_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	resource_bar.custom_minimum_size = Vector2(0, 42)
-	main.add_child(resource_bar)
-
-	resource_bar.add_child(UiBuilders.stat_capsule(str(combat.turn), "回合", GameTheme.GOLD))
-
-	var orb := UiBuilders.energy_orb(combat.ember, combat.max_ember)
-	resource_bar.add_child(orb)
-	if combat.ember <= 0:
-		var orb_pulse := orb.create_tween().set_loops()
-		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 0.75), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		orb.tree_exiting.connect(func() -> void:
-			if orb_pulse != null and orb_pulse.is_valid():
-				orb_pulse.kill()
-		)
-
-	resource_bar.add_child(UiBuilders.resource_chip("HP", "%d/%d" % [run_state.hp, run_state.max_hp]))
-	resource_bar.add_child(UiBuilders.resource_chip("护甲", str(combat.block)))
-
-	var right_spacer := Control.new()
-	right_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	resource_bar.add_child(right_spacer)
-
-	var draw_badge := UiBuilders.pile_badge("res://assets/icons/icon_deck.svg", str(run_state.draw_pile.size()), "抽牌")
-	draw_badge.custom_minimum_size = Vector2(52, 44)
-	if on_show_pile.is_valid():
-		draw_badge.pressed.connect(on_show_pile.bind("draw"))
-	resource_bar.add_child(draw_badge)
-
-	var discard_badge := UiBuilders.pile_badge("res://assets/icons/icon_discard.svg", str(run_state.discard_pile.size()), "弃牌")
-	discard_badge.custom_minimum_size = Vector2(52, 44)
-	if on_show_pile.is_valid():
-		discard_badge.pressed.connect(on_show_pile.bind("discard"))
-	resource_bar.add_child(discard_badge)
-
-	# 战斗舞台：玩家左 / 敌人右
+	# 战斗舞台：玩家左 / 敌人右（顶部资源栏已移除，高度归还舞台）
 	var stage_wrap := Control.new()
 	stage_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	stage_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -155,16 +138,23 @@ static func build(
 	stage_zone.mouse_filter = Control.MOUSE_FILTER_STOP
 	stage_wrap.add_child(stage_zone)
 
+	var stage_margin := MarginContainer.new()
+	stage_margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	stage_margin.add_theme_constant_override("margin_left", 16)
+	stage_margin.add_theme_constant_override("margin_right", 16)
+	stage_wrap.add_child(stage_margin)
+
 	var stage_root := HBoxContainer.new()
-	stage_root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	stage_root.add_theme_constant_override("separation", 20)
+	stage_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage_root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stage_root.add_theme_constant_override("separation", 24)
 	stage_root.alignment = BoxContainer.ALIGNMENT_CENTER
-	stage_wrap.add_child(stage_root)
+	stage_margin.add_child(stage_root)
 
 	# 左侧：玩家紧凑面板
 	var player_side := VBoxContainer.new()
 	player_side.alignment = BoxContainer.ALIGNMENT_CENTER
-	player_side.custom_minimum_size = Vector2(130, 0)
+	player_side.custom_minimum_size = Vector2(170, 0)
 	stage_root.add_child(player_side)
 
 	var player_portrait := _load_portrait(run_state.player_portrait_path)
@@ -172,8 +162,9 @@ static func build(
 		"褪色者", run_state.hp, run_state.max_hp, combat.block,
 		{"rot": run_state.player_rot, "bleed": run_state.player_bleed, "vulnerable": run_state.player_vulnerable, "strength": run_state.player_strength},
 		player_portrait, false, -1, -1, {})
-	refs.player_panel.custom_minimum_size = Vector2(130, 200)
-	player_side.add_child(refs.player_panel)
+	refs.player_panel.custom_minimum_size = Vector2(170, 235)
+	var player_wrapper := _wrap_panel_for_shake(refs.player_panel)
+	player_side.add_child(player_wrapper)
 
 	# 右侧：敌人区域
 	var enemy_area := Control.new()
@@ -195,7 +186,7 @@ static func build(
 	enemy_root.add_child(enemy_row)
 
 	var many := combat.enemies.size() >= 3
-	var enemy_base_size := Vector2(150, 210) if many else Vector2(180, 240)
+	var enemy_base_size := Vector2(160, 225) if many else Vector2(200, 260)
 
 	for ei in range(combat.enemies.size()):
 		var e: Dictionary = combat.enemies[ei]
@@ -210,7 +201,8 @@ static func build(
 		e_panel.custom_minimum_size = enemy_base_size
 		e_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		e_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		enemy_row.add_child(e_panel)
+		var e_wrapper := _wrap_panel_for_shake(e_panel)
+		enemy_row.add_child(e_wrapper)
 
 		if is_target:
 			var sel := SelectionOverlay.new()
@@ -245,13 +237,85 @@ static func build(
 	bottom_area.alignment = BoxContainer.ALIGNMENT_CENTER
 	main.add_child(bottom_area)
 
+	# 可折叠战斗日志：浮在 wrapper 左下角，默认收起，不挤压 main VBox 布局
+	var log_panel := PanelContainer.new()
+	log_panel.name = "LogPanel"
+	log_panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	log_panel.mouse_filter = Control.MOUSE_FILTER_PASS
+	log_panel.offset_left = 16
+	log_panel.offset_right = 356
+	log_panel.offset_top = -294
+	log_panel.offset_bottom = -260
+	var log_style := StyleBoxFlat.new()
+	log_style.bg_color = Color("#0d0a08", 0.78)
+	log_style.border_color = GameTheme.BORDER
+	log_style.set_border_width_all(1)
+	log_style.set_corner_radius_all(8)
+	log_style.content_margin_left = 10
+	log_style.content_margin_right = 10
+	log_style.content_margin_top = 6
+	log_style.content_margin_bottom = 6
+	log_panel.add_theme_stylebox_override("panel", log_style)
+	wrapper.add_child(log_panel)
+
+	var log_v := VBoxContainer.new()
+	log_v.mouse_filter = Control.MOUSE_FILTER_PASS
+	log_v.add_theme_constant_override("separation", 4)
+	log_panel.add_child(log_v)
+
+	var log_header := Button.new()
+	log_header.text = "战斗日志 ▼"
+	log_header.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	log_header.custom_minimum_size = Vector2(0, 26)
+	log_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	log_header.add_theme_font_size_override("font_size", 12)
+	log_header.add_theme_color_override("font_color", GameTheme.TEXT_MUTED)
+	log_header.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	log_header.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
+	log_header.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
+	log_header.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	log_v.add_child(log_header)
+
+	refs.log_box = RichTextLabel.new()
+	refs.log_box.bbcode_enabled = true
+	refs.log_box.text = log_bbcode
+	refs.log_box.fit_content = false
+	refs.log_box.scroll_active = true
+	refs.log_box.scroll_following = true
+	refs.log_box.custom_minimum_size = Vector2(0, 92)
+	refs.log_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	refs.log_box.add_theme_font_size_override("normal_font_size", 13)
+	refs.log_box.add_theme_color_override("default_color", GameTheme.TEXT)
+	refs.log_box.visible = false
+	refs.log_box.mouse_filter = Control.MOUSE_FILTER_PASS
+	log_v.add_child(refs.log_box)
+
+	log_panel.set_meta("expanded", false)
+	log_header.pressed.connect(func() -> void:
+		var expanded: bool = log_panel.get_meta("expanded", false)
+		expanded = not expanded
+		log_panel.set_meta("expanded", expanded)
+		log_header.text = "战斗日志 ▲" if expanded else "战斗日志 ▼"
+		refs.log_box.visible = expanded
+		var target_top := -400 if expanded else -294
+		var tw := log_panel.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(log_panel, "offset_top", target_top, 0.15)
+	)
+
+	# 手牌区左右留白：扇形旋转的牌角不贴屏幕边缘
+	var hand_margin := MarginContainer.new()
+	hand_margin.add_theme_constant_override("margin_left", 24)
+	hand_margin.add_theme_constant_override("margin_right", 24)
+	bottom_area.add_child(hand_margin)
+
 	var hand_scroll := ScrollContainer.new()
-	hand_scroll.custom_minimum_size = Vector2(0, card_h + int(card_h * 0.3) + 8)
+	# 手牌区高度按卡牌高度 + 悬停抬升预留，避免扇形侵入舞台/日志
+	hand_scroll.custom_minimum_size = Vector2(0, card_h + int(card_h * 0.22) + 6)
 	hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hand_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	hand_scroll.clip_contents = false
-	bottom_area.add_child(hand_scroll)
+	hand_margin.add_child(hand_scroll)
 
 	hand_scroll.gui_input.connect(func(ev: InputEvent) -> void:
 		if ev is InputEventMouseButton:
@@ -265,8 +329,10 @@ static func build(
 	)
 
 	refs.hand_row = HBoxContainer.new()
-	refs.hand_row.add_theme_constant_override("separation", -11)
-	refs.hand_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	# 更紧凑的扇形叠放：StS 式约 25-30% 重叠，便于一眼扫视整手
+	refs.hand_row.add_theme_constant_override("separation", -32)
+	refs.hand_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	refs.hand_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	refs.hand_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	hand_scroll.add_child(refs.hand_row)
 
@@ -285,16 +351,18 @@ static func build(
 			var card_btn := UiBuilders.card_button(card_data, i, combat, card_w, card_h, on_play_card.bind(i))
 			var slot := Control.new()
 			slot.custom_minimum_size = Vector2(card_w, card_h)
-			slot.size_flags_vertical = Control.SIZE_SHRINK_END
+			# 顶对齐：扇形下沉（position.y）留在手牌区内，不侵入底栏
+			slot.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 			slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			refs.hand_row.add_child(slot)
 			slot.add_child(card_btn)
 			card_btn.size = Vector2(card_w, card_h)
 			var t: float = float(i) - float(n_hand - 1) / 2.0
+			# 更平缓的扇形：5 张时约 ±8°，降低牌顶侵入上方 UI 的程度
 			var step_deg: float = minf(4.0, 24.0 / float(maxi(1, n_hand - 1)))
 			card_btn.pivot_offset = Vector2(card_w * 0.5, card_h)
 			card_btn.rotation_degrees = t * step_deg
-			card_btn.position = Vector2(0.0, 3.0 * t * t)
+			card_btn.position = Vector2(0.0, 2.5 * t * t)
 			card_btn.set_meta("_fan_y", card_btn.position.y)
 			_wire_hover_preview_v2(card_btn, card_data, refs.hand_row, preview_host, hand_scroll)
 			if card_btn is DragCard:
@@ -306,24 +374,51 @@ static func build(
 					aim_line.end()
 					aim_line.set_card_preview(null))
 
-	var exhaust_badge := UiBuilders.pile_badge("res://assets/icons/icon_exhaust.svg", str(run_state.exhaust_pile.size()), "消耗")
-	exhaust_badge.custom_minimum_size = Vector2(52, 44)
-	if on_show_pile.is_valid():
-		exhaust_badge.pressed.connect(on_show_pile.bind("exhaust"))
+	# 底部 HUD：左 [抽牌 | 能量球 | 回合 | 圣杯瓶] / 右 [结束回合 | 弃牌 | 消耗]（StS 式四角布局，中央让位手牌）
+	var bottom_bar := HBoxContainer.new()
+	bottom_bar.add_theme_constant_override("separation", 10)
+	bottom_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	bottom_area.add_child(bottom_bar)
 
-	var cta_bar := HBoxContainer.new()
-	cta_bar.add_theme_constant_override("separation", 12)
-	cta_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	bottom_area.add_child(cta_bar)
+	var draw_badge := UiBuilders.pile_badge("res://assets/icons/icon_deck.svg", str(run_state.draw_pile.size()), "抽牌", GameTheme.CARD_DEFENSE)
+	draw_badge.custom_minimum_size = Vector2(64, 56)
+	if on_show_pile.is_valid():
+		draw_badge.pressed.connect(on_show_pile.bind("draw"))
+	bottom_bar.add_child(draw_badge)
+
+	var orb := UiBuilders.energy_orb(combat.ember, combat.max_ember, combat.turn)
+	bottom_bar.add_child(orb)
+	if combat.ember <= 0:
+		var orb_pulse := orb.create_tween().set_loops()
+		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 0.75), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		orb_pulse.tween_property(orb, "modulate", Color(1, 1, 1, 1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		orb.tree_exiting.connect(func() -> void:
+			if orb_pulse != null and orb_pulse.is_valid():
+				orb_pulse.kill()
+		)
 
 	refs.flask_button = UiBuilders.flask_button(run_state.flasks, run_state.flasks <= 0 or run_state.hp >= run_state.max_hp, on_flask)
 	refs.flask_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	cta_bar.add_child(refs.flask_button)
+	bottom_bar.add_child(refs.flask_button)
+
+	var bar_spacer := Control.new()
+	bar_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom_bar.add_child(bar_spacer)
 
 	refs.end_turn_button = UiBuilders.end_turn_button(combat.combat_over, on_end_turn)
-	cta_bar.add_child(refs.end_turn_button)
+	bottom_bar.add_child(refs.end_turn_button)
 
-	cta_bar.add_child(exhaust_badge)
+	var discard_badge := UiBuilders.pile_badge("res://assets/icons/icon_discard.svg", str(run_state.discard_pile.size()), "弃牌", GameTheme.CARD_ATTACK)
+	discard_badge.custom_minimum_size = Vector2(64, 56)
+	if on_show_pile.is_valid():
+		discard_badge.pressed.connect(on_show_pile.bind("discard"))
+	bottom_bar.add_child(discard_badge)
+
+	var exhaust_badge := UiBuilders.pile_badge("res://assets/icons/icon_exhaust.svg", str(run_state.exhaust_pile.size()), "消耗", GameTheme.TEXT_MUTED)
+	exhaust_badge.custom_minimum_size = Vector2(64, 56)
+	if on_show_pile.is_valid():
+		exhaust_badge.pressed.connect(on_show_pile.bind("exhaust"))
+	bottom_bar.add_child(exhaust_badge)
 
 	_refresh_aim_anchors(aim_line, refs.enemy_panels)
 	_animate_hp(refs, refs.player_panel, int(prev_hp.get("player", -1)), run_state.hp, false)
@@ -340,12 +435,13 @@ static func build(
 	bottom_pad.custom_minimum_size = Vector2(0, 8)
 	main.add_child(bottom_pad)
 
+	refs.root = wrapper
 	return refs
 
 
 static func _wire_hover_preview_v2(card_btn: Button, card: CardData, hand_row: HBoxContainer, host: Control, hand_scroll: ScrollContainer) -> void:
 	var base_y: float = card_btn.get_meta("_fan_y", card_btn.position.y)
-	var lift_y := base_y - 28.0
+	var lift_y := base_y - 42.0
 	card_btn.mouse_entered.connect(func() -> void:
 		_kill_hover_y_tween(card_btn)
 		var tw := card_btn.create_tween()
@@ -402,7 +498,7 @@ static func _push_neighbors(card_btn: Control, hand_row: HBoxContainer, push: bo
 	if slot == null:
 		return
 	var idx := slot.get_index()
-	var push_amount := 18.0
+	var push_amount := 22.0
 	for di: int in [-1, 1]:
 		var ni := idx + di
 		if ni < 0 or ni >= hand_row.get_child_count():
@@ -521,8 +617,50 @@ static func _heal_glow(refs: CombatHudRefs, panel: PanelContainer, amount: int =
 static func _shake_panel(panel: PanelContainer, amount: float, duration: float) -> void:
 	if panel == null:
 		return
-	var base := panel.position
-	var tw := panel.create_tween()
+	# 若 panel 已被包装，则震动 wrapper，避免直接修改容器子节点的 position。
+	var target: Control = panel
+	if panel.has_meta("_shake_wrapper"):
+		var w := panel.get_meta("_shake_wrapper") as Control
+		if w != null:
+			target = w
+	if not is_instance_valid(target):
+		return
+
+	# build 返回前节点尚未加入场景树，无法立刻记录正确 base；
+	# 延迟到进入树后再执行，避免 base=(0,0) 导致恢复后面板重叠。
+	if not target.is_inside_tree():
+		if target.has_meta("_shake_pending"):
+			return
+		target.set_meta("_shake_pending", true)
+		var on_enter := func() -> void:
+			target.remove_meta("_shake_pending")
+			_shake_panel(panel, amount, duration)
+		target.tree_entered.connect(on_enter, CONNECT_ONE_SHOT)
+		return
+
+	var base_key := "_shake_base_pos"
+	var tw_key := "_shake_tween"
+	# 首次震动前等待一次 process_frame，确保父容器已完成布局，
+	# 否则 base position 会是 (0,0)，恢复后会导致多敌人面板重叠。
+	if not target.has_meta(base_key):
+		await target.get_tree().process_frame
+		if not is_instance_valid(target):
+			return
+		target.set_meta(base_key, target.position)
+
+	var is_shaking := false
+	if target.has_meta(tw_key):
+		var active: Tween = target.get_meta(tw_key) as Tween
+		is_shaking = active != null and active.is_valid()
+	var base: Vector2 = target.get_meta(base_key)
+	# 终止旧震动
+	if target.has_meta(tw_key):
+		var old_tw: Tween = target.get_meta(tw_key) as Tween
+		if old_tw != null and old_tw.is_valid():
+			old_tw.kill()
+	# 使用线性插值，避免短时长 quint 缓动带来的末端精度误差
+	var tw := target.create_tween().set_trans(Tween.TRANS_LINEAR)
+	target.set_meta(tw_key, tw)
 	var steps := int(max(3.0, duration * 30.0))
 	var step_dt := duration / float(steps)
 	for i in range(steps):
@@ -530,9 +668,19 @@ static func _shake_panel(panel: PanelContainer, amount: float, duration: float) 
 			randf_range(-amount, amount),
 			randf_range(-amount, amount)
 		)
-		tw.tween_property(panel, "position", base + offset, step_dt)
-	tw.tween_property(panel, "position", base, step_dt)
-	panel.tree_exiting.connect(func() -> void:
+		tw.tween_property(target, "position", base + offset, step_dt)
+	# 最后一步回到基准，并追加回调强制复位，双重保险消除残留漂移
+	tw.tween_property(target, "position", base, step_dt)
+	tw.tween_callback(func() -> void:
+		if is_instance_valid(target):
+			target.position = base
+	)
+	tw.finished.connect(func() -> void:
+		if is_instance_valid(target):
+			target.position = base
+			target.remove_meta(tw_key)
+	)
+	target.tree_exiting.connect(func() -> void:
 		if tw != null and tw.is_valid():
 			tw.kill()
 	)
@@ -542,12 +690,32 @@ static func _shake_screen(refs: CombatHudRefs, amount: float, duration: float) -
 	# 对整个战斗 HUD + 特效层同步施加随机位移，模拟屏幕震动
 	if refs.root == null or refs.fx_layer == null:
 		return
-	var base_root := refs.root.position
-	var base_fx := refs.fx_layer.position
+	var base_key := "_shake_base_pos"
+	var tw_key := "_shake_tween"
+	var base_root: Vector2
+	var base_fx: Vector2
+	for node: Node in [refs.root, refs.fx_layer]:
+		var ctl := node as Control
+		if ctl == null:
+			continue
+		var is_shaking := ctl.has_meta(tw_key)
+		if is_shaking:
+			var active: Tween = ctl.get_meta(tw_key) as Tween
+			is_shaking = active != null and active.is_valid()
+		if not is_shaking:
+			ctl.set_meta(base_key, ctl.position)
+		if ctl.has_meta(tw_key):
+			var old_tw: Tween = ctl.get_meta(tw_key) as Tween
+			if old_tw != null and old_tw.is_valid():
+				old_tw.kill()
+	base_root = refs.root.get_meta(base_key)
+	base_fx = refs.fx_layer.get_meta(base_key)
 	var steps := int(max(5.0, duration * 45.0))
 	var step_dt := duration / float(steps)
-	var tw_root := refs.root.create_tween()
-	var tw_fx := refs.fx_layer.create_tween()
+	var tw_root := refs.root.create_tween().set_trans(Tween.TRANS_LINEAR)
+	var tw_fx := refs.fx_layer.create_tween().set_trans(Tween.TRANS_LINEAR)
+	refs.root.set_meta(tw_key, tw_root)
+	refs.fx_layer.set_meta(tw_key, tw_fx)
 	for i in range(steps):
 		var offset := Vector2(
 			randf_range(-amount, amount),
@@ -557,6 +725,24 @@ static func _shake_screen(refs: CombatHudRefs, amount: float, duration: float) -
 		tw_fx.tween_property(refs.fx_layer, "position", base_fx + offset, step_dt)
 	tw_root.tween_property(refs.root, "position", base_root, step_dt)
 	tw_fx.tween_property(refs.fx_layer, "position", base_fx, step_dt)
+	tw_root.tween_callback(func() -> void:
+		if is_instance_valid(refs.root):
+			refs.root.position = base_root
+	)
+	tw_fx.tween_callback(func() -> void:
+		if is_instance_valid(refs.fx_layer):
+			refs.fx_layer.position = base_fx
+	)
+	tw_root.finished.connect(func() -> void:
+		if is_instance_valid(refs.root):
+			refs.root.position = base_root
+			refs.root.remove_meta(tw_key)
+	)
+	tw_fx.finished.connect(func() -> void:
+		if is_instance_valid(refs.fx_layer):
+			refs.fx_layer.position = base_fx
+			refs.fx_layer.remove_meta(tw_key)
+	)
 	refs.root.tree_exiting.connect(func() -> void:
 		if tw_root != null and tw_root.is_valid():
 			tw_root.kill()
@@ -569,10 +755,15 @@ static func _freeze_panel(panel: PanelContainer, duration: float) -> void:
 	# 目标定格：短暂时停感的放大回弹
 	if panel == null:
 		return
-	var tw := panel.create_tween()
-	tw.tween_property(panel, "scale", Vector2(1.04, 1.04), duration * 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(panel, "scale", Vector2.ONE, duration * 0.5).set_delay(duration * 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	panel.tree_exiting.connect(func() -> void:
+	var target: Control = panel
+	if panel.has_meta("_shake_wrapper"):
+		var w := panel.get_meta("_shake_wrapper") as Control
+		if w != null:
+			target = w
+	var tw := target.create_tween()
+	tw.tween_property(target, "scale", Vector2(1.04, 1.04), duration * 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(target, "scale", Vector2.ONE, duration * 0.5).set_delay(duration * 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	target.tree_exiting.connect(func() -> void:
 		if tw != null and tw.is_valid():
 			tw.kill()
 	)
@@ -581,6 +772,8 @@ static func _freeze_panel(panel: PanelContainer, duration: float) -> void:
 static func _spawn_damage_particles(refs: CombatHudRefs, panel: Control, dmg: int, is_break_open: bool) -> void:
 	# 碎片 / 血迹粒子：用 ColorRect 小方块模拟，无需外部资源
 	if refs.fx_layer == null or panel == null:
+		return
+	if not panel.is_inside_tree() or not refs.fx_layer.is_inside_tree():
 		return
 	var tree := panel.get_tree()
 	if tree == null:
@@ -617,6 +810,8 @@ static func _spawn_heal_orbs(refs: CombatHudRefs, panel: Control, count: int) ->
 	# 治疗：向上漂浮的绿色光球，方向 / 颜色与伤害形成双重区分
 	if refs.fx_layer == null or panel == null:
 		return
+	if not panel.is_inside_tree() or not refs.fx_layer.is_inside_tree():
+		return
 	var tree := panel.get_tree()
 	if tree == null:
 		return
@@ -647,6 +842,8 @@ static func _spawn_heal_orbs(refs: CombatHudRefs, panel: Control, count: int) ->
 static func _spawn_status_popups(refs: CombatHudRefs, prev_snapshot: Dictionary, run_state: RunState, combat: CombatController) -> void:
 	# 等布局完成、面板有真实坐标后再生成状态图标飘字
 	if refs.fx_layer == null:
+		return
+	if not refs.fx_layer.is_inside_tree():
 		return
 	var tree := refs.fx_layer.get_tree()
 	if tree == null:

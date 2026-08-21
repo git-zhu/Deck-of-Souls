@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://n53jvsahrga0"
-path="res://.godot/imported/geirik_knight_portrait.png-48a3ea2c020fdb67b9435aa81dcc11f7.ctex"
+uid="uid://cd3jsmfw6r2g3"
+path="res://.godot/imported/_combat_shot.png-b2d61e7b6a1c90dda8a1b609aee17b41.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/enemies/geirik_knight_portrait.png"
-dest_files=["res://.godot/imported/geirik_knight_portrait.png-48a3ea2c020fdb67b9435aa81dcc11f7.ctex"]
+source_file="res://tools/_combat_shot.png"
+dest_files=["res://.godot/imported/_combat_shot.png-b2d61e7b6a1c90dda8a1b609aee17b41.ctex"]
 
 [params]
 
